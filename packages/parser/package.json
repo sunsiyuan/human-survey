@@ -1,0 +1,22 @@
+{
+  "name": "@mts/parser",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts",
+    "test": "vitest run",
+    "dev": "tsup src/index.ts --format esm --dts --watch"
+  },
+  "dependencies": {
+    "remark-parse": "^11",
+    "unified": "^11",
+    "nanoid": "^5"
+  },
+  "devDependencies": {
+    "tsup": "^8",
+    "vitest": "^3",
+    "typescript": "^5"
+  }
+}
