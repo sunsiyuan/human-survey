@@ -1,39 +1,21 @@
-import type { Question } from '@mts/parser'
-
-type ResponseRecord = {
-  answers: Record<string, string | string[]>
-}
+import type { ChoiceResultsQuestion } from '@/lib/results'
 
 type ChoiceResultProps = {
-  question: Question
-  responses: ResponseRecord[]
+  question: ChoiceResultsQuestion
 }
 
-export function ChoiceResult({ question, responses }: ChoiceResultProps) {
+export function ChoiceResult({ question }: ChoiceResultProps) {
   const options = question.options ?? []
-  const counts = new Map(options.map((option) => [option.id, 0]))
-
-  responses.forEach((response) => {
-    const answer = response.answers[question.id]
-    const values = Array.isArray(answer) ? answer : typeof answer === 'string' ? [answer] : []
-
-    values.forEach((entry) => {
-      const optionId = decodeChoiceValue(entry)
-      if (!optionId || !counts.has(optionId)) {
-        return
-      }
-
-      counts.set(optionId, (counts.get(optionId) ?? 0) + 1)
-    })
-  })
-
-  const maxCount = Math.max(...counts.values(), 0)
-  const totalSelections = Array.from(counts.values()).reduce((sum, value) => sum + value, 0)
+  const maxCount = Math.max(...options.map((option) => question.tally[option.id] ?? 0), 0)
+  const totalSelections = options.reduce(
+    (sum, option) => sum + (question.tally[option.id] ?? 0),
+    0,
+  )
 
   return (
     <div className="space-y-3">
       {options.map((option) => {
-        const count = counts.get(option.id) ?? 0
+        const count = question.tally[option.id] ?? 0
         const percentage =
           totalSelections === 0 ? 0 : Math.round((count / totalSelections) * 100)
         const width = maxCount === 0 ? 0 : Math.max((count / maxCount) * 100, count > 0 ? 8 : 0)
@@ -57,8 +39,4 @@ export function ChoiceResult({ question, responses }: ChoiceResultProps) {
       })}
     </div>
   )
-}
-
-function decodeChoiceValue(value: string) {
-  return value.split('::')[0] ?? ''
 }

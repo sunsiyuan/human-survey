@@ -1,38 +1,12 @@
-import type { Question } from '@mts/parser'
-
-type ResponseRecord = {
-  answers: Record<string, string | string[]>
-}
+import type { MatrixResultsQuestion } from '@/lib/results'
 
 type MatrixResultProps = {
-  question: Question
-  responses: ResponseRecord[]
+  question: MatrixResultsQuestion
 }
 
-export function MatrixResult({ question, responses }: MatrixResultProps) {
+export function MatrixResult({ question }: MatrixResultProps) {
   const options = question.columns?.[0]?.options ?? []
   const rows = question.rows ?? []
-  const counts = rows.reduce<Record<string, Record<string, number>>>((accumulator, row) => {
-    accumulator[row.id] = options.reduce<Record<string, number>>((optionCounts, option) => {
-      optionCounts[option.id] = 0
-      return optionCounts
-    }, {})
-    return accumulator
-  }, {})
-
-  responses.forEach((response) => {
-    const answer = response.answers[question.id]
-    const selections = Array.isArray(answer) ? answer : []
-
-    selections.forEach((entry) => {
-      const [rowId, optionId] = entry.split(':')
-      if (!rowId || !optionId || !counts[rowId] || typeof counts[rowId][optionId] !== 'number') {
-        return
-      }
-
-      counts[rowId][optionId] += 1
-    })
-  })
 
   return (
     <div className="overflow-x-auto rounded-2xl border border-slate-200">
@@ -49,7 +23,7 @@ export function MatrixResult({ question, responses }: MatrixResultProps) {
         </thead>
         <tbody>
           {rows.map((row) => {
-            const rowCounts = counts[row.id]
+            const rowCounts = question.tally[row.id] ?? {}
             const rowMax = Math.max(...Object.values(rowCounts), 0)
 
             return (

@@ -3,14 +3,11 @@ import { notFound } from 'next/navigation'
 import type { Survey } from '@mts/parser'
 
 import { ResultsDashboard } from '@/components/results/ResultsDashboard'
+import {
+  aggregateSurveyResults,
+  type ResponseRecord,
+} from '@/lib/results'
 import { supabase } from '@/lib/supabase'
-
-type ResponseRecord = {
-  id: string
-  survey_id: string
-  answers: Record<string, string | string[]>
-  created_at: string
-}
 
 type PageProps = {
   params: Promise<{ id: string }>
@@ -43,7 +40,10 @@ export default async function ResultsPage({ params }: PageProps) {
       <ResultsDashboard
         surveyId={legacySurveyRow.id}
         survey={legacySurveyRow.schema as Survey}
-        initialResponses={(responses ?? []) as ResponseRecord[]}
+        initialResults={aggregateSurveyResults(
+          legacySurveyRow.schema as Survey,
+          (responses ?? []) as ResponseRecord[],
+        )}
       />
     )
   }

@@ -4,31 +4,29 @@ import { useEffect, useState } from 'react'
 
 import type { Survey } from '@mts/parser'
 
+import {
+  aggregateSurveyResults,
+  type AggregatedSurveyResults,
+  type ResponseRecord,
+} from '@/lib/results'
 import { supabase } from '@/lib/supabase'
 
 import { ChoiceResult } from './ChoiceResult'
 import { MatrixResult } from './MatrixResult'
 import { TextResult } from './TextResult'
 
-type ResponseRecord = {
-  id: string
-  survey_id: string
-  answers: Record<string, string | string[]>
-  created_at: string
-}
-
 type ResultsDashboardProps = {
   surveyId: string
   survey: Survey
-  initialResponses: ResponseRecord[]
+  initialResults: AggregatedSurveyResults
 }
 
 export function ResultsDashboard({
   surveyId,
   survey,
-  initialResponses,
+  initialResults,
 }: ResultsDashboardProps) {
-  const [responses, setResponses] = useState(initialResponses)
+  const [results, setResults] = useState(initialResults)
 
   useEffect(() => {
     const channel = supabase
@@ -43,12 +41,12 @@ export function ResultsDashboard({
         },
         (payload) => {
           const nextResponse = payload.new as ResponseRecord
-          setResponses((current) => {
-            if (current.some((entry) => entry.id === nextResponse.id)) {
+          setResults((current) => {
+            if (current.raw.some((entry) => entry.id === nextResponse.id)) {
               return current
             }
 
-            return [nextResponse, ...current]
+            return aggregateSurveyResults(survey, [nextResponse, ...current.raw])
           })
         },
       )
@@ -57,14 +55,16 @@ export function ResultsDashboard({
     return () => {
       void channel.unsubscribe()
     }
-  }, [surveyId])
+  }, [survey, surveyId])
+
+  const questionResults = new Map(results.questions.map((question) => [question.id, question]))
 
   function exportCsv() {
     const headers = ['response_id', 'created_at', ...survey.sections.flatMap((section) =>
       section.questions.map((question) => question.label),
     )]
 
-    const rows = responses.map((response) => {
+    const rows = results.raw.map((response) => {
       const questionValues = survey.sections.flatMap((section) =>
         section.questions.map((question) => {
           const value = response.answers[question.id]
@@ -108,7 +108,7 @@ export function ResultsDashboard({
             {survey.title}
           </h1>
           <p className="mt-4 text-base text-slate-600">
-            Total responses: <span className="font-semibold text-slate-900">{responses.length}</span>
+            Total responses: <span className="font-semibold text-slate-900">{results.count}</span>
           </p>
         </header>
 
@@ -123,26 +123,34 @@ export function ResultsDashboard({
                   ) : null}
                 </div>
               ) : null}
-              {section.questions.map((question) => (
-                <article
-                  key={question.id}
-                  className="rounded-[2rem] bg-white p-6 shadow-[0_18px_50px_-40px_rgba(15,23,42,0.35)]"
-                >
-                  <h3 className="text-lg font-semibold text-slate-900">{question.label}</h3>
-                  {question.description ? (
-                    <p className="mt-2 text-sm text-slate-500">{question.description}</p>
-                  ) : null}
-                  <div className="mt-5">
-                    {question.type === 'matrix' ? (
-                      <MatrixResult question={question} responses={responses} />
-                    ) : question.type === 'text' ? (
-                      <TextResult question={question} responses={responses} />
-                    ) : (
-                      <ChoiceResult question={question} responses={responses} />
-                    )}
-                  </div>
-                </article>
-              ))}
+              {section.questions.map((question) => {
+                const aggregatedQuestion = questionResults.get(question.id)
+
+                if (!aggregatedQuestion) {
+                  return null
+                }
+
+                return (
+                  <article
+                    key={question.id}
+                    className="rounded-[2rem] bg-white p-6 shadow-[0_18px_50px_-40px_rgba(15,23,42,0.35)]"
+                  >
+                    <h3 className="text-lg font-semibold text-slate-900">{question.label}</h3>
+                    {question.description ? (
+                      <p className="mt-2 text-sm text-slate-500">{question.description}</p>
+                    ) : null}
+                    <div className="mt-5">
+                      {aggregatedQuestion.type === 'matrix' ? (
+                        <MatrixResult question={aggregatedQuestion} />
+                      ) : aggregatedQuestion.type === 'text' ? (
+                        <TextResult question={aggregatedQuestion} />
+                      ) : (
+                        <ChoiceResult question={aggregatedQuestion} />
+                      )}
+                    </div>
+                  </article>
+                )
+              })}
             </section>
           ))}
         </div>

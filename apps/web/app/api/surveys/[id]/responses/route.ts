@@ -1,6 +1,9 @@
 import { nanoid } from 'nanoid'
 import { NextResponse } from 'next/server'
 
+import type { Survey } from '@mts/parser'
+
+import { aggregateSurveyResults } from '@/lib/results'
 import { supabase } from '@/lib/supabase'
 
 type RouteContext = {
@@ -34,6 +37,20 @@ export async function POST(request: Request, context: RouteContext) {
 
 export async function GET(_request: Request, context: RouteContext) {
   const { id: surveyId } = await context.params
+  const { data: surveyRow, error: surveyError } = await supabase
+    .from('surveys')
+    .select('schema')
+    .eq('id', surveyId)
+    .maybeSingle()
+
+  if (surveyError) {
+    return NextResponse.json({ error: surveyError.message }, { status: 500 })
+  }
+
+  if (!surveyRow) {
+    return NextResponse.json({ error: 'Survey not found' }, { status: 404 })
+  }
+
   const { data, error } = await supabase
     .from('responses')
     .select('id, answers, created_at')
@@ -44,8 +61,7 @@ export async function GET(_request: Request, context: RouteContext) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({
-    count: data.length,
-    responses: data,
-  })
+  return NextResponse.json(
+    aggregateSurveyResults((surveyRow.schema ?? {}) as Survey, data ?? []),
+  )
 }

@@ -2,31 +2,20 @@
 
 import { useState } from 'react'
 
-import type { Question } from '@mts/parser'
-
-type ResponseRecord = {
-  id: string
-  answers: Record<string, string | string[]>
-  created_at: string
-}
+import type { TextResultsQuestion } from '@/lib/results'
 
 type TextResultProps = {
-  question: Question
-  responses: ResponseRecord[]
+  question: TextResultsQuestion
 }
 
-export function TextResult({ question, responses }: TextResultProps) {
+export function TextResult({ question }: TextResultProps) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
 
-  const textResponses = responses
-    .map((response) => ({
-      id: response.id,
-      createdAt: response.created_at,
-      value: response.answers[question.id],
-    }))
-    .filter((response): response is { id: string; createdAt: string; value: string } =>
-      typeof response.value === 'string' && response.value.trim().length > 0,
-    )
+  const textResponses = question.responses.map((response, index) => ({
+    id: `${question.id}-${index}`,
+    createdAt: response.created_at,
+    value: response.value,
+  }))
 
   if (textResponses.length === 0) {
     return <p className="text-sm text-slate-500">No text responses yet.</p>
