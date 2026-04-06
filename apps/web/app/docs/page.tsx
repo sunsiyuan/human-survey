@@ -151,8 +151,8 @@ function Section({
   children: React.ReactNode
 }>) {
   return (
-    <section id={id} className="scroll-mt-24 rounded-[1.5rem] border border-[var(--panel-border)] bg-white/86 p-5 shadow-[0_24px_80px_-56px_rgba(14,23,38,0.32)] backdrop-blur sm:p-7">
-      <h2 className="text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">{title}</h2>
+    <section id={id} className="scroll-mt-24 rounded-[1.75rem] border border-[var(--panel-border)] bg-[var(--surface)] p-5 shadow-[0_28px_90px_-68px_rgba(14,23,38,0.38)] backdrop-blur sm:p-7">
+      <h2 className="text-xl font-semibold tracking-[-0.03em] text-slate-950 sm:text-2xl">{title}</h2>
       <div className="mt-4 space-y-5 text-slate-700">{children}</div>
     </section>
   )
@@ -161,12 +161,12 @@ function Section({
 export default function DocsPage() {
   return (
     <main className="min-h-screen bg-[var(--page-gradient)]">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-        <header className="rounded-[1.5rem] border border-[var(--panel-border)] bg-[var(--surface)] p-6 shadow-[0_24px_70px_-52px_rgba(14,23,38,0.32)] sm:p-8">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
+        <header className="rounded-[1.75rem] border border-[var(--panel-border)] bg-[var(--surface)] p-6 shadow-[0_28px_90px_-68px_rgba(14,23,38,0.38)] sm:p-8">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             Docs
           </p>
-          <h1 className="mt-4 max-w-4xl text-3xl leading-tight font-semibold tracking-tight text-slate-950 sm:text-5xl">
+          <h1 className="mt-4 max-w-4xl text-3xl leading-tight font-semibold tracking-[-0.05em] text-slate-950 sm:text-5xl">
             API and protocol reference for AI agents that need human input.
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-7 text-slate-700 sm:text-lg sm:leading-8">

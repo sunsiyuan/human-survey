@@ -122,31 +122,31 @@ export function TryItPanel() {
   return (
     <section
       id="try-it"
-      className="rounded-[1.5rem] border border-black/10 bg-white/88 p-5 shadow-[0_24px_70px_-52px_rgba(14,23,38,0.32)] backdrop-blur sm:p-6"
+      className="rounded-[1.75rem] border border-[var(--panel-border)] bg-[var(--surface)] p-5 shadow-[0_28px_90px_-68px_rgba(14,23,38,0.38)] backdrop-blur sm:p-6 lg:p-7"
     >
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             Try It In Browser
           </p>
-          <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
+          <h2 className="mt-3 max-w-2xl text-2xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-[2rem]">
             Generate a key, create a survey, and inspect the real API flow.
           </h2>
         </div>
-        <p className="max-w-xl text-sm leading-6 text-slate-600">
+        <p className="max-w-xl text-sm leading-6 text-slate-600 sm:text-[15px]">
           This uses <code>POST /api/keys</code> and <code>POST /api/surveys</code>. No client-only
           shortcuts.
         </p>
       </div>
 
       <div className="mt-5 grid gap-4 lg:grid-cols-[0.4fr_0.6fr]">
-        <div className="space-y-4 rounded-[1.25rem] border border-[var(--panel-border)] bg-[var(--surface-muted)] p-4">
+        <div className="space-y-4 rounded-[1.35rem] border border-[var(--panel-border)] bg-[var(--surface-muted)] p-4 sm:p-5">
           <div>
             <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
               Agent Name
             </label>
             <input
-              className="mt-2 h-11 w-full rounded-2xl border border-black/10 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
+              className="mt-2 h-11 w-full rounded-[1rem] border border-black/10 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
               value={agentName}
               onChange={(event) => setAgentName(event.target.value)}
             />
@@ -157,7 +157,7 @@ export function TryItPanel() {
               API Key
             </label>
             <textarea
-              className="mt-2 min-h-28 w-full rounded-2xl border border-black/10 bg-white px-4 py-3 font-mono text-xs leading-6 text-slate-900 outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
+              className="mt-2 min-h-28 w-full rounded-[1rem] border border-black/10 bg-white px-4 py-3 font-mono text-xs leading-6 text-slate-900 outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
               value={apiKey}
               onChange={(event) => setApiKey(event.target.value)}
               placeholder="mts_sk_..."
@@ -176,7 +176,7 @@ export function TryItPanel() {
 
         <form className="space-y-4" onSubmit={handleCreateSurvey}>
           <textarea
-            className="min-h-80 w-full rounded-[1.25rem] border border-[var(--panel-border)] bg-slate-950 px-4 py-4 font-mono text-[13px] leading-6 text-[var(--accent-fg)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)] sm:px-5 sm:text-sm sm:leading-7"
+            className="min-h-80 w-full rounded-[1.35rem] border border-[var(--panel-border)] bg-[var(--code-surface)] px-4 py-4 font-mono text-[13px] leading-6 text-[var(--accent-fg)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)] sm:px-5 sm:text-sm sm:leading-7"
             value={markdown}
             onChange={(event) => setMarkdown(event.target.value)}
           />
@@ -197,19 +197,19 @@ export function TryItPanel() {
       </div>
 
       {status ? (
-        <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+        <div className="mt-4 rounded-[1rem] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
           {status}
         </div>
       ) : null}
 
       {error ? (
-        <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+        <div className="mt-4 rounded-[1rem] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
           {error}
         </div>
       ) : null}
 
       {result ? (
-        <div className="mt-4 grid gap-3 rounded-[1.25rem] border border-black/10 bg-slate-950 p-4 text-sm text-slate-100 sm:grid-cols-3">
+        <div className="mt-4 grid gap-3 rounded-[1.35rem] border border-black/10 bg-[var(--code-surface)] p-4 text-sm text-slate-100 sm:grid-cols-3">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Survey URL</p>
             <a className="mt-2 block break-all underline" href={surveyUrl}>

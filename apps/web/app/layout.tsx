@@ -1,6 +1,18 @@
 import type { Metadata } from 'next'
+import { IBM_Plex_Mono, Instrument_Sans } from 'next/font/google'
 
 import './globals.css'
+
+const instrumentSans = Instrument_Sans({
+  subsets: ['latin'],
+  variable: '--font-sans',
+})
+
+const plexMono = IBM_Plex_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-mono',
+})
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://mts.vercel.app'),
@@ -56,7 +68,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="en" className={`${instrumentSans.variable} ${plexMono.variable} h-full`}>
       <body className="flex min-h-full flex-col bg-[var(--background)] text-[var(--foreground)]">
         <script
           type="application/ld+json"

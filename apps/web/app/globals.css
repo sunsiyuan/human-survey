@@ -1,19 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f4f0e8;
-  --foreground: #17202b;
-  --surface: rgba(255, 252, 247, 0.9);
-  --surface-muted: #ebe5da;
-  --panel-border: rgba(23, 32, 43, 0.1);
-  --accent: #526b82;
-  --accent-strong: #31465b;
-  --accent-soft: rgba(82, 107, 130, 0.14);
-  --accent-fg: #e6edf4;
+  --background: #f2f1ec;
+  --foreground: #18212b;
+  --surface: rgba(255, 255, 252, 0.86);
+  --surface-muted: #e7e4dc;
+  --panel-border: rgba(24, 33, 43, 0.1);
+  --accent: #587086;
+  --accent-strong: #324456;
+  --accent-soft: rgba(88, 112, 134, 0.14);
+  --accent-fg: #e5edf5;
+  --code-surface: #0b1320;
   --page-gradient:
-    radial-gradient(circle at top left, rgba(82, 107, 130, 0.12), transparent 30%),
-    radial-gradient(circle at top right, rgba(152, 163, 176, 0.12), transparent 22%),
-    linear-gradient(180deg, #f7f4ef 0%, #f2eee7 46%, #ece8e0 100%);
+    radial-gradient(circle at top left, rgba(88, 112, 134, 0.1), transparent 28%),
+    radial-gradient(circle at top right, rgba(148, 159, 170, 0.1), transparent 20%),
+    linear-gradient(180deg, #f7f6f1 0%, #f1efea 50%, #ece9e2 100%);
 }
 
 @theme inline {
@@ -30,9 +31,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family:
-    "Aptos",
-    "Segoe UI Variable",
-    "Segoe UI",
+    var(--font-sans),
     "Helvetica Neue",
     ui-sans-serif,
     system-ui,
@@ -44,19 +43,17 @@ h2,
 h3,
 h4 {
   font-family:
-    "Iowan Old Style",
-    "Palatino Linotype",
-    "Book Antiqua",
-    Georgia,
-    serif;
+    var(--font-sans),
+    "Helvetica Neue",
+    ui-sans-serif,
+    system-ui,
+    sans-serif;
 }
 
 code,
 pre {
   font-family:
-    "SFMono-Regular",
-    "Cascadia Code",
-    "JetBrains Mono",
+    var(--font-mono),
     ui-monospace,
     monospace;
 }
