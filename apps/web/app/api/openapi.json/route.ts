@@ -156,17 +156,6 @@ const openApiDocument = {
         },
       },
     },
-    '/api/surveys/by-result/{resultId}': {
-      get: {
-        summary: 'Legacy result lookup by result ID',
-        parameters: [
-          { name: 'resultId', in: 'path', required: true, schema: { type: 'string' } },
-        ],
-        responses: {
-          '200': { description: 'Legacy survey lookup' },
-        },
-      },
-    },
   },
 } as const
 

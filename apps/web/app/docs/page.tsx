@@ -124,7 +124,6 @@ const apiRoutes = [
   ['PATCH /api/surveys/{id}', 'Bearer key', 'Update status, max_responses, or expires_at.'],
   ['POST /api/surveys/{id}/responses', 'Public', 'Submit a response payload.'],
   ['GET /api/surveys/{id}/responses', 'Bearer key', 'Return aggregated question results and raw submissions.'],
-  ['GET /api/surveys/by-result/{resultId}', 'Legacy public', 'Legacy result lookup for old result URLs.'],
 ]
 
 const mcpTools = [

@@ -18,8 +18,6 @@ CREATE TABLE responses (
 
 CREATE INDEX idx_responses_survey ON responses(survey_id);
 
-ALTER PUBLICATION supabase_realtime ADD TABLE responses;
-
 CREATE OR REPLACE FUNCTION increment_response_count()
 RETURNS TRIGGER AS $$
 BEGIN

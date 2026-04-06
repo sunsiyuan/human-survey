@@ -185,11 +185,6 @@ Supported operators:
   - `questions` with precomputed tallies/stats/responses
   - `raw` individual responses
 
-### Legacy
-
-- `GET /api/surveys/by-result/{resultId}` remains for legacy result URLs only
-- `/r/{id}` is deprecated for new surveys
-
 ## Error Responses
 
 - `401 Missing or invalid Authorization header`
