@@ -1,18 +1,6 @@
 import type { Metadata } from 'next'
-import { IBM_Plex_Mono, Space_Grotesk } from 'next/font/google'
 
 import './globals.css'
-
-const sans = Space_Grotesk({
-  subsets: ['latin'],
-  variable: '--font-sans',
-})
-
-const mono = IBM_Plex_Mono({
-  subsets: ['latin'],
-  weight: ['400', '500'],
-  variable: '--font-mono',
-})
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://mts.vercel.app'),
@@ -68,7 +56,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`h-full ${sans.variable} ${mono.variable}`}>
+    <html lang="en" className="h-full">
       <body className="flex min-h-full flex-col bg-[var(--background)] text-[var(--foreground)]">
         <script
           type="application/ld+json"

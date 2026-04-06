@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 
 import { requireAuth } from '@/lib/auth'
-import { supabase } from '@/lib/supabase'
+import { sql } from '@/lib/db'
 
 type RouteContext = {
   params: Promise<{ id: string }>
@@ -22,11 +22,15 @@ export async function DELETE(request: Request, context: RouteContext) {
     )
   }
 
-  const { error } = await supabase.from('api_keys').delete().eq('id', auth.keyId)
+  try {
+    await sql`
+      DELETE FROM api_keys
+      WHERE id = ${auth.keyId}
+    `
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return new NextResponse(null, { status: 204 })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Database error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
-
-  return new NextResponse(null, { status: 204 })
 }

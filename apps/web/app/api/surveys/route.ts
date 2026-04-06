@@ -10,7 +10,7 @@ import {
 } from '@mts/parser'
 
 import { requireAuth } from '@/lib/auth'
-import { supabase } from '@/lib/supabase'
+import { sql } from '@/lib/db'
 
 export async function POST(request: Request) {
   const auth = await requireAuth(request)
@@ -88,22 +88,34 @@ export async function POST(request: Request) {
   const id = nanoid(12)
   const questionCount = countQuestions(survey)
 
-  const { error } = await supabase.from('surveys').insert({
-    id,
-    result_id: null,
-    api_key_id: auth.keyId,
-    title: survey.title,
-    description: survey.description ?? null,
-    schema: survey,
-    markdown: markdown ?? JSON.stringify(schemaInput),
-    response_count: 0,
-    status: 'open',
-    max_responses: maxResponses ?? null,
-    expires_at: expiresAt ?? null,
-  })
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  try {
+    await sql`
+      INSERT INTO surveys (
+        id,
+        api_key_id,
+        title,
+        description,
+        schema,
+        markdown,
+        status,
+        max_responses,
+        expires_at
+      )
+      VALUES (
+        ${id},
+        ${auth.keyId},
+        ${survey.title},
+        ${survey.description ?? null},
+        ${JSON.stringify(survey)}::jsonb,
+        ${markdown ?? JSON.stringify(schemaInput)},
+        'open',
+        ${maxResponses ?? null},
+        ${expiresAt ?? null}::timestamptz
+      )
+    `
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Database error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 
   return NextResponse.json(
@@ -121,17 +133,27 @@ export async function GET(request: Request) {
     return auth
   }
 
-  const { data, error } = await supabase
-    .from('surveys')
-    .select('id, title, status, response_count, max_responses, expires_at, created_at')
-    .eq('api_key_id', auth.keyId)
-    .order('created_at', { ascending: false })
+  try {
+    const rows = (await sql`
+      SELECT id, title, status, response_count, max_responses, expires_at, created_at
+      FROM surveys
+      WHERE api_key_id = ${auth.keyId}
+      ORDER BY created_at DESC
+    `) as Array<{
+      id: string
+      title: string
+      status: string
+      response_count: number
+      max_responses: number | null
+      expires_at: string | null
+      created_at: string
+    }>
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json(rows)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Database error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
-
-  return NextResponse.json(data ?? [])
 }
 
 function countQuestions(survey: Survey) {

@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 
 import { NextResponse } from 'next/server'
 
-import { supabase } from '@/lib/supabase'
+import { sql } from '@/lib/db'
 
 export type AuthResult = {
   keyId: string
@@ -18,26 +18,31 @@ export async function requireAuth(request: Request): Promise<AuthResult | Respon
     )
   }
 
-  const { data, error } = await supabase
-    .from('api_keys')
-    .select('id')
-    .eq('key_hash', hashApiKey(header.slice(7)))
-    .maybeSingle()
+  try {
+    const rows = (await sql`
+      SELECT id
+      FROM api_keys
+      WHERE key_hash = ${hashApiKey(header.slice(7))}
+      LIMIT 1
+    `) as Array<{ id: string }>
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    const row = rows[0]
+
+    if (!row) {
+      return NextResponse.json({ error: 'Invalid API key' }, { status: 401 })
+    }
+
+    void sql`
+      UPDATE api_keys
+      SET last_used_at = now()
+      WHERE id = ${row.id}
+    `.catch(() => {})
+
+    return { keyId: row.id }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Database error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
-
-  if (!data) {
-    return NextResponse.json({ error: 'Invalid API key' }, { status: 401 })
-  }
-
-  void supabase
-    .from('api_keys')
-    .update({ last_used_at: new Date().toISOString() })
-    .eq('id', data.id)
-
-  return { keyId: data.id }
 }
 
 export function hashApiKey(value: string) {

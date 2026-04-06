@@ -2,37 +2,37 @@ import { nanoid } from 'nanoid'
 import { NextResponse } from 'next/server'
 
 import { hashApiKey, requireAuth } from '@/lib/auth'
-import { supabase } from '@/lib/supabase'
+import { sql } from '@/lib/db'
 
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as { name?: string } | null
   const name = body?.name?.trim() || null
   const id = nanoid(12)
   const key = `mts_sk_${nanoid(32)}`
+  const keyHash = hashApiKey(key)
 
-  const { data, error } = await supabase
-    .from('api_keys')
-    .insert({
-      id,
-      key_hash: hashApiKey(key),
-      name,
-    })
-    .select('id, name, created_at')
-    .single()
+  try {
+    const rows = (await sql`
+      INSERT INTO api_keys (id, key_hash, name)
+      VALUES (${id}, ${keyHash}, ${name})
+      RETURNING id, name, created_at
+    `) as Array<{ id: string; name: string | null; created_at: string }>
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    const created = rows[0]
+
+    return NextResponse.json(
+      {
+        id: created.id,
+        key,
+        name: created.name,
+        created_at: created.created_at,
+      },
+      { status: 201 },
+    )
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Database error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
-
-  return NextResponse.json(
-    {
-      id: data.id,
-      key,
-      name: data.name,
-      created_at: data.created_at,
-    },
-    { status: 201 },
-  )
 }
 
 export async function GET(request: Request) {
@@ -41,15 +41,22 @@ export async function GET(request: Request) {
     return auth
   }
 
-  const { data, error } = await supabase
-    .from('api_keys')
-    .select('id, name, created_at, last_used_at')
-    .eq('id', auth.keyId)
-    .order('created_at', { ascending: false })
+  try {
+    const rows = (await sql`
+      SELECT id, name, created_at, last_used_at
+      FROM api_keys
+      WHERE id = ${auth.keyId}
+      ORDER BY created_at DESC
+    `) as Array<{
+      id: string
+      name: string | null
+      created_at: string
+      last_used_at: string | null
+    }>
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json(rows)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Database error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
-
-  return NextResponse.json(data ?? [])
 }

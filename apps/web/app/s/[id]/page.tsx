@@ -5,7 +5,7 @@ import type { Survey } from '@mts/parser'
 import { SurveyClosed } from '@/components/survey/SurveyClosed'
 import { isSurveyClosed } from '@/lib/lifecycle'
 import { SurveyForm } from '@/components/survey/SurveyForm'
-import { supabase } from '@/lib/supabase'
+import { sql, parseJsonValue } from '@/lib/db'
 
 type PageProps = {
   params: Promise<{ id: string }>
@@ -13,13 +13,24 @@ type PageProps = {
 
 export default async function SurveyPage({ params }: PageProps) {
   const { id } = await params
-  const { data, error } = await supabase
-    .from('surveys')
-    .select('id, title, schema, status, response_count, max_responses, expires_at')
-    .eq('id', id)
-    .maybeSingle()
+  const rows = (await sql`
+    SELECT id, title, schema, status, response_count, max_responses, expires_at
+    FROM surveys
+    WHERE id = ${id}
+    LIMIT 1
+  `) as Array<{
+    id: string
+    title: string
+    schema: unknown
+    status: string
+    response_count: number
+    max_responses: number | null
+    expires_at: string | null
+  }>
 
-  if (error || !data) {
+  const data = rows[0]
+
+  if (!data) {
     notFound()
   }
 
@@ -27,5 +38,5 @@ export default async function SurveyPage({ params }: PageProps) {
     return <SurveyClosed title={data.title} />
   }
 
-  return <SurveyForm surveyId={data.id} survey={data.schema as Survey} />
+  return <SurveyForm surveyId={data.id} survey={parseJsonValue<Survey>(data.schema)} />
 }

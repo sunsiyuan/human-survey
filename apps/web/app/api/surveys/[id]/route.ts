@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 
 import { requireAuth } from '@/lib/auth'
-import { supabase } from '@/lib/supabase'
+import { sql, parseJsonValue } from '@/lib/db'
 
 type RouteContext = {
   params: Promise<{ id: string }>
@@ -9,21 +9,38 @@ type RouteContext = {
 
 export async function GET(_request: Request, context: RouteContext) {
   const { id } = await context.params
-  const { data, error } = await supabase
-    .from('surveys')
-    .select('id, title, description, schema, response_count, status, max_responses, expires_at')
-    .eq('id', id)
-    .maybeSingle()
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  try {
+    const rows = (await sql`
+      SELECT id, title, description, schema, response_count, status, max_responses, expires_at
+      FROM surveys
+      WHERE id = ${id}
+      LIMIT 1
+    `) as Array<{
+      id: string
+      title: string
+      description: string | null
+      schema: unknown
+      response_count: number
+      status: string
+      max_responses: number | null
+      expires_at: string | null
+    }>
+
+    const row = rows[0]
+
+    if (!row) {
+      return NextResponse.json({ error: 'Survey not found' }, { status: 404 })
+    }
+
+    return NextResponse.json({
+      ...row,
+      schema: parseJsonValue(row.schema),
+    })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Database error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
-
-  if (!data) {
-    return NextResponse.json({ error: 'Survey not found' }, { status: 404 })
-  }
-
-  return NextResponse.json(data)
 }
 
 export async function PATCH(request: Request, context: RouteContext) {
@@ -71,52 +88,57 @@ export async function PATCH(request: Request, context: RouteContext) {
     )
   }
 
-  const { data: existingSurvey, error: surveyError } = await supabase
-    .from('surveys')
-    .select('id, api_key_id')
-    .eq('id', id)
-    .maybeSingle()
+  try {
+    const rows = (await sql`
+      SELECT id, api_key_id, status, max_responses, expires_at
+      FROM surveys
+      WHERE id = ${id}
+      LIMIT 1
+    `) as Array<{
+      id: string
+      api_key_id: string | null
+      status: string
+      max_responses: number | null
+      expires_at: string | null
+    }>
 
-  if (surveyError) {
-    return NextResponse.json({ error: surveyError.message }, { status: 500 })
+    const existingSurvey = rows[0]
+
+    if (!existingSurvey) {
+      return NextResponse.json({ error: 'Survey not found' }, { status: 404 })
+    }
+
+    if (existingSurvey.api_key_id !== auth.keyId) {
+      return NextResponse.json(
+        { error: 'You do not have access to this survey' },
+        { status: 403 },
+      )
+    }
+
+    const nextStatus = body.status ?? existingSurvey.status
+    const nextMaxResponses =
+      body.max_responses !== undefined ? body.max_responses : existingSurvey.max_responses
+    const nextExpiresAt =
+      body.expires_at !== undefined ? body.expires_at : existingSurvey.expires_at
+
+    const updatedRows = (await sql`
+      UPDATE surveys
+      SET
+        status = ${nextStatus},
+        max_responses = ${nextMaxResponses},
+        expires_at = ${nextExpiresAt}::timestamptz
+      WHERE id = ${id} AND api_key_id = ${auth.keyId}
+      RETURNING id, status, max_responses, expires_at
+    `) as Array<{
+      id: string
+      status: string
+      max_responses: number | null
+      expires_at: string | null
+    }>
+
+    return NextResponse.json(updatedRows[0])
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Database error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
-
-  if (!existingSurvey) {
-    return NextResponse.json({ error: 'Survey not found' }, { status: 404 })
-  }
-
-  if (existingSurvey.api_key_id !== auth.keyId) {
-    return NextResponse.json({ error: 'You do not have access to this survey' }, { status: 403 })
-  }
-
-  const updates: {
-    status?: string
-    max_responses?: number | null
-    expires_at?: string | null
-  } = {}
-
-  if (body.status !== undefined) {
-    updates.status = body.status
-  }
-
-  if (body.max_responses !== undefined) {
-    updates.max_responses = body.max_responses
-  }
-
-  if (body.expires_at !== undefined) {
-    updates.expires_at = body.expires_at
-  }
-
-  const { data, error } = await supabase
-    .from('surveys')
-    .update(updates)
-    .eq('id', id)
-    .select('id, status, max_responses, expires_at')
-    .single()
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
-
-  return NextResponse.json(data)
 }
