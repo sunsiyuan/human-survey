@@ -4,10 +4,10 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'Docs — Markdown to Survey',
   description:
-    'Authentication, Markdown syntax, JSON schema input, API routes, MCP tools, and conditional logic for Markdown to Survey.',
+    'Authentication, JSON schema input, API routes, MCP tools, and conditional logic for Markdown to Survey.',
 }
 
-const authSnippet = `curl -X POST https://mts.vercel.app/api/keys \\
+const authSnippet = `curl -X POST https://ask-human.vercel.app/api/keys \\
   -H "Content-Type: application/json" \\
   -d '{"name":"triage-agent"}'`
 
@@ -75,19 +75,35 @@ const schemaSnippet = `{
   }
 }`
 
-const createSurveySnippet = `curl -X POST https://mts.vercel.app/api/surveys \\
+const createSurveySnippet = `curl -X POST https://ask-human.vercel.app/api/surveys \\
   -H "Authorization: Bearer mts_sk_..." \\
   -H "Content-Type: application/json" \\
   -d '{
-    "markdown": "# Incident Intake\\n\\n**Q1. Which environment is affected?**\\n\\n- ☐ Local\\n- ☐ Staging\\n- ☐ Production",
+    "schema": {
+      "title": "Incident Intake",
+      "sections": [{
+        "questions": [
+          {
+            "type": "single_choice",
+            "label": "Which environment is affected?",
+            "required": true,
+            "options": [
+              { "label": "Local" },
+              { "label": "Staging" },
+              { "label": "Production" }
+            ]
+          }
+        ]
+      }]
+    },
     "max_responses": 25,
     "expires_at": "2026-12-31T23:59:59.000Z"
   }'`
 
-const getResultsSnippet = `curl https://mts.vercel.app/api/surveys/svy_123/responses \\
+const getResultsSnippet = `curl https://ask-human.vercel.app/api/surveys/svy_123/responses \\
   -H "Authorization: Bearer mts_sk_..." `
 
-const patchSurveySnippet = `curl -X PATCH https://mts.vercel.app/api/surveys/svy_123 \\
+const patchSurveySnippet = `curl -X PATCH https://ask-human.vercel.app/api/surveys/svy_123 \\
   -H "Authorization: Bearer mts_sk_..." \\
   -H "Content-Type: application/json" \\
   -d '{"status":"closed"}'`
@@ -103,7 +119,17 @@ const mcpConfigSnippet = `{
 }`
 
 const mcpUsageSnippet = `create_survey({
-  markdown: "# Feedback\\n\\n**Q1. Rate onboarding**\\n\\n[scale 1-5]"
+  schema: {
+    title: "Incident Intake",
+    sections: [{
+      questions: [
+        { type: "single_choice", label: "Which environment?", required: true,
+          options: [{ label: "Local" }, { label: "Staging" }, { label: "Production" }] },
+        { type: "scale", label: "How urgent?", required: true, min: 1, max: 5,
+          minLabel: "Low", maxLabel: "Critical" }
+      ]
+    }]
+  }
 })
 
 get_results({
@@ -118,7 +144,7 @@ const apiRoutes = [
   ['POST /api/keys', 'Public', 'Create a new API key and return the raw secret once.'],
   ['GET /api/keys', 'Bearer key', 'List metadata for the current key.'],
   ['DELETE /api/keys/{id}', 'Bearer key', 'Revoke the current API key.'],
-  ['POST /api/surveys', 'Bearer key', 'Create a survey from Markdown or JSON schema.'],
+  ['POST /api/surveys', 'Bearer key', 'Create a survey from JSON schema.'],
   ['GET /api/surveys', 'Bearer key', 'List surveys owned by the current key.'],
   ['GET /api/surveys/{id}', 'Public', 'Return survey metadata, schema, and lifecycle fields.'],
   ['PATCH /api/surveys/{id}', 'Bearer key', 'Update status, max_responses, or expires_at.'],
@@ -171,7 +197,7 @@ export default function DocsPage() {
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-7 text-slate-700 sm:text-lg sm:leading-8">
             MTS exposes a minimal authenticated API plus an MCP server. Agents create surveys from
-            Markdown or JSON schema, humans answer at a hosted URL, and the agent retrieves
+            JSON schema, humans answer at a hosted URL, and the agent retrieves
             structured results.
           </p>
           <div className="mt-6 flex flex-col gap-3 text-sm sm:flex-row sm:flex-wrap">
@@ -261,11 +287,15 @@ export default function DocsPage() {
 
             <Section id="json-schema" title="JSON Schema Input">
               <p>
-                If you already have structured survey definitions, send <code>schema</code> instead
-                of <code>markdown</code>. The builder validates question types, options, and
-                conditional logic references before storing the survey.
+                The API accepts <code>schema</code> as the canonical input format. Send a{' '}
+                <code>SurveyInput</code> object — the server validates question types, options, and
+                conditional logic before storing the survey.
               </p>
               <CodeBlock code={schemaSnippet} />
+              <p>
+                The web demo lets you write plain text or Markdown and uses an LLM to translate it
+                into schema before submitting — this mirrors what your agent would do.
+              </p>
             </Section>
 
             <Section id="api-reference" title="API Reference">

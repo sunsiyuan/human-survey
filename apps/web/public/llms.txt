@@ -1,10 +1,10 @@
 # Markdown to Survey (MTS)
 
-> The survey layer for AI agents. Create interactive surveys from Markdown or JSON schema, collect responses from humans, and retrieve structured results via API or MCP.
+> The survey layer for AI agents. Create interactive surveys from JSON schema, collect responses from humans, and retrieve structured results via API or MCP.
 
 ## What is MTS?
 
-MTS lets AI agents gather structured information from humans. An agent writes a survey in Markdown or JSON schema, calls the MTS API, gets a shareable URL, and later retrieves structured results.
+MTS lets AI agents gather structured information from humans. An agent sends a survey schema to the MTS API, gets a shareable respondent URL, and later retrieves structured results. The web demo accepts plain text or Markdown and uses an LLM to translate it into schema — this mirrors what an agent would do.
 
 ## MCP Integration
 
@@ -29,29 +29,42 @@ Tools: `create_survey`, `get_results`, `list_surveys`, `close_survey`
 Get an API key:
 
 ```bash
-curl -X POST https://mts.vercel.app/api/keys \
+curl -X POST https://ask-human.vercel.app/api/keys \
   -H "Content-Type: application/json" \
   -d '{"name":"my agent"}'
 ```
 
-Create a survey:
+Create a survey from JSON schema:
 
 ```bash
-curl -X POST https://mts.vercel.app/api/surveys \
+curl -X POST https://ask-human.vercel.app/api/surveys \
   -H "Authorization: Bearer mts_sk_..." \
   -H "Content-Type: application/json" \
-  -d '{"markdown":"# Feedback\n\n**Q1. Rate your experience?**\n\n[scale 1-5]"}'
+  -d '{
+    "schema": {
+      "title": "Incident Intake",
+      "sections": [{
+        "questions": [
+          { "type": "single_choice", "label": "Which environment?", "required": true,
+            "options": [{ "label": "Local" }, { "label": "Staging" }, { "label": "Production" }] },
+          { "type": "scale", "label": "How urgent?", "required": true,
+            "min": 1, "max": 5, "minLabel": "Low", "maxLabel": "Critical" }
+        ]
+      }]
+    }
+  }'
 ```
 
 ## Question Types
 
-- `choice` — single or multiple selection from a list
+- `single_choice` — one selection from a list of options
+- `multi_choice` — one or more selections from a list of options
 - `text` — free-form text response
-- `scale` — numeric range like 1-5 or 0-10
-- `matrix` — apply the same options across multiple rows
+- `scale` — numeric position on a bounded range (max 11 points)
+- `matrix` — apply shared options across multiple rows
 
 ## Docs
 
-- Full docs: https://mts.vercel.app/docs
-- OpenAPI: https://mts.vercel.app/api/openapi.json
-- Full AI index: https://mts.vercel.app/llms-full.txt
+- Full docs: https://ask-human.vercel.app/docs
+- OpenAPI: https://ask-human.vercel.app/api/openapi.json
+- Full AI index: https://ask-human.vercel.app/llms-full.txt

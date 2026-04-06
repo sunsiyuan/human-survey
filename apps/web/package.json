@@ -9,7 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@mts/parser": "workspace:*",
     "@neondatabase/serverless": "^1.0.2",
     "nanoid": "^5.1.7",
     "next": "16.2.2",

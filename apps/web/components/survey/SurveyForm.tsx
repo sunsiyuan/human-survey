@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
-import type { Question, Survey } from '@mts/parser'
+import type { Question, Survey } from '@/lib/survey'
 
 import { ProgressBar } from './ProgressBar'
 import { QuestionCard } from './QuestionCard'

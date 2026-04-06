@@ -3,11 +3,10 @@ import { NextResponse } from 'next/server'
 
 import {
   buildSurveyFromInput,
-  parseSurvey,
   SurveyInputValidationError,
   type Survey,
   type SurveyInput,
-} from '@mts/parser'
+} from '@/lib/survey'
 
 import { requireAuth } from '@/lib/auth'
 import { sql } from '@/lib/db'
@@ -20,29 +19,17 @@ export async function POST(request: Request) {
 
   const body = (await request.json().catch(() => null)) as
     | {
-        markdown?: string
         schema?: SurveyInput
         max_responses?: number
         expires_at?: string | null
       }
     | null
-  const markdown = body?.markdown
   const schemaInput = body?.schema
   const maxResponses = body?.max_responses
   const expiresAt = body?.expires_at
 
-  if (!markdown && !schemaInput) {
-    return NextResponse.json(
-      { error: 'Provide either markdown or schema' },
-      { status: 400 },
-    )
-  }
-
-  if (markdown && schemaInput) {
-    return NextResponse.json(
-      { error: 'Provide either markdown or schema, not both' },
-      { status: 400 },
-    )
+  if (!schemaInput) {
+    return NextResponse.json({ error: 'schema is required' }, { status: 400 })
   }
 
   if (
@@ -69,7 +56,7 @@ export async function POST(request: Request) {
   let survey: Survey
 
   try {
-    survey = schemaInput ? buildSurveyFromInput(schemaInput) : parseSurvey(markdown!)
+    survey = buildSurveyFromInput(schemaInput)
   } catch (error) {
     if (error instanceof SurveyInputValidationError) {
       return NextResponse.json(
@@ -78,11 +65,8 @@ export async function POST(request: Request) {
       )
     }
 
-    const message = error instanceof Error ? error.message : 'Unknown parser error'
-    return NextResponse.json(
-      { error: markdown ? `Failed to parse markdown: ${message}` : message },
-      { status: 400 },
-    )
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    return NextResponse.json({ error: message }, { status: 400 })
   }
 
   const id = nanoid(12)
@@ -107,7 +91,7 @@ export async function POST(request: Request) {
         ${survey.title},
         ${survey.description ?? null},
         ${JSON.stringify(survey)}::jsonb,
-        ${markdown ?? JSON.stringify(schemaInput)},
+        ${JSON.stringify(schemaInput)},
         'open',
         ${maxResponses ?? null},
         ${expiresAt ?? null}::timestamptz

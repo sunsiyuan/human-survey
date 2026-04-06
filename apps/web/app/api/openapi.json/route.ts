@@ -8,7 +8,7 @@ const openApiDocument = {
     description:
       'Survey infrastructure for AI agents. Create surveys from Markdown or JSON schema, collect human responses, and retrieve structured results.',
   },
-  servers: [{ url: 'https://mts.vercel.app' }],
+  servers: [{ url: 'https://ask-human.vercel.app' }],
   components: {
     securitySchemes: {
       bearerAuth: {

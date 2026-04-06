@@ -1,7 +1,7 @@
 import { nanoid } from 'nanoid'
 import { NextResponse } from 'next/server'
 
-import type { Survey } from '@mts/parser'
+import type { Survey } from '@/lib/survey'
 
 import { requireAuth } from '@/lib/auth'
 import { sql, parseJsonValue } from '@/lib/db'

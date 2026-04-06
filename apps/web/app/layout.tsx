@@ -15,7 +15,7 @@ const plexMono = IBM_Plex_Mono({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://mts.vercel.app'),
+  metadataBase: new URL('https://ask-human.vercel.app'),
   title: 'Markdown to Survey — Survey infrastructure for AI agents',
   description:
     'Create surveys from Markdown or JSON schema, collect human responses, and retrieve structured results via API or MCP.',
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     title: 'Markdown to Survey (MTS)',
     description:
       'The survey layer for AI agents. Markdown in, structured human responses out.',
-    url: 'https://mts.vercel.app',
+    url: 'https://ask-human.vercel.app',
     siteName: 'Markdown to Survey',
     type: 'website',
   },
@@ -53,7 +53,7 @@ const structuredData = {
   name: 'Markdown to Survey',
   applicationCategory: 'DeveloperApplication',
   description: 'Survey infrastructure for AI agents',
-  url: 'https://mts.vercel.app',
+  url: 'https://ask-human.vercel.app',
   operatingSystem: 'Web',
   offers: {
     '@type': 'Offer',

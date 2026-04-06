@@ -1,231 +1,311 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
+
+import type { SurveyInput } from '@/lib/survey'
+
+const STORAGE_KEY = 'mts_demo_api_key'
 
 const defaultMarkdown = `# User Interview Intake
 
-**Description:** Collect the missing details before the agent continues.
+Collect the missing details before the agent continues.
 
 ## Context
 
-**Q1. Which environment are you using?**
+Which environment are you using? Choose one: Local, Staging, Production.
 
-- ☐ Local
-- ☐ Staging
-- ☐ Production
+How urgent is this issue? Rate from 1 (Low) to 5 (Critical).
 
-**Q2. How urgent is this issue?**
+What have you tried already? Open text.`
 
-[scale 1-5 min-label="Low" max-label="Critical"]
+type Step = 'idle' | 'parsing' | 'creating' | 'done' | 'rate_limited' | 'error'
 
-**Q3. What have you tried already?**
-
-> _______________________________________________`
-
-type CreateKeyResponse = {
-  id: string
-  key: string
-  name: string | null
-  created_at: string
-}
-
-type CreateSurveyResponse = {
-  survey_url: string
-  question_count: number
-}
+type CreateKeyResponse = { id: string; key: string; name: string | null; created_at: string }
+type CreateSurveyResponse = { survey_url: string; question_count: number }
 
 export function TryItPanel() {
-  const [agentName, setAgentName] = useState('browser demo')
   const [apiKey, setApiKey] = useState('')
   const [markdown, setMarkdown] = useState(defaultMarkdown)
-  const [result, setResult] = useState<CreateSurveyResponse | null>(null)
-  const [status, setStatus] = useState('')
+  const [schema, setSchema] = useState<SurveyInput | null>(null)
+  const [surveyUrl, setSurveyUrl] = useState('')
+  const [questionCount, setQuestionCount] = useState(0)
+  const [step, setStep] = useState<Step>('idle')
   const [error, setError] = useState('')
   const [isGeneratingKey, setIsGeneratingKey] = useState(false)
-  const [isCreatingSurvey, setIsCreatingSurvey] = useState(false)
 
-  const surveyUrl = useMemo(() => {
-    if (!result) {
-      return ''
-    }
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored) setApiKey(stored)
+  }, [])
 
-    if (typeof window === 'undefined') {
-      return result.survey_url
-    }
-
-    return new URL(result.survey_url, window.location.origin).toString()
-  }, [result])
+  function persistKey(key: string) {
+    setApiKey(key)
+    localStorage.setItem(STORAGE_KEY, key)
+  }
 
   async function handleGenerateKey() {
     setIsGeneratingKey(true)
     setError('')
-    setStatus('')
 
     try {
-      const response = await fetch('/api/keys', {
+      const res = await fetch('/api/keys', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: agentName.trim() || 'browser demo' }),
+        body: JSON.stringify({ name: 'browser-demo' }),
       })
-      const payload = (await response.json()) as CreateKeyResponse & { error?: string }
+      const payload = (await res.json()) as CreateKeyResponse & { error?: string }
 
-      if (!response.ok) {
-        throw new Error(payload.error ?? 'Failed to create API key')
-      }
+      if (!res.ok) throw new Error(payload.error ?? 'Failed to create API key')
 
-      setApiKey(payload.key)
-      setStatus('API key created. You can use it to create surveys from this page or from MCP.')
-    } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : 'Failed to create API key')
+      persistKey(payload.key)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create API key')
     } finally {
       setIsGeneratingKey(false)
     }
   }
 
-  async function handleCreateSurvey(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setIsCreatingSurvey(true)
+  async function handleCreate() {
+    const trimmedKey = apiKey.trim()
+
+    if (!trimmedKey) {
+      setError('Create or paste an API key first.')
+      return
+    }
+
+    setStep('parsing')
     setError('')
-    setStatus('')
-    setResult(null)
+    setSchema(null)
+    setSurveyUrl('')
+
+    // Step 1: markdown → schema via LLM
+    let parsedSchema: SurveyInput
 
     try {
-      const trimmedKey = apiKey.trim()
+      const res = await fetch('/api/demo/parse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ markdown }),
+      })
 
-      if (!trimmedKey) {
-        throw new Error('Create an API key first or paste an existing one.')
+      if (res.status === 429) {
+        setStep('rate_limited')
+        return
       }
 
-      const response = await fetch('/api/surveys', {
+      const payload = (await res.json()) as { schema?: SurveyInput; error?: string }
+
+      if (!res.ok || !payload.schema) {
+        throw new Error(payload.error ?? 'Failed to parse markdown')
+      }
+
+      parsedSchema = payload.schema
+      setSchema(parsedSchema)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to parse markdown')
+      setStep('error')
+      return
+    }
+
+    // Step 2: POST /api/surveys with key + schema
+    setStep('creating')
+
+    try {
+      const res = await fetch('/api/surveys', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${trimmedKey}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ markdown }),
+        body: JSON.stringify({ schema: parsedSchema }),
       })
-      const payload = (await response.json()) as CreateSurveyResponse & { error?: string }
+      const payload = (await res.json()) as CreateSurveyResponse & { error?: string }
 
-      if (!response.ok) {
-        throw new Error(payload.error ?? 'Failed to create survey')
-      }
+      if (!res.ok) throw new Error(payload.error ?? 'Failed to create survey')
 
-      setResult(payload)
-      setStatus('Survey created. Share the respondent URL, then fetch structured results later.')
-    } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : 'Failed to create survey')
-    } finally {
-      setIsCreatingSurvey(false)
+      const fullUrl =
+        typeof window !== 'undefined'
+          ? new URL(payload.survey_url, window.location.origin).toString()
+          : payload.survey_url
+
+      setSurveyUrl(fullUrl)
+      setQuestionCount(payload.question_count)
+      setStep('done')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create survey')
+      setStep('error')
     }
   }
 
+  const isLoading = step === 'parsing' || step === 'creating'
+
   return (
-    <section
-      id="try-it"
-      className="rounded-[1.75rem] border border-[var(--panel-border)] bg-[var(--surface)] p-5 shadow-[0_28px_90px_-68px_rgba(14,23,38,0.38)] backdrop-blur sm:p-6 lg:p-7"
-    >
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
-            Try It In Browser
-          </p>
-          <h2 className="mt-3 max-w-2xl text-2xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-[2rem]">
-            Generate a key, create a survey, and inspect the real API flow.
-          </h2>
-        </div>
-        <p className="max-w-xl text-sm leading-6 text-slate-600 sm:text-[15px]">
-          This uses <code>POST /api/keys</code> and <code>POST /api/surveys</code>. No client-only
-          shortcuts.
-        </p>
-      </div>
-
-      <div className="mt-5 grid gap-4 lg:grid-cols-[0.4fr_0.6fr]">
-        <div className="space-y-4 rounded-[1.35rem] border border-[var(--panel-border)] bg-[var(--surface-muted)] p-4 sm:p-5">
-          <div>
-            <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-              Agent Name
-            </label>
-            <input
-              className="mt-2 h-11 w-full rounded-[1rem] border border-black/10 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
-              value={agentName}
-              onChange={(event) => setAgentName(event.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+    <section id="try-it" className="space-y-4">
+      <div className="grid gap-4 lg:grid-cols-2">
+        {/* Left: key + markdown */}
+        <div className="space-y-3">
+          {/* Key management */}
+          <div className="rounded-2xl border border-[var(--panel-border)] bg-[var(--surface-muted)] px-4 py-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
               API Key
-            </label>
-            <textarea
-              className="mt-2 min-h-28 w-full rounded-[1rem] border border-black/10 bg-white px-4 py-3 font-mono text-xs leading-6 text-slate-900 outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
-              value={apiKey}
-              onChange={(event) => setApiKey(event.target.value)}
-              placeholder="mts_sk_..."
-            />
+            </p>
+            {apiKey ? (
+              <div className="mt-2 flex items-center gap-2">
+                <code className="flex-1 truncate rounded-lg border border-black/10 bg-white px-3 py-1.5 font-mono text-xs text-slate-700">
+                  {apiKey}
+                </code>
+                <button
+                  type="button"
+                  onClick={() => {
+                    persistKey('')
+                    setStep('idle')
+                    setSchema(null)
+                    setSurveyUrl('')
+                  }}
+                  className="text-xs text-slate-400 hover:text-slate-700"
+                >
+                  clear
+                </button>
+              </div>
+            ) : (
+              <div className="mt-2 flex gap-2">
+                <input
+                  type="text"
+                  placeholder="mts_sk_... (paste existing)"
+                  className="h-9 flex-1 rounded-lg border border-black/10 bg-white px-3 font-mono text-xs text-slate-900 outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)]"
+                  onChange={(e) => {
+                    if (e.target.value.startsWith('mts_sk_')) {
+                      persistKey(e.target.value)
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={handleGenerateKey}
+                  disabled={isGeneratingKey}
+                  className="inline-flex h-9 items-center justify-center rounded-full border border-slate-900 px-4 text-xs font-semibold text-slate-950 transition hover:bg-slate-950 hover:text-white disabled:opacity-60"
+                >
+                  {isGeneratingKey ? 'Creating…' : 'Create key'}
+                </button>
+              </div>
+            )}
           </div>
 
+          {/* Markdown editor */}
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
+            Input
+          </p>
+          <textarea
+            className="min-h-64 w-full rounded-2xl border border-[var(--panel-border)] bg-[var(--code-surface)] px-5 py-4 font-mono text-[13px] leading-6 text-[var(--accent-fg)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)] sm:text-sm sm:leading-7"
+            value={markdown}
+            onChange={(e) => {
+              setMarkdown(e.target.value)
+              if (step !== 'idle') {
+                setStep('idle')
+                setSchema(null)
+                setSurveyUrl('')
+              }
+            }}
+          />
           <button
             type="button"
-            onClick={handleGenerateKey}
-            disabled={isGeneratingKey}
-            className="inline-flex min-h-11 items-center justify-center rounded-full border border-slate-900 px-5 text-sm font-semibold text-slate-950 transition hover:bg-slate-950 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={handleCreate}
+            disabled={isLoading || !markdown.trim()}
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-[var(--accent)] px-6 text-sm font-semibold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
           >
-            {isGeneratingKey ? 'Creating key...' : 'Generate API key'}
+            {step === 'parsing'
+              ? 'Translating to schema…'
+              : step === 'creating'
+                ? 'Creating survey…'
+                : 'Create survey'}
           </button>
+
+          {step === 'error' && error ? (
+            <p className="text-sm text-rose-600">{error}</p>
+          ) : null}
         </div>
 
-        <form className="space-y-4" onSubmit={handleCreateSurvey}>
-          <textarea
-            className="min-h-80 w-full rounded-[1.35rem] border border-[var(--panel-border)] bg-[var(--code-surface)] px-4 py-4 font-mono text-[13px] leading-6 text-[var(--accent-fg)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)] sm:px-5 sm:text-sm sm:leading-7"
-            value={markdown}
-            onChange={(event) => setMarkdown(event.target.value)}
-          />
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm leading-6 text-slate-600">
-              Use your own key or mint a demo key above. The survey response includes only a
-              respondent URL and question count.
-            </p>
-            <button
-              type="submit"
-              disabled={isCreatingSurvey}
-              className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-[var(--accent)] px-6 text-sm font-semibold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-            >
-              {isCreatingSurvey ? 'Creating survey...' : 'Create survey'}
-            </button>
-          </div>
-        </form>
+        {/* Right: agent call display */}
+        <div className="space-y-3">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
+            Agent call
+          </p>
+
+          {/* Rate limited nudge */}
+          {step === 'rate_limited' ? (
+            <div className="rounded-2xl border border-[var(--panel-border)] bg-[var(--code-surface)] px-5 py-6 text-center">
+              <p className="text-sm font-semibold text-white">
+                Demo limit reached.
+              </p>
+              <p className="mt-2 text-sm leading-6 text-slate-400">
+                Time to put your agent to work — connect it directly via API or
+                MCP with the key you just created.
+              </p>
+              <a
+                href="/docs"
+                className="mt-4 inline-flex min-h-9 items-center justify-center rounded-full border border-white/20 px-4 text-xs font-semibold text-white transition hover:bg-white/10"
+              >
+                Read the docs
+              </a>
+            </div>
+          ) : (
+            <>
+              {/* Schema panel */}
+              <div
+                className={`rounded-2xl border bg-[var(--code-surface)] transition-opacity ${
+                  schema
+                    ? 'border-[var(--panel-border)] opacity-100'
+                    : 'border-dashed border-white/10 opacity-40'
+                }`}
+              >
+                <div className="flex items-center justify-between border-b border-white/10 px-4 py-2.5">
+                  <span className="font-mono text-[11px] text-slate-400">
+                    POST /api/surveys
+                  </span>
+                  {schema ? (
+                    <span className="rounded-full bg-emerald-900/50 px-2 py-0.5 font-mono text-[10px] text-emerald-400">
+                      schema ready
+                    </span>
+                  ) : (
+                    <span className="rounded-full bg-white/5 px-2 py-0.5 font-mono text-[10px] text-slate-500">
+                      waiting
+                    </span>
+                  )}
+                </div>
+                <pre className="max-h-56 overflow-auto px-4 py-3 font-mono text-[12px] leading-5 text-[var(--accent-fg)]">
+                  {schema
+                    ? JSON.stringify({ schema }, null, 2)
+                    : '{\n  "schema": { … }\n}'}
+                </pre>
+              </div>
+
+              {/* Survey URL */}
+              {step === 'done' && surveyUrl ? (
+                <div className="rounded-2xl border border-[var(--panel-border)] bg-[var(--code-surface)] px-5 py-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                    Respondent URL
+                  </p>
+                  <a
+                    href={surveyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 block break-all text-[var(--accent-fg)] underline underline-offset-2"
+                  >
+                    {surveyUrl}
+                  </a>
+                  <p className="mt-3 text-xs text-slate-400">
+                    {questionCount} question{questionCount !== 1 ? 's' : ''} —
+                    share this link, then fetch structured responses via{' '}
+                    <code className="text-slate-300">
+                      GET /api/surveys/:id/responses
+                    </code>
+                  </p>
+                </div>
+              ) : null}
+            </>
+          )}
+        </div>
       </div>
-
-      {status ? (
-        <div className="mt-4 rounded-[1rem] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-          {status}
-        </div>
-      ) : null}
-
-      {error ? (
-        <div className="mt-4 rounded-[1rem] border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
-          {error}
-        </div>
-      ) : null}
-
-      {result ? (
-        <div className="mt-4 grid gap-3 rounded-[1.35rem] border border-black/10 bg-[var(--code-surface)] p-4 text-sm text-slate-100 sm:grid-cols-3">
-          <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Survey URL</p>
-            <a className="mt-2 block break-all underline" href={surveyUrl}>
-              {surveyUrl}
-            </a>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Survey ID</p>
-            <p className="mt-2 break-all text-xl font-semibold">{result.survey_url.split('/').at(-1)}</p>
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Questions</p>
-            <p className="mt-2 text-xl font-semibold">{result.question_count}</p>
-          </div>
-        </div>
-      ) : null}
     </section>
   )
 }

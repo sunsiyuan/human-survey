@@ -1,16 +1,109 @@
-import type {
-  Condition,
-  MatrixColumn,
-  MatrixRow,
-  Option,
-  Question,
-  QuestionInput,
-  QuestionType,
-  Section,
-  SectionInput,
-  Survey,
-  SurveyInput,
-} from './schema.js'
+// Schema types
+
+export interface Survey {
+  title: string
+  description?: string
+  sections: Section[]
+}
+
+export interface SurveyInput {
+  title: string
+  description?: string
+  sections: SectionInput[]
+}
+
+export interface Section {
+  id: string
+  title?: string
+  description?: string
+  questions: Question[]
+}
+
+export interface SectionInput {
+  title?: string
+  description?: string
+  questions: QuestionInput[]
+}
+
+export type ConditionOperator = 'eq' | 'neq' | 'contains' | 'answered'
+
+export interface Condition {
+  questionId: string
+  operator: ConditionOperator
+  value?: string
+}
+
+export type QuestionType =
+  | 'single_choice'
+  | 'multi_choice'
+  | 'text'
+  | 'matrix'
+  | 'scale'
+
+export interface Question {
+  id: string
+  type: QuestionType
+  label: string
+  description?: string
+  required: boolean
+  showIf?: Condition
+  options?: Option[]
+  rows?: MatrixRow[]
+  columns?: MatrixColumn[]
+  min?: number
+  max?: number
+  minLabel?: string
+  maxLabel?: string
+}
+
+export interface QuestionInput {
+  type: QuestionType | string
+  label: string
+  description?: string
+  required?: boolean
+  showIf?: Condition
+  options?: OptionInput[]
+  rows?: MatrixRowInput[]
+  columns?: MatrixColumnInput[]
+  min?: number
+  max?: number
+  minLabel?: string
+  maxLabel?: string
+}
+
+export interface Option {
+  id: string
+  label: string
+  hasTextInput?: boolean
+}
+
+export interface OptionInput {
+  label: string
+  hasTextInput?: boolean
+}
+
+export interface MatrixRow {
+  id: string
+  label: string
+  cells: { [columnId: string]: string }
+}
+
+export interface MatrixRowInput {
+  label: string
+}
+
+export interface MatrixColumn {
+  id: string
+  label: string
+  options: Option[]
+}
+
+export interface MatrixColumnInput {
+  label: string
+  options: OptionInput[]
+}
+
+// Builder
 
 const VALID_QUESTION_TYPES: QuestionType[] = [
   'single_choice',
@@ -166,7 +259,10 @@ function buildQuestion(question: QuestionInput, questionIndex: number): Question
   return baseQuestion
 }
 
-function buildOption(option: { label: string; hasTextInput?: boolean }, index: number): Option {
+function buildOption(
+  option: { label: string; hasTextInput?: boolean },
+  index: number,
+): Option {
   return {
     id: `opt_${index}`,
     label: option.label.trim(),
@@ -182,7 +278,10 @@ function buildMatrixColumns(columns: QuestionInput['columns']): MatrixColumn[] {
   }))
 }
 
-function buildMatrixRows(rows: QuestionInput['rows'], columns: MatrixColumn[]): MatrixRow[] {
+function buildMatrixRows(
+  rows: QuestionInput['rows'],
+  columns: MatrixColumn[],
+): MatrixRow[] {
   return (rows ?? []).map((row, rowIndex) => ({
     id: `row_${rowIndex}`,
     label: row.label.trim(),
@@ -210,8 +309,12 @@ function validateShowIf(
 
   const questions = survey.sections.flatMap((section) => section.questions)
   const currentQuestion = questions.find((question) => question.showIf === showIf)
-  const referencedIndex = questions.findIndex((question) => question.id === showIf.questionId)
-  const currentIndex = questions.findIndex((question) => question.id === currentQuestion?.id)
+  const referencedIndex = questions.findIndex(
+    (question) => question.id === showIf.questionId,
+  )
+  const currentIndex = questions.findIndex(
+    (question) => question.id === currentQuestion?.id,
+  )
 
   if (referencedIndex === -1) {
     errors.push(`${path}.showIf.questionId must reference an existing question`)

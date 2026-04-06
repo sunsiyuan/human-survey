@@ -1,6 +1,6 @@
 'use client'
 
-import type { Question } from '@mts/parser'
+import type { Question } from '@/lib/survey'
 
 type AnswerValue = string | string[] | number | undefined
 

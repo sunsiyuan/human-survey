@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 
-import type { Survey } from '@mts/parser'
+import type { Survey } from '@/lib/survey'
 
 import { SurveyClosed } from '@/components/survey/SurveyClosed'
 import { isSurveyClosed } from '@/lib/lifecycle'

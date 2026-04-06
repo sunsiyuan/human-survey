@@ -1,4 +1,4 @@
-import type { MatrixColumn, MatrixRow, Option, Question, Survey } from '@mts/parser'
+import type { MatrixColumn, MatrixRow, Option, Question, Survey } from '@/lib/survey'
 
 export type ResponseAnswerValue = string | string[] | number
 
