@@ -1,0 +1,57 @@
+# Markdown to Survey (MTS)
+
+> The survey layer for AI agents. Create interactive surveys from Markdown or JSON schema, collect responses from humans, and retrieve structured results via API or MCP.
+
+## What is MTS?
+
+MTS lets AI agents gather structured information from humans. An agent writes a survey in Markdown or JSON schema, calls the MTS API, gets a shareable URL, and later retrieves structured results.
+
+## MCP Integration
+
+Add to `~/.claude.json`:
+
+```json
+{
+  "mcpServers": {
+    "survey": {
+      "command": "npx",
+      "args": ["-y", "@mts/mcp-server"],
+      "env": { "MTS_API_KEY": "mts_sk_your_key_here" }
+    }
+  }
+}
+```
+
+Tools: `create_survey`, `get_results`, `list_surveys`, `close_survey`
+
+## API Quick Start
+
+Get an API key:
+
+```bash
+curl -X POST https://mts.vercel.app/api/keys \
+  -H "Content-Type: application/json" \
+  -d '{"name":"my agent"}'
+```
+
+Create a survey:
+
+```bash
+curl -X POST https://mts.vercel.app/api/surveys \
+  -H "Authorization: Bearer mts_sk_..." \
+  -H "Content-Type: application/json" \
+  -d '{"markdown":"# Feedback\n\n**Q1. Rate your experience?**\n\n[scale 1-5]"}'
+```
+
+## Question Types
+
+- `choice` — single or multiple selection from a list
+- `text` — free-form text response
+- `scale` — numeric range like 1-5 or 0-10
+- `matrix` — apply the same options across multiple rows
+
+## Docs
+
+- Full docs: https://mts.vercel.app/docs
+- OpenAPI: https://mts.vercel.app/api/openapi.json
+- Full AI index: https://mts.vercel.app/llms-full.txt

@@ -1,240 +1,245 @@
-'use client'
+import Link from 'next/link'
 
-import { useState } from 'react'
+import { TryItPanel } from '@/components/home/TryItPanel'
 
-const sampleMarkdown = `# Product Feedback Survey
+const mcpConfigSnippet = `{
+  "mcpServers": {
+    "survey": {
+      "command": "npx",
+      "args": ["-y", "@mts/mcp-server"],
+      "env": { "MTS_API_KEY": "mts_sk_your_key_here" }
+    }
+  }
+}`
 
-**Description:** Help us improve the next release.
+const apiFlowSnippet = `curl -X POST https://mts.vercel.app/api/keys \\
+  -H "Content-Type: application/json" \\
+  -d '{"name":"ops-agent"}'
 
-## Team Workflow
+curl -X POST https://mts.vercel.app/api/surveys \\
+  -H "Authorization: Bearer mts_sk_..." \\
+  -H "Content-Type: application/json" \\
+  -d '{"markdown":"# Incident Intake\\n\\n**Q1. Which environment is affected?**\\n\\n- ☐ Local\\n- ☐ Staging\\n- ☐ Production"}'
 
-**Q1. Which area needs the most attention?**
+curl https://mts.vercel.app/api/surveys/svy_123/responses \\
+  -H "Authorization: Bearer mts_sk_..." `
 
-- ☐ Onboarding
-- ☐ Performance
-- ☐ Reporting
+const mcpUsageSnippet = `create_survey({
+  markdown: "# Incident Intake\\n\\n**Q1. Which environment is affected?**\\n\\n- ☐ Local\\n- ☐ Staging\\n- ☐ Production"
+})
 
-**Q2. What should we never change without review?**
+get_results({
+  survey_id: "svy_123"
+})`
 
-> _______________________________________________`
+const questionTypes = [
+  ['choice', 'Known options, single or multi-select', '`☐ option`'],
+  ['text', 'Free-form human explanation', '`> __________`'],
+  ['scale', 'Numeric position on a range', '`[scale 0-10]`'],
+  ['matrix', 'Shared options across repeated rows', 'Markdown table with `☐` cells'],
+]
 
-type CreateSurveyResult = {
-  survey_url: string
-  question_count: number
+const links = [
+  ['GitHub', 'https://github.com/sunsiyuan/markdown-to-survey'],
+  ['npm: @mts/mcp-server', 'https://www.npmjs.com/package/@mts/mcp-server'],
+  ['API Docs', '/docs'],
+  ['OpenAPI', '/api/openapi.json'],
+  ['llms.txt', '/llms.txt'],
+]
+
+function CodePanel({
+  eyebrow,
+  title,
+  code,
+}: Readonly<{
+  eyebrow: string
+  title: string
+  code: string
+}>) {
+  return (
+    <section className="rounded-[2rem] border border-[var(--panel-border)] bg-slate-950 p-5 shadow-[0_30px_90px_-52px_rgba(14,23,38,0.7)]">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--accent)]">
+            {eyebrow}
+          </p>
+          <h2 className="mt-2 text-xl font-semibold tracking-tight text-white">{title}</h2>
+        </div>
+      </div>
+      <pre className="overflow-x-auto rounded-[1.5rem] border border-white/10 bg-black/30 p-4 text-sm leading-7 text-[var(--accent-fg)]">
+        <code>{code}</code>
+      </pre>
+    </section>
+  )
 }
 
 export default function Home() {
-  const [markdown, setMarkdown] = useState(sampleMarkdown)
-  const [result, setResult] = useState<CreateSurveyResult | null>(null)
-  const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setIsLoading(true)
-    setError('')
-    setResult(null)
-
-    try {
-      const response = await fetch('/api/surveys', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ markdown }),
-      })
-
-      const payload = (await response.json()) as CreateSurveyResult & { error?: string }
-
-      if (!response.ok) {
-        throw new Error(payload.error ?? 'Failed to create survey')
-      }
-
-      setResult(payload)
-    } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'Failed to create survey')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   return (
-    <main className="relative overflow-hidden bg-slate-950 text-white">
-      <div className="absolute inset-x-0 top-0 h-96 bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.35),_transparent_50%),radial-gradient(circle_at_top_right,_rgba(14,165,233,0.18),_transparent_42%)]" />
-      <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-8 sm:px-6">
-        <header className="flex items-center justify-between rounded-full border border-white/10 bg-white/5 px-5 py-3 backdrop-blur">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-200">
-              Markdown to Survey
-            </p>
+    <main className="min-h-screen bg-[var(--page-gradient)]">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8">
+        <header className="rounded-full border border-[var(--panel-border)] bg-white/80 px-5 py-3 shadow-[0_18px_50px_-40px_rgba(14,23,38,0.7)] backdrop-blur">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[var(--accent-strong)]">
+                Markdown to Survey
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2 text-sm">
+              <Link
+                href="/docs"
+                className="rounded-full border border-black/10 px-4 py-2 font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              >
+                Docs
+              </Link>
+              <a
+                href="https://github.com/sunsiyuan/markdown-to-survey"
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full border border-black/10 px-4 py-2 font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              >
+                GitHub
+              </a>
+            </div>
           </div>
-          <a
-            href="https://github.com/sunsiyuan/markdown-to-survey"
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-slate-100 transition hover:border-blue-300 hover:bg-white/10"
-          >
-            GitHub repo
-          </a>
         </header>
 
-        <section className="grid flex-1 gap-8 py-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:py-16">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-blue-200">
-              Markdown to Survey in seconds
+        <section className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
+          <div className="rounded-[2.5rem] border border-[var(--panel-border)] bg-[var(--surface)] p-8 shadow-[0_36px_120px_-60px_rgba(14,23,38,0.48)]">
+            <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[var(--accent-strong)]">
+              Survey Infrastructure For AI Agents
             </p>
-            <h1 className="mt-4 max-w-3xl text-5xl font-semibold tracking-tight text-white sm:text-6xl">
-              Write survey content once, publish a polished form and live dashboard instantly.
+            <h1 className="mt-4 max-w-4xl text-5xl font-semibold tracking-tight text-slate-950 sm:text-6xl">
+              Your agent writes Markdown. Humans answer. You get structured JSON back.
             </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
-              MTS turns simple Markdown into respondent-friendly survey pages and shareable
-              results links. Write in the format you already use, then hand the rest to the app
-              or to your coding assistant.
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-700">
+              MTS owns one step in the AI workflow: ask humans for missing information, then return
+              machine-usable results through a minimal API and MCP server.
             </p>
+
+            <div className="mt-8 flex flex-wrap gap-3">
+              <a
+                href="#try-it"
+                className="rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+              >
+                Get API Key
+              </a>
+              <Link
+                href="/docs"
+                className="rounded-full border border-slate-900 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-950 hover:text-white"
+              >
+                View Docs
+              </Link>
+              <a
+                href="https://www.npmjs.com/package/@mts/mcp-server"
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full border border-black/10 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              >
+                npm: @mts/mcp-server
+              </a>
+            </div>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
               {[
-                ['1', 'Paste Markdown', 'Use headings, bold prompts, checkboxes, and text fields.'],
-                ['2', 'Create Survey', 'The parser stores the schema and returns respondent and results URLs.'],
-                ['3', 'Watch Results', 'Responses land in a clean dashboard with live updates.'],
+                [
+                  '1',
+                  'Agent writes the survey',
+                  'Use Markdown for speed or JSON schema for precise control.',
+                ],
+                [
+                  '2',
+                  'Humans answer on hosted pages',
+                  'MTS renders the form, validates submissions, and enforces lifecycle rules.',
+                ],
+                [
+                  '3',
+                  'Agent retrieves structured results',
+                  'Fetch aggregated results via API or call get_results from MCP.',
+                ],
               ].map(([step, title, body]) => (
                 <article
                   key={step}
-                  className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-[0_24px_80px_-48px_rgba(14,165,233,0.6)]"
+                  className="rounded-[1.75rem] border border-[var(--panel-border)] bg-white/76 p-5"
                 >
-                  <p className="text-sm font-semibold text-blue-200">Step {step}</p>
-                  <h2 className="mt-3 text-lg font-semibold text-white">{title}</h2>
-                  <p className="mt-2 text-sm leading-6 text-slate-300">{body}</p>
+                  <p className="text-sm font-semibold text-[var(--accent-strong)]">Step {step}</p>
+                  <h2 className="mt-3 text-lg font-semibold text-slate-950">{title}</h2>
+                  <p className="mt-2 text-sm leading-6 text-slate-700">{body}</p>
                 </article>
               ))}
             </div>
           </div>
 
           <div className="grid gap-5">
-            <div className="grid gap-5 xl:grid-cols-[1fr_0.95fr]">
-              <section className="rounded-[2rem] border border-white/10 bg-slate-900/80 p-5 shadow-[0_24px_80px_-44px_rgba(14,165,233,0.4)]">
-                <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-white">Markdown syntax</h2>
-                  <span className="rounded-full bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.2em] text-slate-300">
-                    Input
-                  </span>
-                </div>
-                <pre className="overflow-x-auto rounded-3xl bg-black/30 p-4 text-sm leading-7 text-blue-100">
-                  <code>{sampleMarkdown}</code>
-                </pre>
-              </section>
-
-              <section className="rounded-[2rem] border border-blue-200/20 bg-white p-5 text-slate-900 shadow-[0_24px_80px_-44px_rgba(37,99,235,0.45)]">
-                <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-lg font-semibold">Survey preview</h2>
-                  <span className="rounded-full bg-blue-50 px-3 py-1 text-xs uppercase tracking-[0.2em] text-blue-600">
-                    Output
-                  </span>
-                </div>
-                <div className="space-y-4">
-                  <div className="rounded-3xl border border-slate-200 p-4">
-                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-600">
-                      Product Feedback Survey
-                    </p>
-                    <p className="mt-2 text-sm leading-6 text-slate-600">
-                      Help us improve the next release.
-                    </p>
-                  </div>
-                  <div className="rounded-3xl border border-slate-200 p-4 shadow-sm">
-                    <p className="text-sm font-semibold text-slate-900">
-                      Q1. Which area needs the most attention?
-                    </p>
-                    <div className="mt-3 space-y-2">
-                      {['Onboarding', 'Performance', 'Reporting'].map((item) => (
-                        <div
-                          key={item}
-                          className="flex min-h-11 items-center rounded-2xl bg-blue-50 px-3 text-sm text-slate-700"
-                        >
-                          <span className="mr-3 h-4 w-4 rounded-full border border-blue-300 bg-white" />
-                          {item}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="rounded-3xl border border-slate-200 p-4 shadow-sm">
-                    <p className="text-sm font-semibold text-slate-900">
-                      Q2. What should we never change without review?
-                    </p>
-                    <div className="mt-3 min-h-24 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-400">
-                      Type your answer here...
-                    </div>
-                  </div>
-                </div>
-              </section>
-            </div>
-
-            <section className="rounded-[2rem] border border-white/10 bg-white/5 p-6 backdrop-blur">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.24em] text-blue-200">
-                    Try it
-                  </p>
-                  <h2 className="mt-2 text-2xl font-semibold text-white">
-                    Paste Markdown and create a survey now.
-                  </h2>
-                </div>
-                <p className="max-w-md text-sm leading-6 text-slate-300">
-                  This form calls <code className="rounded bg-white/10 px-1.5 py-0.5">POST /api/surveys</code>{' '}
-                  and returns the respondent URL and question count.
-                </p>
-              </div>
-
-              <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
-                <textarea
-                  className="min-h-64 w-full rounded-[1.75rem] border border-white/10 bg-slate-950/70 px-5 py-4 text-sm leading-7 text-blue-100 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-400/20"
-                  value={markdown}
-                  onChange={(event) => setMarkdown(event.target.value)}
-                />
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="text-sm text-slate-300">
-                    No auth, no manual schema work, just Markdown in and links out.
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="min-h-11 rounded-full bg-blue-500 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:bg-blue-300"
-                  >
-                    {isLoading ? 'Creating...' : 'Create survey'}
-                  </button>
-                </div>
-              </form>
-
-              {error ? (
-                <div className="mt-4 rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
-                  {error}
-                </div>
-              ) : null}
-
-              {result ? (
-                <div className="mt-4 grid gap-3 rounded-[1.75rem] border border-emerald-400/25 bg-emerald-500/10 p-4 text-sm text-emerald-50 sm:grid-cols-3">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.18em] text-emerald-200">
-                      Survey URL
-                    </p>
-                    <a className="mt-2 block break-all font-medium underline" href={result.survey_url}>
-                      {result.survey_url}
-                    </a>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.18em] text-emerald-200">
-                      Survey ID
-                    </p>
-                    <p className="mt-2 break-all text-xl font-semibold">
-                      {result.survey_url.split('/').at(-1)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.18em] text-emerald-200">
-                      Questions
-                    </p>
-                    <p className="mt-2 text-xl font-semibold">{result.question_count}</p>
-                  </div>
-                </div>
-              ) : null}
+            <CodePanel
+              eyebrow="Above The Fold"
+              title="MCP integration in Claude Code"
+              code={mcpConfigSnippet}
+            />
+            <section className="rounded-[2rem] border border-[var(--panel-border)] bg-white/86 p-5 shadow-[0_24px_80px_-56px_rgba(14,23,38,0.52)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--accent-strong)]">
+                Example
+              </p>
+              <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-950">
+                Typical MCP usage
+              </h2>
+              <pre className="mt-4 overflow-x-auto rounded-[1.5rem] border border-[var(--panel-border)] bg-[var(--surface-muted)] p-4 text-sm leading-7 text-slate-800">
+                <code>{mcpUsageSnippet}</code>
+              </pre>
             </section>
+          </div>
+        </section>
+
+        <section className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+          <CodePanel eyebrow="HTTP API" title="Authenticate, create, then fetch results" code={apiFlowSnippet} />
+
+          <section className="rounded-[2rem] border border-[var(--panel-border)] bg-white/86 p-6 shadow-[0_24px_80px_-56px_rgba(14,23,38,0.52)]">
+            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--accent-strong)]">
+              Question Types
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+              Four semantic primitives, not a UI zoo.
+            </h2>
+            <div className="mt-5 overflow-x-auto rounded-[1.5rem] border border-[var(--panel-border)]">
+              <table className="min-w-full border-collapse bg-white text-left text-sm">
+                <thead className="bg-[var(--surface-muted)] text-slate-600">
+                  <tr>
+                    <th className="px-4 py-3 font-semibold">Type</th>
+                    <th className="px-4 py-3 font-semibold">Meaning</th>
+                    <th className="px-4 py-3 font-semibold">Markdown</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {questionTypes.map(([type, meaning, syntax]) => (
+                    <tr key={type} className="border-t border-[var(--panel-border)]">
+                      <td className="px-4 py-3 font-mono text-xs text-slate-950">{type}</td>
+                      <td className="px-4 py-3 text-slate-700">{meaning}</td>
+                      <td className="px-4 py-3 text-slate-700">{syntax}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <TryItPanel />
+
+        <section className="rounded-[2rem] border border-[var(--panel-border)] bg-white/86 p-6 shadow-[0_24px_80px_-56px_rgba(14,23,38,0.45)]">
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--accent-strong)]">
+            Reference Links
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            {links.map(([label, href]) => (
+              <a
+                key={label}
+                href={href}
+                target={href.startsWith('http') ? '_blank' : undefined}
+                rel={href.startsWith('http') ? 'noreferrer' : undefined}
+                className="rounded-full border border-black/10 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              >
+                {label}
+              </a>
+            ))}
           </div>
         </section>
       </div>
