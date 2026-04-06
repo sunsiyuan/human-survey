@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 
-import { supabase } from '@/lib/supabase'
+import { requireAuth } from '@/lib/auth'
+import { sql, parseJsonValue } from '@/lib/db'
 
 type RouteContext = {
   params: Promise<{ id: string }>
@@ -8,19 +9,136 @@ type RouteContext = {
 
 export async function GET(_request: Request, context: RouteContext) {
   const { id } = await context.params
-  const { data, error } = await supabase
-    .from('surveys')
-    .select('id, title, description, schema, response_count')
-    .eq('id', id)
-    .maybeSingle()
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  try {
+    const rows = (await sql`
+      SELECT id, title, description, schema, response_count, status, max_responses, expires_at
+      FROM surveys
+      WHERE id = ${id}
+      LIMIT 1
+    `) as Array<{
+      id: string
+      title: string
+      description: string | null
+      schema: unknown
+      response_count: number
+      status: string
+      max_responses: number | null
+      expires_at: string | null
+    }>
+
+    const row = rows[0]
+
+    if (!row) {
+      return NextResponse.json({ error: 'Survey not found' }, { status: 404 })
+    }
+
+    return NextResponse.json({
+      ...row,
+      schema: parseJsonValue(row.schema),
+    })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Database error'
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
+}
+
+export async function PATCH(request: Request, context: RouteContext) {
+  const auth = await requireAuth(request)
+  if (auth instanceof Response) {
+    return auth
   }
 
-  if (!data) {
-    return NextResponse.json({ error: 'Survey not found' }, { status: 404 })
+  const { id } = await context.params
+  const body = (await request.json().catch(() => null)) as
+    | { status?: string; max_responses?: number | null; expires_at?: string | null }
+    | null
+
+  if (!body) {
+    return NextResponse.json({ error: 'Request body is required' }, { status: 400 })
   }
 
-  return NextResponse.json(data)
+  if (
+    body.status !== undefined &&
+    body.status !== 'open' &&
+    body.status !== 'closed'
+  ) {
+    return NextResponse.json({ error: "status must be 'open' or 'closed'" }, { status: 400 })
+  }
+
+  if (
+    body.max_responses !== undefined &&
+    body.max_responses !== null &&
+    (!Number.isInteger(body.max_responses) || body.max_responses <= 0)
+  ) {
+    return NextResponse.json(
+      { error: 'max_responses must be a positive integer' },
+      { status: 400 },
+    )
+  }
+
+  if (
+    body.expires_at !== undefined &&
+    body.expires_at !== null &&
+    Number.isNaN(Date.parse(body.expires_at))
+  ) {
+    return NextResponse.json(
+      { error: 'expires_at must be a valid ISO date' },
+      { status: 400 },
+    )
+  }
+
+  try {
+    const rows = (await sql`
+      SELECT id, api_key_id, status, max_responses, expires_at
+      FROM surveys
+      WHERE id = ${id}
+      LIMIT 1
+    `) as Array<{
+      id: string
+      api_key_id: string | null
+      status: string
+      max_responses: number | null
+      expires_at: string | null
+    }>
+
+    const existingSurvey = rows[0]
+
+    if (!existingSurvey) {
+      return NextResponse.json({ error: 'Survey not found' }, { status: 404 })
+    }
+
+    if (existingSurvey.api_key_id !== auth.keyId) {
+      return NextResponse.json(
+        { error: 'You do not have access to this survey' },
+        { status: 403 },
+      )
+    }
+
+    const nextStatus = body.status ?? existingSurvey.status
+    const nextMaxResponses =
+      body.max_responses !== undefined ? body.max_responses : existingSurvey.max_responses
+    const nextExpiresAt =
+      body.expires_at !== undefined ? body.expires_at : existingSurvey.expires_at
+
+    const updatedRows = (await sql`
+      UPDATE surveys
+      SET
+        status = ${nextStatus},
+        max_responses = ${nextMaxResponses},
+        expires_at = ${nextExpiresAt}::timestamptz
+      WHERE id = ${id} AND api_key_id = ${auth.keyId}
+      RETURNING id, status, max_responses, expires_at
+    `) as Array<{
+      id: string
+      status: string
+      max_responses: number | null
+      expires_at: string | null
+    }>
+
+    return NextResponse.json(updatedRows[0])
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Database error'
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
 }

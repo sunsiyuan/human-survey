@@ -1,0 +1,223 @@
+# Markdown to Survey (MTS)
+
+> Survey infrastructure for AI agents. Markdown or JSON schema in, respondent URL out, structured results back via authenticated API or MCP.
+
+## Core Flow
+
+1. Create an API key with `POST /api/keys`
+2. Create a survey with `POST /api/surveys`
+3. Share the returned `/s/{survey_id}` URL with respondents
+4. Read results with `GET /api/surveys/{survey_id}/responses`
+5. Optionally list surveys or close a survey via API or MCP
+
+## Authentication
+
+Creator endpoints require:
+
+`Authorization: Bearer mts_sk_...`
+
+Public endpoints:
+
+- `GET /api/surveys/{id}`
+- `POST /api/surveys/{id}/responses`
+- `/s/{id}`
+
+## Markdown Syntax
+
+### Choice
+
+```markdown
+**Q1. Which area needs the most attention?**
+
+- ☐ Onboarding
+- ☐ Performance
+- ☐ Reporting
+```
+
+### Multi-choice
+
+```markdown
+**Q2. Which constraints apply?** (select all that apply)
+
+- ☐ Budget
+- ☐ Time
+- ☐ Access
+```
+
+### Text
+
+```markdown
+**Q3. What should we never change without review?**
+
+> _______________________________________________
+```
+
+### Scale
+
+```markdown
+**Q4. How likely are you to recommend us?**
+
+[scale 0-10]
+
+**Q5. Rate onboarding difficulty**
+
+[scale 1-5 min-label="Very hard" max-label="Very easy"]
+```
+
+### Matrix
+
+```markdown
+| # | Item | Rating |
+|---|------|--------|
+| 1 | Onboarding | ☐Good ☐OK ☐Bad |
+| 2 | Support | ☐Good ☐OK ☐Bad |
+```
+
+### Conditional Logic
+
+```markdown
+**Q1. Have you used the product before?**
+
+- ☐ Yes
+- ☐ No
+
+**Q2. How satisfied are you?**
+
+> show if: Q1 = "Yes"
+
+[scale 1-5]
+```
+
+Supported operators:
+
+- `show if: Q1 = "Yes"`
+- `show if: Q1 != "No"`
+- `show if: Q2 contains "Other"`
+- `show if: Q3 answered`
+
+## JSON Schema Input
+
+```json
+{
+  "schema": {
+    "title": "Product Feedback",
+    "sections": [
+      {
+        "title": "Core",
+        "questions": [
+          {
+            "type": "single_choice",
+            "label": "What is your primary use case?",
+            "required": true,
+            "options": [
+              { "label": "Work" },
+              { "label": "Personal" }
+            ]
+          },
+          {
+            "type": "scale",
+            "label": "How satisfied are you overall?",
+            "required": true,
+            "min": 1,
+            "max": 5,
+            "showIf": {
+              "questionId": "q_0",
+              "operator": "eq",
+              "value": "Work"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+## API Reference
+
+### `POST /api/keys`
+
+- Request: `{ "name": "my agent" }`
+- Response: `{ "id": "...", "key": "mts_sk_...", "name": "...", "created_at": "..." }`
+
+### `GET /api/keys`
+
+- Auth required
+- Returns metadata for the current API key
+
+### `DELETE /api/keys/{id}`
+
+- Auth required
+- Revokes the current key
+
+### `POST /api/surveys`
+
+- Auth required
+- Accepts either `{ "markdown": "..." }` or `{ "schema": { ... } }`
+- Optional lifecycle fields: `max_responses`, `expires_at`
+- Response: `{ "survey_url": "/s/abc123", "question_count": 3 }`
+
+### `GET /api/surveys`
+
+- Auth required
+- Lists surveys for the current key
+
+### `GET /api/surveys/{id}`
+
+- Public
+- Returns survey metadata, schema, and lifecycle fields
+
+### `PATCH /api/surveys/{id}`
+
+- Auth required
+- Update `status`, `max_responses`, `expires_at`
+
+### `POST /api/surveys/{id}/responses`
+
+- Public
+- Request: `{ "answers": { "q_0": "opt_0", "q_1": 4 } }`
+
+### `GET /api/surveys/{id}/responses`
+
+- Auth required
+- Returns:
+  - `count`
+  - `questions` with precomputed tallies/stats/responses
+  - `raw` individual responses
+
+## Error Responses
+
+- `401 Missing or invalid Authorization header`
+- `401 Invalid API key`
+- `400 Invalid schema`
+- `404 Survey not found`
+- `410 This survey is closed`
+- `410 This survey has expired`
+- `410 This survey is full`
+
+## MCP Tools
+
+### `create_survey`
+
+- Input: `{ markdown }` or `{ schema }`
+- Output: survey URL, survey ID, question count
+
+### `get_results`
+
+- Input: `{ survey_id }`
+- Output: human-readable summary with choice tallies, scale mean/median, recent text responses
+
+### `list_surveys`
+
+- Output: table of survey IDs, titles, status, responses, created date
+
+### `close_survey`
+
+- Input: `{ survey_id }`
+- Output: confirmation with total response count
+
+## Discoverability
+
+- Site docs: https://mts.vercel.app/docs
+- OpenAPI: https://mts.vercel.app/api/openapi.json
+- llms.txt: https://mts.vercel.app/llms.txt

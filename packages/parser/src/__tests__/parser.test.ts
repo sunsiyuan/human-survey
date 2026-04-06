@@ -32,6 +32,13 @@ describe('parseSurvey', () => {
     expect(sectionC.title).toBe('C. Preferences')
   })
 
+  it('splits composite-looking intro fields into sequential text questions', () => {
+    expect(introSection.questions.slice(0, 2)).toMatchObject([
+      { label: 'Date:', type: 'text' },
+      { label: 'Name:', type: 'text' },
+    ])
+  })
+
   it('parses question A2 as single choice with 4 options', () => {
     const question = sectionA.questions.find((item) => item.label.startsWith('A2.'))
 
@@ -77,6 +84,108 @@ describe('parseSurvey', () => {
     expect(minimal.sections[0].questions[0]).toMatchObject({
       label: 'Q1. Pick one?',
       type: 'single_choice',
+    })
+  })
+
+  it('parses a scale question with a numeric range', () => {
+    const survey = parseSurvey(
+      `# Scale Survey\n\n**Q1. How likely are you to recommend us?**\n\n[scale 0-10]`,
+    )
+
+    expect(survey.sections[0].questions[0]).toMatchObject({
+      type: 'scale',
+      min: 0,
+      max: 10,
+    })
+  })
+
+  it('parses scale labels correctly', () => {
+    const survey = parseSurvey(
+      `# Satisfaction Survey\n\n**Q1. Rate your experience.**\n\n[scale 1-5 min-label="Poor" max-label="Excellent"]`,
+    )
+
+    expect(survey.sections[0].questions[0]).toMatchObject({
+      type: 'scale',
+      min: 1,
+      max: 5,
+      minLabel: 'Poor',
+      maxLabel: 'Excellent',
+    })
+  })
+
+  it('throws a clear error when scale min is greater than max', () => {
+    expect(() =>
+      parseSurvey(`# Invalid Scale\n\n**Q1. Rate it.**\n\n[scale 5-3]`),
+    ).toThrowError('Scale min must be less than max')
+  })
+
+  it('throws a clear error when the scale range exceeds 11 points', () => {
+    expect(() =>
+      parseSurvey(`# Invalid Scale\n\n**Q1. Rate it.**\n\n[scale 1-12]`),
+    ).toThrowError('Scale range cannot exceed 11 points')
+  })
+
+  it('parses a scale question immediately after a multi-choice question', () => {
+    const survey = parseSurvey(`# Mixed Survey
+
+**Q1. Which areas matter most?** (select all that apply)
+
+- ☐ Speed
+- ☐ Accuracy
+
+**Q2. How satisfied are you overall?**
+
+[scale 1-5]`)
+
+    expect(survey.sections[0].questions).toMatchObject([
+      { type: 'multi_choice' },
+      { type: 'scale', min: 1, max: 5 },
+    ])
+  })
+
+  it('parses showIf blockquotes and resolves question references', () => {
+    const survey = parseSurvey(`# Conditional Survey
+
+**Q1. Have you used our product before?**
+
+- ☐ Yes
+- ☐ No
+
+**Q2. How satisfied are you with it?**
+
+> show if: Q1 = "Yes"
+
+[scale 1-5]`)
+
+    expect(survey.sections[0].questions[1]).toMatchObject({
+      type: 'scale',
+      showIf: {
+        questionId: 'q_0',
+        operator: 'eq',
+        value: 'Yes',
+      },
+    })
+  })
+
+  it('does not store condition blockquotes as question descriptions', () => {
+    const survey = parseSurvey(`# Conditional Survey
+
+**Q1. Have you used our product before?**
+
+- ☐ Yes
+- ☐ No
+
+**Q2. Why not?**
+
+> show if: Q1 = "No"
+
+> _______________`)
+
+    expect(survey.sections[0].questions[1].description).toBeUndefined()
+    expect(survey.sections[0].questions[1].showIf).toMatchObject({
+      questionId: 'q_0',
+      operator: 'eq',
+      value: 'No',
     })
   })
 })

@@ -1,26 +1,54 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #0f172a;
-  --primary: #2563eb;
+  --background: #f5eee1;
+  --foreground: #111827;
+  --surface: rgba(255, 250, 242, 0.9);
+  --surface-muted: #efe2cc;
+  --panel-border: rgba(17, 24, 39, 0.12);
+  --accent: #f59e0b;
+  --accent-strong: #9a3412;
+  --accent-soft: rgba(245, 158, 11, 0.18);
+  --accent-fg: #fef3c7;
+  --page-gradient:
+    radial-gradient(circle at top left, rgba(245, 158, 11, 0.26), transparent 32%),
+    radial-gradient(circle at top right, rgba(14, 116, 144, 0.2), transparent 26%),
+    linear-gradient(180deg, #f8f2e7 0%, #f1e7d6 48%, #ebe2d4 100%);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-primary: var(--primary);
+  --color-primary: var(--accent);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family:
-    Inter,
+    "Avenir Next",
+    "Trebuchet MS",
+    "Segoe UI",
     ui-sans-serif,
     system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
     sans-serif;
+}
+
+code,
+pre {
+  font-family:
+    "SFMono-Regular",
+    "IBM Plex Mono",
+    "Cascadia Code",
+    ui-monospace,
+    monospace;
+}
+
+::selection {
+  background: rgba(245, 158, 11, 0.32);
+  color: #111827;
 }

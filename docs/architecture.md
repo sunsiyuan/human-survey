@@ -1,16 +1,17 @@
 # Architecture
 
-## Overview
+MTS is the survey infrastructure layer for AI agents. The product contract is defined first in [POSITIONING.md](./POSITIONING.md): semantic question types, API-first access, and an explicit survey lifecycle drive every implementation decision below.
 
-MTS (Markdown to Survey) is a three-component system:
+## System Overview
 
 ```
 ┌──────────────┐      ┌───────────────────┐      ┌─────────────────────┐
-│ Claude Code  │─MCP─▶│  MCP Server       │─API─▶│  Next.js on Vercel  │
-│ (user's IDE) │      │  (local process)  │      │                     │
+│ AI agent     │─MCP─▶│  MCP Server       │─API─▶│  Next.js on Vercel  │
+│ or app code  │      │  (local process)  │      │                     │
 └──────────────┘      └───────────────────┘      │  ┌─── API Routes    │
                                                   │  ├─── Survey Page   │
-                                                  │  └─── Results Page  │
+                                                  │  ├─── Docs / llms   │
+                                                  │  └─── Results UI    │
                                                   └────────┬────────────┘
                                                            │
                                                     ┌──────▼──────┐
@@ -20,101 +21,142 @@ MTS (Markdown to Survey) is a three-component system:
                                                     └─────────────┘
 ```
 
-## Components
+The flow is intentionally small:
+
+1. An agent creates a survey from Markdown or JSON schema.
+2. MTS stores the normalized survey schema and returns a respondent URL.
+3. Humans submit responses through the hosted survey page.
+4. The creator retrieves structured results through the authenticated API or MCP.
+
+## Architecture Principles
+
+- Semantic over visual: the protocol exposes 4 question types only: `single_choice`, `multi_choice`, `text`, `matrix`, and `scale` as the numeric range type once v0.2 lands. UI variants do not become protocol types.
+- API first: anything available in the web UI must also exist as an authenticated API or MCP operation.
+- Structured outputs: results are returned as machine-usable JSON with per-question aggregation, not only presentation text.
+- Explicit lifecycle: surveys can be open, closed, expired, or full. Submission logic and rendering both enforce the same lifecycle rules.
+
+## Main Components
 
 ### 1. Parser (`packages/parser`)
 
-The core engine. Converts Markdown text into a structured Survey JSON schema.
+The parser converts Markdown survey syntax into the canonical Survey JSON schema used everywhere else.
 
-**Pipeline:**
+Pipeline:
+
 ```
-Markdown string
-  → remark parse (Markdown → MDAST)
-  → Custom transformer (MDAST → Survey tokens)
-  → Schema builder (tokens → Survey JSON)
-  → Validation
+Markdown
+  → remark parse
+  → survey-specific node inspection
+  → normalized Survey JSON
+  → validation / ID assignment
 ```
 
-**Key design decisions:**
-- Uses `remark` (unified ecosystem) for reliable Markdown AST parsing
-- Custom MDAST visitor that recognizes survey patterns (checkboxes, tables, fill-in fields)
-- Stateful parser that tracks current section and question context
-- Outputs a self-contained JSON schema that the frontend renders without needing the original markdown
+Responsibilities:
 
-**Detection heuristics:**
-- Single choice vs multi choice: look for `可多选`, `select all`, `multiple` hints in question text
-- Question boundaries: bold text (`**...**`) containing `?` or numbered pattern (`A1.`, `Q1.`)
-- Text inputs: `___` patterns (3+ underscores)
-- Matrix questions: tables containing `☐` in cells
+- Recognize question structure from Markdown
+- Normalize to stable IDs (`section_0`, `q_0`, `opt_0`, ...)
+- Support both human-authored Markdown and feature parity with JSON schema input
+- Export the shared schema types consumed by the web app and MCP server
+
+Supported semantic question types:
+
+- `single_choice`
+- `multi_choice`
+- `text`
+- `matrix`
+- `scale`
+
+`composite` is intentionally not part of the schema. When Markdown contains multiple adjacent input blocks, they are represented as sequential questions.
 
 ### 2. Web App (`apps/web`)
 
-Next.js App Router application with three responsibilities:
+The Next.js app serves both the machine-facing API and the human-facing form/results experience.
 
-**API Routes:**
-- `POST /api/surveys` — Accepts markdown, runs parser, stores in Supabase, returns URLs
-- `GET /api/surveys/[id]` — Returns survey schema for rendering
-- `POST /api/surveys/[id]/responses` — Stores a completed survey response
-- `GET /api/surveys/[id]/results` — Returns aggregated results
+API responsibilities:
 
-**Survey Page (`/s/[id]`):**
-- Server component fetches survey schema
-- Client component renders interactive form
-- Section-by-section navigation with progress indicator
-- Auto-saves to localStorage (keyed by survey ID)
-- On submit: POST to API, show thank-you page
+- `POST /api/keys` creates API keys
+- `GET /api/keys` and `DELETE /api/keys/[id]` manage keys
+- `POST /api/surveys` creates surveys from Markdown or JSON schema
+- `GET /api/surveys` lists surveys for the authenticated creator
+- `GET /api/surveys/[id]` returns public survey metadata/schema for respondents
+- `PATCH /api/surveys/[id]` updates lifecycle state
+- `POST /api/surveys/[id]/responses` stores respondent answers
+- `GET /api/surveys/[id]/responses` returns raw responses plus aggregated question data
 
-**Results Page (`/r/[id]`):**
-- Resolves `result_id` → `survey_id` on server
-- Fetches current results on load
-- Subscribes to Supabase Realtime for live updates
-- Renders charts per question type
+Page responsibilities:
+
+- `/s/[id]` renders the survey form, enforces closed/expired/full state, and submits responses
+- `/docs`, `/llms.txt`, and `/api/openapi.json` make the product discoverable to developers and agents
+- `/r/[id]` remains as a legacy compatibility surface during deprecation, but results access is defined by the authenticated API
 
 ### 3. MCP Server (`packages/mcp-server`)
 
-Lightweight Node.js process that Claude Code spawns via `npx`.
+The MCP server is a thin authenticated client over the hosted API.
 
-**Tools:**
-| Tool | Input | Output |
-|------|-------|--------|
-| `create_survey` | `{ markdown: string }` | `{ survey_url, results_url, question_count }` |
-| `get_results` | `{ results_url: string }` | `{ response_count, questions: [{ label, summary }] }` |
+Responsibilities:
 
-The MCP server calls the hosted API — it does not run the parser locally (so the parser version is always consistent with what the backend expects).
+- Accept survey definitions from agents
+- Call the API with `Authorization: Bearer ${MTS_API_KEY}`
+- Format creator-friendly text output for MCP tools
+- Preserve access to structured results through the underlying API response shapes
 
-## Database Design
+Core tools:
 
-Two tables in Supabase Postgres:
+- `create_survey`
+- `get_results`
+- `list_surveys`
+- `close_survey`
+
+## Access Model
+
+Results access is no longer based on a second opaque URL. The access model is:
+
+- Respondents use the public survey URL: `/s/{survey_id}`
+- Creators use API key auth for creation, listing, lifecycle changes, and results retrieval
+- MCP tools use the same API key auth model as direct HTTP clients
+
+This keeps the creator surface consistent across web API, MCP, and future SDKs.
+
+## Data Model
+
+The database keeps a normalized ownership model plus denormalized counters for fast reads.
 
 ```
+api_keys
+├── id (TEXT PK)
+├── key_hash (TEXT UNIQUE NOT NULL)
+├── name (TEXT)
+├── created_at (TIMESTAMPTZ)
+└── last_used_at (TIMESTAMPTZ)
+
 surveys
-├── id (TEXT PK)              — nanoid, used in /s/{id}
-├── result_id (TEXT UNIQUE)   — separate nanoid, used in /r/{id}
-├── title (TEXT)
+├── id (TEXT PK)
+├── api_key_id (TEXT FK → api_keys.id)
+├── title (TEXT NOT NULL)
 ├── description (TEXT)
-├── schema (JSONB)            — full survey definition
-├── markdown (TEXT)           — original source
-├── response_count (INT)     — denormalized, updated by trigger
+├── schema (JSONB NOT NULL)
+├── markdown (TEXT)
+├── response_count (INT DEFAULT 0)
+├── status (TEXT NOT NULL DEFAULT 'open')
+├── max_responses (INT)
+├── expires_at (TIMESTAMPTZ)
 └── created_at (TIMESTAMPTZ)
 
 responses
 ├── id (TEXT PK)
 ├── survey_id (TEXT FK → surveys.id)
-├── answers (JSONB)           — { "q_a1": "option_2", "q_a2": ["opt_1", "opt_3"], ... }
+├── answers (JSONB NOT NULL)
 └── created_at (TIMESTAMPTZ)
 ```
 
-**Why two IDs per survey?**
-- `id` is in the survey URL — shared with respondents
-- `result_id` is in the results URL — only the creator knows it
-- This gives link-based access control without authentication
+Notes:
 
-**Realtime:**
-- The `responses` table is added to `supabase_realtime` publication
-- Results page subscribes to `INSERT` events filtered by `survey_id`
-- On new response: increment local count, re-aggregate affected questions
+- `schema` stores the canonical survey definition used by the form renderer and results aggregation.
+- `response_count` is denormalized and maintained server-side for quick lifecycle checks.
+- Lifecycle fields live on the survey itself so both API and UI can make the same availability decision.
+- Existing legacy columns can remain temporarily during migration, but they are not part of the long-term access model.
 
-## Survey JSON Schema
+## Survey Schema Shape
 
 ```typescript
 interface Survey {
@@ -124,60 +166,81 @@ interface Survey {
 }
 
 interface Section {
-  id: string           // e.g., "section_a"
-  title?: string       // e.g., "A. 你的商品基本情况"
-  description?: string // from blockquotes
+  id: string
+  title?: string
+  description?: string
   questions: Question[]
 }
 
-type QuestionType = 'single_choice' | 'multi_choice' | 'text' | 'matrix' | 'composite'
+type QuestionType =
+  | 'single_choice'
+  | 'multi_choice'
+  | 'text'
+  | 'matrix'
+  | 'scale'
 
 interface Question {
-  id: string           // e.g., "q_a1"
+  id: string
   type: QuestionType
-  label: string        // The question text
-  description?: string // Additional context
+  label: string
+  description?: string
   required: boolean
-  options?: Option[]         // for choice types
-  rows?: MatrixRow[]         // for matrix type
-  columns?: MatrixColumn[]   // for matrix type
-  subQuestions?: Question[]  // for composite questions
-}
-
-interface Option {
-  id: string
-  label: string
-  hasTextInput?: boolean  // for "其他：___" options
-}
-
-interface MatrixRow {
-  id: string
-  label: string
-  cells: { [columnId: string]: string }  // display text per column
-}
-
-interface MatrixColumn {
-  id: string
-  label: string
-  options: Option[]  // the selectable options in this column
+  options?: Option[]
+  rows?: MatrixRow[]
+  columns?: MatrixColumn[]
+  min?: number
+  max?: number
+  minLabel?: string
+  maxLabel?: string
+  showIf?: Condition
 }
 ```
 
-## Security Considerations
+The schema is shared across parser, API handlers, renderer, and MCP formatting. The system should not have multiple incompatible interpretations of the same survey.
 
-- **No auth for MVP** — link-based access only
-- Survey IDs are nanoid (12 chars, ~35 bits entropy) — not guessable
-- Result IDs are separate nanoids — knowing a survey URL doesn't reveal results
-- API rate limiting via Vercel's built-in edge middleware
-- Input sanitization: markdown is parsed into structured data, never rendered as raw HTML
-- Supabase Row Level Security: not needed for MVP (all surveys are public-by-link)
+## Results Pipeline
 
-## Future Considerations
+`GET /api/surveys/[id]/responses` is the canonical results endpoint.
 
-- User accounts and dashboard (manage all your surveys)
-- Custom themes and branding
-- Conditional logic (show question B only if answer to A is X)
-- Survey templates
-- Webhooks on new responses
-- Password-protected surveys
-- Expiration dates and response limits
+It returns:
+
+- `count`: total response count
+- `questions`: per-question aggregates ready for UI or agent reasoning
+- `raw`: complete individual responses for export or custom analysis
+
+Aggregation is computed once on the server so every consumer sees the same statistics:
+
+- choice questions expose tallies
+- scale questions expose count, mean, median, and distribution
+- text questions expose recent responses
+- matrix questions expose row and option breakdowns
+
+The results dashboard should consume this aggregated shape directly instead of reimplementing statistics client-side.
+
+## Realtime
+
+Supabase Realtime is used for the results dashboard only as a freshness mechanism:
+
+- subscribe to `responses` inserts for a single `survey_id`
+- merge the new raw response into local state
+- refresh or update the displayed aggregates from the canonical API shape
+
+Realtime is a UI enhancement, not the source of truth. The API response remains authoritative.
+
+## Security Model
+
+- API keys are stored hashed, never plaintext after creation
+- Creator endpoints require `Authorization: Bearer mts_sk_...`
+- Respondent endpoints remain public by design
+- Markdown is parsed into structured schema, not rendered as raw HTML
+- Ownership checks happen at the survey API boundary using `api_key_id`
+
+## Planned Extension Points
+
+The current architecture deliberately leaves room for:
+
+- JSON schema input as a parser bypass for agents
+- lifecycle management and ownership-aware survey listing
+- conditional logic through `showIf`
+- OpenAPI publication and generated SDKs
+- future webhooks without changing the survey schema contract

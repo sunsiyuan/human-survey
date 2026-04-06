@@ -2,13 +2,13 @@
 
 import type { Question } from '@mts/parser'
 
-type AnswerValue = string | string[] | undefined
+type AnswerValue = string | string[] | number | undefined
 
 type QuestionCardProps = {
   question: Question
   value: AnswerValue
   optionTexts: Record<string, string>
-  onChange: (value: string | string[]) => void
+  onChange: (value: string | string[] | number) => void
   onOptionTextChange: (optionId: string, value: string) => void
 }
 
@@ -19,7 +19,8 @@ export function QuestionCard({
   onChange,
   onOptionTextChange,
 }: QuestionCardProps) {
-  const selectedValues = Array.isArray(value) ? value : value ? [value] : []
+  const selectedValues =
+    Array.isArray(value) ? value : typeof value === 'string' && value ? [value] : []
 
   if (question.type === 'text') {
     return (
@@ -92,6 +93,45 @@ export function QuestionCard({
             </tbody>
           </table>
         </div>
+      </div>
+    )
+  }
+
+  if (question.type === 'scale') {
+    const min = question.min ?? 0
+    const max = question.max ?? 0
+    const points = Array.from({ length: max - min + 1 }, (_, offset) => min + offset)
+    const selectedValue = typeof value === 'number' ? value : undefined
+
+    return (
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <QuestionHeader question={question} />
+        <div className="mt-5 flex flex-wrap gap-3">
+          {points.map((point) => {
+            const selected = selectedValue === point
+
+            return (
+              <button
+                key={point}
+                type="button"
+                className={`flex min-h-11 min-w-11 items-center justify-center rounded-2xl border px-4 py-3 text-base font-medium transition ${
+                  selected
+                    ? 'border-blue-600 bg-blue-600 text-white'
+                    : 'border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50'
+                }`}
+                onClick={() => onChange(point)}
+              >
+                {point}
+              </button>
+            )
+          })}
+        </div>
+        {(question.minLabel || question.maxLabel) ? (
+          <div className="mt-3 flex items-start justify-between gap-4 text-sm text-slate-500">
+            <span>{question.minLabel ?? ''}</span>
+            <span className="text-right">{question.maxLabel ?? ''}</span>
+          </div>
+        ) : null}
       </div>
     )
   }

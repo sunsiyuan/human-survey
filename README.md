@@ -1,6 +1,6 @@
 # Markdown to Survey (MTS)
 
-Convert Markdown files into interactive, beautifully-designed web surveys in seconds.
+Convert Markdown or JSON survey definitions into interactive web surveys for AI agents.
 
 ## What is this?
 
@@ -9,9 +9,9 @@ Write your survey in Markdown. We turn it into a live, interactive survey with a
 **Example flow:**
 ```
 You (in Claude Code): "Create a survey from this markdown file"
-Claude Code:          Calls MTS → returns two links
+Claude Code:          Calls MTS → returns a survey URL and survey ID
   → Survey:  https://mts.vercel.app/s/abc123
-  → Results: https://mts.vercel.app/r/xyz789
+  → Results: GET /api/surveys/abc123/responses with your API key
 ```
 
 ## Features
@@ -20,7 +20,7 @@ Claude Code:          Calls MTS → returns two links
 - **One-command publish** — MCP server integration for Claude Code
 - **Beautiful UX** — Clean, mobile-first survey experience
 - **Live results** — Real-time response dashboard with charts
-- **No auth required** — Link-based access with unguessable result URLs
+- **API key auth** — Creator operations are authenticated, respondent submission stays public
 
 ## Supported Markdown Syntax
 
@@ -64,7 +64,10 @@ Add to your Claude Code config (`~/.claude.json`):
   "mcpServers": {
     "survey": {
       "command": "npx",
-      "args": ["-y", "@mts/mcp-server"]
+      "args": ["-y", "@mts/mcp-server"],
+      "env": {
+        "MTS_API_KEY": "mts_sk_your_key_here"
+      }
     }
   }
 }
@@ -78,7 +81,16 @@ Then in Claude Code:
 ### Use the API directly
 
 ```bash
+curl -X POST https://mts.vercel.app/api/keys \
+  -H "Content-Type: application/json" \
+  -d '{"name":"my claude agent"}'
+```
+
+Then create a survey:
+
+```bash
 curl -X POST https://mts.vercel.app/api/surveys \
+  -H "Authorization: Bearer mts_sk_..." \
   -H "Content-Type: application/json" \
   -d '{"markdown": "# My Survey\n\n**Q1. How are you?**\n\n- ☐ Great\n- ☐ OK\n- ☐ Not great"}'
 ```
@@ -87,7 +99,6 @@ Response:
 ```json
 {
   "survey_url": "https://mts.vercel.app/s/abc123",
-  "results_url": "https://mts.vercel.app/r/xyz789",
   "question_count": 1
 }
 ```

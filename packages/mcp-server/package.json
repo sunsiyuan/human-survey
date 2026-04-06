@@ -1,6 +1,24 @@
 {
   "name": "@mts/mcp-server",
   "version": "0.1.0",
+  "description": "MCP server for Markdown to Survey — let AI agents create surveys and collect human responses",
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "model-context-protocol",
+    "survey",
+    "form",
+    "questionnaire",
+    "claude",
+    "claude-code",
+    "ai-agent",
+    "markdown"
+  ],
+  "homepage": "https://mts.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sunsiyuan/markdown-to-survey"
+  },
   "type": "module",
   "bin": "dist/index.js",
   "scripts": {

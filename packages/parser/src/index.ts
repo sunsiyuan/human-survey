@@ -1,22 +1,41 @@
 import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 
+export {
+  buildSurveyFromInput,
+  SurveyInputValidationError,
+} from './builder.js'
 import type {
+  Condition,
+  ConditionOperator,
   MatrixColumn,
   MatrixRow,
+  MatrixColumnInput,
+  MatrixRowInput,
   Option,
+  OptionInput,
   Question,
+  QuestionInput,
   Survey,
+  SurveyInput,
 } from './schema.js'
 
 export type {
+  Condition,
+  ConditionOperator,
   MatrixColumn,
+  MatrixColumnInput,
   MatrixRow,
+  MatrixRowInput,
   Option,
+  OptionInput,
   Question,
+  QuestionInput,
   QuestionType,
   Section,
+  SectionInput,
   Survey,
+  SurveyInput,
 } from './schema.js'
 
 type MdNode = {
@@ -38,6 +57,8 @@ type StrongSegment = {
 const QUESTION_HINT_RE = /^[A-Z]\d+\./i
 const MULTI_CHOICE_RE = /可多选|多选|select all|multiple/i
 const UNDERSCORE_RE = /_{3,}/
+const SCALE_RE = /^\[scale\s+(\d+)-(\d+)(.*)\]$/i
+const QUESTION_REF_RE = /^([A-Z]\d+)\./i
 
 export function parseSurvey(markdown: string): Survey {
   if (!markdown.trim()) {
@@ -57,6 +78,7 @@ export function parseSurvey(markdown: string): Survey {
   let currentQuestion: Question | undefined
   let sectionIndex = 0
   let questionIndex = 0
+  const questionReferences = new Map<string, string>()
 
   const ensureSection = () => {
     if (!currentSection) {
@@ -80,6 +102,7 @@ export function parseSurvey(markdown: string): Survey {
     }
 
     section.questions.push(question)
+    registerQuestionReference(questionReferences, question)
     currentQuestion = question
     return question
   }
@@ -118,6 +141,15 @@ export function parseSurvey(markdown: string): Survey {
       case 'blockquote': {
         const content = normalizeWhitespace(stripBlockquote(raw))
         if (!content) {
+          return
+        }
+
+        const condition = currentQuestion
+          ? parseCondition(content, questionReferences, currentQuestion.id)
+          : null
+
+        if (currentQuestion && condition) {
+          currentQuestion.showIf = condition
           return
         }
 
@@ -166,6 +198,15 @@ export function parseSurvey(markdown: string): Survey {
       }
 
       case 'paragraph': {
+        const scaleDefinition = currentQuestion
+          ? parseScaleDefinition(normalizeWhitespace(toPlainText(node)))
+          : null
+
+        if (currentQuestion && scaleDefinition) {
+          setScaleQuestion(currentQuestion, scaleDefinition)
+          return
+        }
+
         if (looksLikeTable(raw)) {
           const question =
             currentQuestion ??
@@ -309,7 +350,10 @@ function setChoiceQuestion(question: Question, options: Option[]) {
   }))
   delete question.rows
   delete question.columns
-  delete question.subQuestions
+  delete question.min
+  delete question.max
+  delete question.minLabel
+  delete question.maxLabel
 }
 
 function setMatrixQuestion(question: Question, rawTable: string) {
@@ -379,7 +423,115 @@ function setMatrixQuestion(question: Question, rawTable: string) {
   question.rows = matrixRows
   question.columns = columns
   delete question.options
-  delete question.subQuestions
+  delete question.min
+  delete question.max
+  delete question.minLabel
+  delete question.maxLabel
+}
+
+function setScaleQuestion(
+  question: Question,
+  scale: {
+    min: number
+    max: number
+    minLabel?: string
+    maxLabel?: string
+  },
+) {
+  question.type = 'scale'
+  question.min = scale.min
+  question.max = scale.max
+  question.minLabel = scale.minLabel
+  question.maxLabel = scale.maxLabel
+  delete question.options
+  delete question.rows
+  delete question.columns
+}
+
+function parseScaleDefinition(input: string) {
+  const match = input.match(SCALE_RE)
+
+  if (!match) {
+    return null
+  }
+
+  const min = Number.parseInt(match[1] ?? '', 10)
+  const max = Number.parseInt(match[2] ?? '', 10)
+
+  if (min >= max) {
+    throw new Error('Scale min must be less than max')
+  }
+
+  if (max - min + 1 > 11) {
+    throw new Error('Scale range cannot exceed 11 points')
+  }
+
+  const attributes = match[3] ?? ''
+
+  return {
+    min,
+    max,
+    minLabel: extractScaleAttribute(attributes, 'min-label'),
+    maxLabel: extractScaleAttribute(attributes, 'max-label'),
+  }
+}
+
+function extractScaleAttribute(input: string, attributeName: 'min-label' | 'max-label') {
+  const match = input.match(new RegExp(`${attributeName}="([^"]*)"`, 'i'))
+  return match?.[1]
+}
+
+function registerQuestionReference(questionReferences: Map<string, string>, question: Question) {
+  const match = question.label.match(QUESTION_REF_RE)
+  const reference = match?.[1]?.toUpperCase()
+
+  if (reference) {
+    questionReferences.set(reference, question.id)
+  }
+}
+
+function parseCondition(
+  input: string,
+  questionReferences: Map<string, string>,
+  currentQuestionId: string,
+): Condition | null {
+  const match = input.match(
+    /^show if:\s+(\w+)\s+(=|!=|contains|answered)(?:\s+"([^"]*)")?$/i,
+  )
+
+  if (!match) {
+    return null
+  }
+
+  const questionRef = match[1]?.toUpperCase() ?? ''
+  const operatorToken = (match[2] ?? '').toLowerCase()
+  const questionId = questionReferences.get(questionRef)
+
+  if (!questionId || questionId === currentQuestionId) {
+    throw new Error(`Condition reference '${questionRef}' must refer to an earlier question`)
+  }
+
+  return {
+    questionId,
+    operator: normalizeConditionOperator(operatorToken),
+    value: match[3],
+  }
+}
+
+function normalizeConditionOperator(operatorToken: string): ConditionOperator {
+  if (operatorToken === '=') {
+    return 'eq'
+  }
+
+  if (operatorToken === '!=') {
+    return 'neq'
+  }
+
+  if (operatorToken === 'contains') {
+    return 'contains'
+  }
+
+  return 'answered'
 }
 
 function parseCheckboxOptions(input: string): Option[] {
