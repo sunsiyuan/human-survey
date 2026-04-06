@@ -1,19 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f5eee1;
-  --foreground: #111827;
-  --surface: rgba(255, 250, 242, 0.9);
-  --surface-muted: #efe2cc;
-  --panel-border: rgba(17, 24, 39, 0.12);
-  --accent: #f59e0b;
-  --accent-strong: #9a3412;
-  --accent-soft: rgba(245, 158, 11, 0.18);
-  --accent-fg: #fef3c7;
+  --background: #f4f0e8;
+  --foreground: #17202b;
+  --surface: rgba(255, 252, 247, 0.9);
+  --surface-muted: #ebe5da;
+  --panel-border: rgba(23, 32, 43, 0.1);
+  --accent: #526b82;
+  --accent-strong: #31465b;
+  --accent-soft: rgba(82, 107, 130, 0.14);
+  --accent-fg: #e6edf4;
   --page-gradient:
-    radial-gradient(circle at top left, rgba(245, 158, 11, 0.26), transparent 32%),
-    radial-gradient(circle at top right, rgba(14, 116, 144, 0.2), transparent 26%),
-    linear-gradient(180deg, #f8f2e7 0%, #f1e7d6 48%, #ebe2d4 100%);
+    radial-gradient(circle at top left, rgba(82, 107, 130, 0.12), transparent 30%),
+    radial-gradient(circle at top right, rgba(152, 163, 176, 0.12), transparent 22%),
+    linear-gradient(180deg, #f7f4ef 0%, #f2eee7 46%, #ece8e0 100%);
 }
 
 @theme inline {
@@ -30,25 +30,38 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family:
-    "Avenir Next",
-    "Trebuchet MS",
+    "Aptos",
+    "Segoe UI Variable",
     "Segoe UI",
+    "Helvetica Neue",
     ui-sans-serif,
     system-ui,
     sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family:
+    "Iowan Old Style",
+    "Palatino Linotype",
+    "Book Antiqua",
+    Georgia,
+    serif;
 }
 
 code,
 pre {
   font-family:
     "SFMono-Regular",
-    "IBM Plex Mono",
     "Cascadia Code",
+    "JetBrains Mono",
     ui-monospace,
     monospace;
 }
 
 ::selection {
-  background: rgba(245, 158, 11, 0.32);
+  background: rgba(82, 107, 130, 0.22);
   color: #111827;
 }

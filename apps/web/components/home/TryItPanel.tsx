@@ -122,14 +122,14 @@ export function TryItPanel() {
   return (
     <section
       id="try-it"
-      className="rounded-[2rem] border border-black/10 bg-white/88 p-6 shadow-[0_30px_90px_-52px_rgba(14,23,38,0.45)] backdrop-blur"
+      className="rounded-[1.5rem] border border-black/10 bg-white/88 p-5 shadow-[0_24px_70px_-52px_rgba(14,23,38,0.32)] backdrop-blur sm:p-6"
     >
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--accent-strong)]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             Try It In Browser
           </p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+          <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
             Generate a key, create a survey, and inspect the real API flow.
           </h2>
         </div>
@@ -140,7 +140,7 @@ export function TryItPanel() {
       </div>
 
       <div className="mt-5 grid gap-4 lg:grid-cols-[0.4fr_0.6fr]">
-        <div className="space-y-4 rounded-[1.5rem] border border-[var(--panel-border)] bg-[var(--surface-muted)] p-4">
+        <div className="space-y-4 rounded-[1.25rem] border border-[var(--panel-border)] bg-[var(--surface-muted)] p-4">
           <div>
             <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
               Agent Name
@@ -176,7 +176,7 @@ export function TryItPanel() {
 
         <form className="space-y-4" onSubmit={handleCreateSurvey}>
           <textarea
-            className="min-h-80 w-full rounded-[1.75rem] border border-[var(--panel-border)] bg-slate-950 px-5 py-4 font-mono text-sm leading-7 text-[var(--accent-fg)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)]"
+            className="min-h-80 w-full rounded-[1.25rem] border border-[var(--panel-border)] bg-slate-950 px-4 py-4 font-mono text-[13px] leading-6 text-[var(--accent-fg)] outline-none transition focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent-soft)] sm:px-5 sm:text-sm sm:leading-7"
             value={markdown}
             onChange={(event) => setMarkdown(event.target.value)}
           />
@@ -188,7 +188,7 @@ export function TryItPanel() {
             <button
               type="submit"
               disabled={isCreatingSurvey}
-              className="inline-flex min-h-11 items-center justify-center rounded-full bg-[var(--accent)] px-6 text-sm font-semibold text-slate-950 transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-[var(--accent)] px-6 text-sm font-semibold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
             >
               {isCreatingSurvey ? 'Creating survey...' : 'Create survey'}
             </button>
@@ -209,7 +209,7 @@ export function TryItPanel() {
       ) : null}
 
       {result ? (
-        <div className="mt-4 grid gap-3 rounded-[1.5rem] border border-black/10 bg-slate-950 p-4 text-sm text-slate-100 sm:grid-cols-3">
+        <div className="mt-4 grid gap-3 rounded-[1.25rem] border border-black/10 bg-slate-950 p-4 text-sm text-slate-100 sm:grid-cols-3">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Survey URL</p>
             <a className="mt-2 block break-all underline" href={surveyUrl}>

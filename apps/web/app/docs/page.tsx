@@ -135,7 +135,7 @@ const mcpTools = [
 
 function CodeBlock({ code }: { code: string }) {
   return (
-    <pre className="overflow-x-auto rounded-[1.5rem] border border-[var(--panel-border)] bg-slate-950 p-5 text-sm leading-7 text-[var(--accent-fg)]">
+    <pre className="overflow-x-auto rounded-[1.25rem] border border-[var(--panel-border)] bg-slate-950 p-4 text-[13px] leading-6 text-[var(--accent-fg)] sm:p-5 sm:text-sm sm:leading-7">
       <code>{code}</code>
     </pre>
   )
@@ -151,8 +151,8 @@ function Section({
   children: React.ReactNode
 }>) {
   return (
-    <section id={id} className="scroll-mt-24 rounded-[2rem] border border-[var(--panel-border)] bg-white/86 p-7 shadow-[0_24px_80px_-56px_rgba(14,23,38,0.42)] backdrop-blur">
-      <h2 className="text-2xl font-semibold tracking-tight text-slate-950">{title}</h2>
+    <section id={id} className="scroll-mt-24 rounded-[1.5rem] border border-[var(--panel-border)] bg-white/86 p-5 shadow-[0_24px_80px_-56px_rgba(14,23,38,0.32)] backdrop-blur sm:p-7">
+      <h2 className="text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">{title}</h2>
       <div className="mt-4 space-y-5 text-slate-700">{children}</div>
     </section>
   )
@@ -161,61 +161,61 @@ function Section({
 export default function DocsPage() {
   return (
     <main className="min-h-screen bg-[var(--page-gradient)]">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8">
-        <header className="rounded-[2rem] border border-[var(--panel-border)] bg-[var(--surface)] p-8 shadow-[0_30px_90px_-52px_rgba(14,23,38,0.48)]">
-          <p className="text-sm font-semibold uppercase tracking-[0.26em] text-[var(--accent-strong)]">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <header className="rounded-[1.5rem] border border-[var(--panel-border)] bg-[var(--surface)] p-6 shadow-[0_24px_70px_-52px_rgba(14,23,38,0.32)] sm:p-8">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             Docs
           </p>
-          <h1 className="mt-4 max-w-4xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+          <h1 className="mt-4 max-w-4xl text-3xl leading-tight font-semibold tracking-tight text-slate-950 sm:text-5xl">
             API and protocol reference for AI agents that need human input.
           </h1>
-          <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-700">
+          <p className="mt-4 max-w-3xl text-base leading-7 text-slate-700 sm:text-lg sm:leading-8">
             MTS exposes a minimal authenticated API plus an MCP server. Agents create surveys from
             Markdown or JSON schema, humans answer at a hosted URL, and the agent retrieves
             structured results.
           </p>
-          <div className="mt-6 flex flex-wrap gap-3 text-sm">
+          <div className="mt-6 flex flex-col gap-3 text-sm sm:flex-row sm:flex-wrap">
             <a
               href="/api/openapi.json"
-              className="rounded-full bg-slate-950 px-5 py-3 font-semibold text-white transition hover:bg-slate-800"
+              className="inline-flex min-h-11 items-center justify-center rounded-full bg-slate-950 px-5 py-3 font-semibold whitespace-nowrap text-white transition hover:bg-slate-800"
             >
               OpenAPI JSON
             </a>
             <a
               href="/llms.txt"
-              className="rounded-full border border-slate-900 px-5 py-3 font-semibold text-slate-950 transition hover:bg-slate-950 hover:text-white"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-slate-900 px-5 py-3 font-semibold whitespace-nowrap text-slate-950 transition hover:bg-slate-950 hover:text-white"
             >
               llms.txt
             </a>
             <Link
               href="/"
-              className="rounded-full border border-black/10 px-5 py-3 font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-black/10 px-5 py-3 font-semibold whitespace-nowrap text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
             >
               Back to site
             </Link>
           </div>
         </header>
 
-        <div className="grid gap-8 lg:grid-cols-[18rem_minmax(0,1fr)]">
-          <aside className="h-fit rounded-[2rem] border border-[var(--panel-border)] bg-white/80 p-5 text-sm shadow-[0_20px_70px_-60px_rgba(14,23,38,0.6)] backdrop-blur lg:sticky lg:top-6">
-            <p className="font-semibold uppercase tracking-[0.2em] text-slate-500">Contents</p>
-            <nav className="mt-4 space-y-3">
-              <a className="block text-slate-700 hover:text-slate-950" href="#authentication">
+        <div className="grid gap-6 lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-8">
+          <aside className="h-fit rounded-[1.5rem] border border-[var(--panel-border)] bg-white/80 p-4 text-sm shadow-[0_20px_70px_-60px_rgba(14,23,38,0.36)] backdrop-blur sm:p-5 lg:sticky lg:top-6">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Contents</p>
+            <nav className="mt-4 flex gap-2 overflow-x-auto pb-1 lg:block lg:space-y-3">
+              <a className="rounded-full border border-[var(--panel-border)] px-3 py-2 whitespace-nowrap text-slate-700 hover:border-slate-900 hover:text-slate-950 lg:block lg:rounded-none lg:border-0 lg:px-0 lg:py-0" href="#authentication">
                 Authentication
               </a>
-              <a className="block text-slate-700 hover:text-slate-950" href="#markdown-syntax">
+              <a className="rounded-full border border-[var(--panel-border)] px-3 py-2 whitespace-nowrap text-slate-700 hover:border-slate-900 hover:text-slate-950 lg:block lg:rounded-none lg:border-0 lg:px-0 lg:py-0" href="#markdown-syntax">
                 Markdown Syntax
               </a>
-              <a className="block text-slate-700 hover:text-slate-950" href="#json-schema">
+              <a className="rounded-full border border-[var(--panel-border)] px-3 py-2 whitespace-nowrap text-slate-700 hover:border-slate-900 hover:text-slate-950 lg:block lg:rounded-none lg:border-0 lg:px-0 lg:py-0" href="#json-schema">
                 JSON Schema Input
               </a>
-              <a className="block text-slate-700 hover:text-slate-950" href="#api-reference">
+              <a className="rounded-full border border-[var(--panel-border)] px-3 py-2 whitespace-nowrap text-slate-700 hover:border-slate-900 hover:text-slate-950 lg:block lg:rounded-none lg:border-0 lg:px-0 lg:py-0" href="#api-reference">
                 API Reference
               </a>
-              <a className="block text-slate-700 hover:text-slate-950" href="#mcp-tools">
+              <a className="rounded-full border border-[var(--panel-border)] px-3 py-2 whitespace-nowrap text-slate-700 hover:border-slate-900 hover:text-slate-950 lg:block lg:rounded-none lg:border-0 lg:px-0 lg:py-0" href="#mcp-tools">
                 MCP Tools
               </a>
-              <a className="block text-slate-700 hover:text-slate-950" href="#conditional-logic">
+              <a className="rounded-full border border-[var(--panel-border)] px-3 py-2 whitespace-nowrap text-slate-700 hover:border-slate-900 hover:text-slate-950 lg:block lg:rounded-none lg:border-0 lg:px-0 lg:py-0" href="#conditional-logic">
                 Conditional Logic
               </a>
             </nav>
@@ -271,27 +271,19 @@ export default function DocsPage() {
             <Section id="api-reference" title="API Reference">
               <p>
                 Machine-readable OpenAPI lives at <a href="/api/openapi.json">/api/openapi.json</a>.
-                The table below summarizes the HTTP surface area.
+                The cards below summarize the HTTP surface area.
               </p>
-              <div className="overflow-x-auto rounded-[1.5rem] border border-[var(--panel-border)]">
-                <table className="min-w-full border-collapse bg-white text-left text-sm">
-                  <thead className="bg-[var(--surface-muted)] text-slate-600">
-                    <tr>
-                      <th className="px-4 py-3 font-semibold">Route</th>
-                      <th className="px-4 py-3 font-semibold">Auth</th>
-                      <th className="px-4 py-3 font-semibold">Purpose</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {apiRoutes.map(([route, auth, purpose]) => (
-                      <tr key={route} className="border-t border-[var(--panel-border)]">
-                        <td className="px-4 py-3 font-mono text-xs text-slate-950">{route}</td>
-                        <td className="px-4 py-3 text-slate-600">{auth}</td>
-                        <td className="px-4 py-3 text-slate-700">{purpose}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {apiRoutes.map(([route, auth, purpose]) => (
+                  <article
+                    key={route}
+                    className="rounded-[1.25rem] border border-[var(--panel-border)] bg-white p-4"
+                  >
+                    <p className="font-mono text-xs text-[var(--accent-strong)]">{route}</p>
+                    <p className="mt-2 text-sm font-semibold text-slate-950">{auth}</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-700">{purpose}</p>
+                  </article>
+                ))}
               </div>
               <div className="space-y-5">
                 <div>
@@ -315,23 +307,16 @@ export default function DocsPage() {
                 <code className="ml-2">@mts/mcp-server</code>.
               </p>
               <CodeBlock code={mcpConfigSnippet} />
-              <div className="overflow-x-auto rounded-[1.5rem] border border-[var(--panel-border)]">
-                <table className="min-w-full border-collapse bg-white text-left text-sm">
-                  <thead className="bg-[var(--surface-muted)] text-slate-600">
-                    <tr>
-                      <th className="px-4 py-3 font-semibold">Tool</th>
-                      <th className="px-4 py-3 font-semibold">What it does</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {mcpTools.map(([tool, purpose]) => (
-                      <tr key={tool} className="border-t border-[var(--panel-border)]">
-                        <td className="px-4 py-3 font-mono text-xs text-slate-950">{tool}</td>
-                        <td className="px-4 py-3 text-slate-700">{purpose}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {mcpTools.map(([tool, purpose]) => (
+                  <article
+                    key={tool}
+                    className="rounded-[1.25rem] border border-[var(--panel-border)] bg-white p-4"
+                  >
+                    <p className="font-mono text-xs text-[var(--accent-strong)]">{tool}</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-700">{purpose}</p>
+                  </article>
+                ))}
               </div>
               <CodeBlock code={mcpUsageSnippet} />
             </Section>

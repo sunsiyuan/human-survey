@@ -57,16 +57,16 @@ function CodePanel({
   code: string
 }>) {
   return (
-    <section className="rounded-[2rem] border border-[var(--panel-border)] bg-slate-950 p-5 shadow-[0_30px_90px_-52px_rgba(14,23,38,0.7)]">
+    <section className="rounded-[1.5rem] border border-[var(--panel-border)] bg-slate-950 p-4 shadow-[0_24px_70px_-56px_rgba(14,23,38,0.7)] sm:p-5">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--accent)]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">
             {eyebrow}
           </p>
-          <h2 className="mt-2 text-xl font-semibold tracking-tight text-white">{title}</h2>
+          <h2 className="mt-2 text-lg font-semibold tracking-tight text-white sm:text-xl">{title}</h2>
         </div>
       </div>
-      <pre className="overflow-x-auto rounded-[1.5rem] border border-white/10 bg-black/30 p-4 text-sm leading-7 text-[var(--accent-fg)]">
+      <pre className="overflow-x-auto rounded-[1.25rem] border border-white/10 bg-black/30 p-4 text-[13px] leading-6 text-[var(--accent-fg)] sm:text-sm sm:leading-7">
         <code>{code}</code>
       </pre>
     </section>
@@ -76,18 +76,18 @@ function CodePanel({
 export default function Home() {
   return (
     <main className="min-h-screen bg-[var(--page-gradient)]">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8">
-        <header className="rounded-full border border-[var(--panel-border)] bg-white/80 px-5 py-3 shadow-[0_18px_50px_-40px_rgba(14,23,38,0.7)] backdrop-blur">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <header className="rounded-[1.25rem] border border-[var(--panel-border)] bg-white/78 px-4 py-3 shadow-[0_18px_50px_-40px_rgba(14,23,38,0.4)] backdrop-blur sm:px-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[var(--accent-strong)]">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
                 Markdown to Survey
               </p>
             </div>
             <div className="flex flex-wrap gap-2 text-sm">
               <Link
                 href="/docs"
-                className="rounded-full border border-black/10 px-4 py-2 font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+                className="rounded-full border border-black/10 px-4 py-2 font-medium whitespace-nowrap text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
               >
                 Docs
               </Link>
@@ -95,7 +95,7 @@ export default function Home() {
                 href="https://github.com/sunsiyuan/markdown-to-survey"
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-full border border-black/10 px-4 py-2 font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+                className="rounded-full border border-black/10 px-4 py-2 font-medium whitespace-nowrap text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
               >
                 GitHub
               </a>
@@ -103,29 +103,29 @@ export default function Home() {
           </div>
         </header>
 
-        <section className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
-          <div className="rounded-[2.5rem] border border-[var(--panel-border)] bg-[var(--surface)] p-8 shadow-[0_36px_120px_-60px_rgba(14,23,38,0.48)]">
-            <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[var(--accent-strong)]">
+        <section className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
+          <div className="rounded-[1.75rem] border border-[var(--panel-border)] bg-[var(--surface)] p-6 shadow-[0_28px_90px_-60px_rgba(14,23,38,0.36)] sm:p-8">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
               Survey Infrastructure For AI Agents
             </p>
-            <h1 className="mt-4 max-w-4xl text-5xl font-semibold tracking-tight text-slate-950 sm:text-6xl">
+            <h1 className="mt-4 max-w-4xl text-4xl leading-tight font-semibold tracking-tight text-slate-950 sm:text-5xl lg:text-[3.7rem]">
               Your agent writes Markdown. Humans answer. You get structured JSON back.
             </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-700">
+            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-700 sm:text-lg sm:leading-8">
               MTS owns one step in the AI workflow: ask humans for missing information, then return
               machine-usable results through a minimal API and MCP server.
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <a
                 href="#try-it"
-                className="rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                className="inline-flex min-h-11 items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold whitespace-nowrap text-white transition hover:bg-slate-800 sm:w-auto"
               >
                 Get API Key
               </a>
               <Link
                 href="/docs"
-                className="rounded-full border border-slate-900 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-950 hover:text-white"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-slate-900 px-5 py-3 text-sm font-semibold whitespace-nowrap text-slate-950 transition hover:bg-slate-950 hover:text-white sm:w-auto"
               >
                 View Docs
               </Link>
@@ -133,13 +133,13 @@ export default function Home() {
                 href="https://www.npmjs.com/package/@mts/mcp-server"
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-full border border-black/10 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-black/10 px-5 py-3 text-sm font-semibold whitespace-nowrap text-slate-700 transition hover:border-slate-900 hover:text-slate-950 sm:w-auto"
               >
                 npm: @mts/mcp-server
               </a>
             </div>
 
-            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            <div className="mt-8 grid gap-3 xl:grid-cols-3">
               {[
                 [
                   '1',
@@ -159,10 +159,10 @@ export default function Home() {
               ].map(([step, title, body]) => (
                 <article
                   key={step}
-                  className="rounded-[1.75rem] border border-[var(--panel-border)] bg-white/76 p-5"
+                  className="rounded-[1.25rem] border border-[var(--panel-border)] bg-white/72 p-4"
                 >
                   <p className="text-sm font-semibold text-[var(--accent-strong)]">Step {step}</p>
-                  <h2 className="mt-3 text-lg font-semibold text-slate-950">{title}</h2>
+                  <h2 className="mt-2 text-lg font-semibold leading-6 text-slate-950">{title}</h2>
                   <p className="mt-2 text-sm leading-6 text-slate-700">{body}</p>
                 </article>
               ))}
@@ -175,14 +175,14 @@ export default function Home() {
               title="MCP integration in Claude Code"
               code={mcpConfigSnippet}
             />
-            <section className="rounded-[2rem] border border-[var(--panel-border)] bg-white/86 p-5 shadow-[0_24px_80px_-56px_rgba(14,23,38,0.52)]">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--accent-strong)]">
+            <section className="rounded-[1.5rem] border border-[var(--panel-border)] bg-white/86 p-4 shadow-[0_24px_80px_-56px_rgba(14,23,38,0.4)] sm:p-5">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
                 Example
               </p>
-              <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-950">
+              <h2 className="mt-2 text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
                 Typical MCP usage
               </h2>
-              <pre className="mt-4 overflow-x-auto rounded-[1.5rem] border border-[var(--panel-border)] bg-[var(--surface-muted)] p-4 text-sm leading-7 text-slate-800">
+              <pre className="mt-4 overflow-x-auto rounded-[1.25rem] border border-[var(--panel-border)] bg-[var(--surface-muted)] p-4 text-[13px] leading-6 text-slate-800 sm:text-sm sm:leading-7">
                 <code>{mcpUsageSnippet}</code>
               </pre>
             </section>
@@ -192,40 +192,32 @@ export default function Home() {
         <section className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
           <CodePanel eyebrow="HTTP API" title="Authenticate, create, then fetch results" code={apiFlowSnippet} />
 
-          <section className="rounded-[2rem] border border-[var(--panel-border)] bg-white/86 p-6 shadow-[0_24px_80px_-56px_rgba(14,23,38,0.52)]">
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--accent-strong)]">
+          <section className="rounded-[1.5rem] border border-[var(--panel-border)] bg-white/86 p-5 shadow-[0_24px_80px_-56px_rgba(14,23,38,0.4)] sm:p-6">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
               Question Types
             </p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+            <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
               Four semantic primitives, not a UI zoo.
             </h2>
-            <div className="mt-5 overflow-x-auto rounded-[1.5rem] border border-[var(--panel-border)]">
-              <table className="min-w-full border-collapse bg-white text-left text-sm">
-                <thead className="bg-[var(--surface-muted)] text-slate-600">
-                  <tr>
-                    <th className="px-4 py-3 font-semibold">Type</th>
-                    <th className="px-4 py-3 font-semibold">Meaning</th>
-                    <th className="px-4 py-3 font-semibold">Markdown</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {questionTypes.map(([type, meaning, syntax]) => (
-                    <tr key={type} className="border-t border-[var(--panel-border)]">
-                      <td className="px-4 py-3 font-mono text-xs text-slate-950">{type}</td>
-                      <td className="px-4 py-3 text-slate-700">{meaning}</td>
-                      <td className="px-4 py-3 text-slate-700">{syntax}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              {questionTypes.map(([type, meaning, syntax]) => (
+                <article
+                  key={type}
+                  className="rounded-[1.25rem] border border-[var(--panel-border)] bg-white p-4"
+                >
+                  <p className="font-mono text-xs text-[var(--accent-strong)]">{type}</p>
+                  <h3 className="mt-2 text-base font-semibold text-slate-950">{meaning}</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-700">{syntax}</p>
+                </article>
+              ))}
             </div>
           </section>
         </section>
 
         <TryItPanel />
 
-        <section className="rounded-[2rem] border border-[var(--panel-border)] bg-white/86 p-6 shadow-[0_24px_80px_-56px_rgba(14,23,38,0.45)]">
-          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--accent-strong)]">
+        <section className="rounded-[1.5rem] border border-[var(--panel-border)] bg-white/86 p-5 shadow-[0_24px_80px_-56px_rgba(14,23,38,0.32)] sm:p-6">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             Reference Links
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
@@ -235,7 +227,7 @@ export default function Home() {
                 href={href}
                 target={href.startsWith('http') ? '_blank' : undefined}
                 rel={href.startsWith('http') ? 'noreferrer' : undefined}
-                className="rounded-full border border-black/10 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+                className="rounded-full border border-black/10 px-4 py-2.5 text-sm font-semibold whitespace-nowrap text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
               >
                 {label}
               </a>
