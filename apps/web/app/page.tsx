@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { TryItPanel } from '@/components/home/TryItPanel'
 
 const links = [
-  ['GitHub', 'https://github.com/sunsiyuan/markdown-to-survey'],
+  ['GitHub', 'https://github.com/sunsiyuan/human-survey'],
   ['npm: humansurvey-mcp', 'https://www.npmjs.com/package/humansurvey-mcp'],
   ['Docs', '/docs'],
   ['OpenAPI', '/api/openapi.json'],
@@ -18,7 +18,7 @@ export default function Home() {
         {/* Header */}
         <header className="flex items-center justify-between">
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)]">
-            Markdown to Survey
+            Feedback collection for AI agents
           </p>
           <div className="flex gap-2">
             <Link
@@ -28,7 +28,7 @@ export default function Home() {
               Docs
             </Link>
             <a
-              href="https://github.com/sunsiyuan/markdown-to-survey"
+              href="https://github.com/sunsiyuan/human-survey"
               target="_blank"
               rel="noreferrer"
               className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"

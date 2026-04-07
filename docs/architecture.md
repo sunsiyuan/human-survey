@@ -1,6 +1,6 @@
 # Architecture
 
-MTS is feedback collection infrastructure for AI agents. Agents doing long-horizon work — event management, product launches, community operations — create surveys from JSON schema, collect responses from groups of people, and retrieve structured results.
+HumanSurvey is feedback collection infrastructure for AI agents. Agents doing long-horizon work — event management, product launches, community operations — create surveys from JSON schema, collect responses from groups of people, and retrieve structured results.
 
 ## System Overview
 
@@ -22,7 +22,7 @@ MTS is feedback collection infrastructure for AI agents. Agents doing long-horiz
 The flow is intentionally small:
 
 1. An agent creates a survey from JSON schema.
-2. MTS stores the normalized survey schema and returns a respondent URL.
+2. HumanSurvey stores the normalized survey schema and returns a respondent URL.
 3. A group of humans submits responses through the hosted survey page over hours or days.
 4. The agent retrieves structured results through the authenticated API or MCP and acts on them.
 

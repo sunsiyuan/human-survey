@@ -213,7 +213,7 @@ export default function DocsPage() {
             API reference for agents that collect structured feedback from groups.
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-7 text-slate-700 sm:text-lg sm:leading-8">
-            MTS exposes a minimal authenticated API plus an MCP server. Agents create surveys from
+            HumanSurvey exposes a minimal authenticated API plus an MCP server. Agents create surveys from
             JSON schema, a group of humans answers at a hosted URL, and the agent retrieves
             structured results when ready.
           </p>
@@ -279,7 +279,7 @@ export default function DocsPage() {
 
             <Section id="markdown-syntax" title="Markdown Syntax">
               <p>
-                MTS has four semantic question types: choice, text, scale, and matrix. The parser
+                HumanSurvey has four semantic question types: choice, text, scale, and matrix. The parser
                 turns them into a normalized survey schema.
               </p>
               <div className="space-y-5">
@@ -351,7 +351,7 @@ export default function DocsPage() {
 
             <Section id="mcp-tools" title="MCP Tools">
               <p>
-                Claude Code and other MCP clients can call MTS directly through
+                Claude Code and other MCP clients can call HumanSurvey directly through
                 <code className="ml-2">humansurvey-mcp</code>.
               </p>
               <CodeBlock code={mcpConfigSnippet} />

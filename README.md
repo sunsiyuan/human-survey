@@ -1,8 +1,8 @@
-# HumanSurvey (MTS)
+# HumanSurvey
 
 Feedback collection infrastructure for AI agents.
 
-MTS lets an agent doing long-horizon work collect structured feedback from a group of people:
+HumanSurvey lets an agent doing long-horizon work collect structured feedback from a group of people:
 
 ```text
 Agent is doing a job
@@ -15,7 +15,7 @@ Agent is doing a job
 
 ## What is this?
 
-MTS is a minimal API and MCP server for one narrow job: let agents collect structured feedback from groups of humans and get machine-usable results back.
+HumanSurvey is a minimal API and MCP server for one narrow job: let agents collect structured feedback from groups of humans and get machine-usable results back.
 
 It is designed for:
 - AI agents running event management, product launches, or community workflows that need to survey a group
@@ -39,7 +39,7 @@ It is not designed for:
 
 ## Product Principles
 
-- **Semantic over visual**: MTS has a small protocol, not a zoo of UI-specific field types.
+- **Semantic over visual**: HumanSurvey has a small protocol, not a zoo of UI-specific field types.
 - **AI-first I/O**: agents write the survey and agents consume the results; humans are in the middle.
 - **Everything is an API**: creator functionality must be available over authenticated HTTP and MCP.
 - **Narrow scope wins**: if a feature mainly serves human survey operators, it probably does not belong here.

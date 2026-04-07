@@ -71,7 +71,7 @@ const API_BASE_URL = process.env.MTS_API_URL ?? 'https://www.humansurvey.co'
 const API_KEY = process.env.MTS_API_KEY
 
 const server = new McpServer({
-  name: 'markdown-to-survey',
+  name: 'humansurvey-mcp',
   version: '0.1.0',
 })
 

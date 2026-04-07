@@ -1,10 +1,10 @@
-# HumanSurvey (MTS)
+# HumanSurvey
 
 > Feedback collection infrastructure for AI agents. When an agent is doing a job that involves gathering structured opinions or data from a group of people: create a survey, share the URL, retrieve structured results.
 
-## What MTS does
+## What HumanSurvey does
 
-An agent working on a long-horizon task sends a JSON schema to the MTS API, gets a shareable respondent URL, and later retrieves aggregated results from the people who responded. The agent owns the workflow; humans fill in the data.
+An agent working on a long-horizon task sends a JSON schema to the HumanSurvey API, gets a shareable respondent URL, and later retrieves aggregated results from the people who responded. The agent owns the workflow; humans fill in the data.
 
 **Typical agent scenarios:**
 - Event management agent → post-event attendee satisfaction survey
@@ -12,7 +12,7 @@ An agent working on a long-horizon task sends a JSON schema to the MTS API, gets
 - Community agent → periodic member pulse surveys
 - Customer success agent → CSAT after support ticket resolution
 
-**What MTS is NOT:** survey dashboards, visual form builders, email campaigns, analytics UI, or decision gates / human-in-the-loop checkpoints for single users.
+**What HumanSurvey is NOT:** survey dashboards, visual form builders, email campaigns, analytics UI, or decision gates / human-in-the-loop checkpoints for single users.
 
 ## Typical agent workflow
 

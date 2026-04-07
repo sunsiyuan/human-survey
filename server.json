@@ -1,7 +1,7 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.sunsiyuan/human-survey",
-  "description": "Feedback collection for AI agents. Create surveys from JSON schema, share with a group of humans, retrieve structured results via API or MCP.",
+  "description": "Feedback collection for AI agents. Create surveys, collect responses, get results.",
   "repository": {
     "url": "https://github.com/sunsiyuan/human-survey",
     "source": "github"

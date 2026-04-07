@@ -1,10 +1,10 @@
-# HumanSurvey (MTS)
+# HumanSurvey
 
 > Feedback collection infrastructure for AI agents. An agent working on a long-horizon task creates a survey from JSON schema, shares the URL with a group of people, and retrieves structured results when ready.
 
-## What MTS is NOT
+## What HumanSurvey is NOT
 
-MTS does not provide: survey dashboards, visual form builders, email campaigns, analytics/reporting UI, template libraries, or human-in-the-loop decision gates for single users. If a feature mainly serves human survey operators, it is out of scope.
+HumanSurvey does not provide: survey dashboards, visual form builders, email campaigns, analytics/reporting UI, template libraries, or human-in-the-loop decision gates for single users. If a feature mainly serves human survey operators, it is out of scope.
 
 ## Typical agent scenarios
 

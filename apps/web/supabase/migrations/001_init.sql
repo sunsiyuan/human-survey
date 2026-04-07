@@ -1,4 +1,4 @@
--- MTS clean schema v1
+-- HumanSurvey schema v1
 -- Consolidated from all incremental migrations.
 -- Historical debt removed:
 --   - No result_id column (was deprecated before first production use)

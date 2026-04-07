@@ -2,7 +2,7 @@
 
 ## Before You Open a PR
 
-MTS has a deliberately narrow scope. Read [README.md](README.md) before investing time in a contribution.
+HumanSurvey has a deliberately narrow scope. Read [README.md](README.md) before investing time in a contribution.
 
 **Contributions that will be merged:**
 - Parser bug fixes and edge case handling
