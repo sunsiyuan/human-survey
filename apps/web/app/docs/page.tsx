@@ -128,7 +128,7 @@ const mcpConfigSnippet = `{
   "mcpServers": {
     "survey": {
       "command": "npx",
-      "args": ["-y", "@mts/mcp-server"],
+      "args": ["-y", "humansurvey-mcp"],
       "env": { "MTS_API_KEY": "mts_sk_your_key_here" }
     }
   }
@@ -352,7 +352,7 @@ export default function DocsPage() {
             <Section id="mcp-tools" title="MCP Tools">
               <p>
                 Claude Code and other MCP clients can call MTS directly through
-                <code className="ml-2">@mts/mcp-server</code>.
+                <code className="ml-2">humansurvey-mcp</code>.
               </p>
               <CodeBlock code={mcpConfigSnippet} />
               <div className="grid gap-3 sm:grid-cols-2">

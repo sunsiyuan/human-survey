@@ -4,7 +4,7 @@ import { TryItPanel } from '@/components/home/TryItPanel'
 
 const links = [
   ['GitHub', 'https://github.com/sunsiyuan/markdown-to-survey'],
-  ['npm: @mts/mcp-server', 'https://www.npmjs.com/package/@mts/mcp-server'],
+  ['npm: humansurvey-mcp', 'https://www.npmjs.com/package/humansurvey-mcp'],
   ['Docs', '/docs'],
   ['OpenAPI', '/api/openapi.json'],
   ['llms.txt', '/llms.txt'],

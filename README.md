@@ -117,7 +117,7 @@ Add to your Claude Code config (`~/.claude.json`):
   "mcpServers": {
     "survey": {
       "command": "npx",
-      "args": ["-y", "@mts/mcp-server"],
+      "args": ["-y", "humansurvey-mcp"],
       "env": {
         "MTS_API_KEY": "mts_sk_your_key_here"
       }
