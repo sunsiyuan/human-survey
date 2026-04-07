@@ -31,6 +31,7 @@ export function TryItPanel() {
   const [questionCount, setQuestionCount] = useState(0)
   const [step, setStep] = useState<Step>('idle')
   const [error, setError] = useState('')
+  const [copied, setCopied] = useState(false)
   const [isGeneratingKey, setIsGeneratingKey] = useState(false)
 
   useEffect(() => {
@@ -41,6 +42,13 @@ export function TryItPanel() {
   function persistKey(key: string) {
     setApiKey(key)
     localStorage.setItem(STORAGE_KEY, key)
+  }
+
+  function handleCopy() {
+    navigator.clipboard.writeText(apiKey).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    })
   }
 
   async function handleGenerateKey() {
@@ -150,10 +158,17 @@ export function TryItPanel() {
               API Key
             </p>
             {apiKey ? (
-              <div className="mt-2 flex items-center gap-2">
-                <code className="flex-1 truncate rounded-lg border border-black/10 bg-white px-3 py-1.5 font-mono text-xs text-slate-700">
+              <div className="mt-2 flex min-w-0 items-center gap-2">
+                <code className="min-w-0 flex-1 truncate rounded-lg border border-black/10 bg-white px-3 py-1.5 font-mono text-xs text-slate-700">
                   {apiKey}
                 </code>
+                <button
+                  type="button"
+                  onClick={handleCopy}
+                  className="shrink-0 text-xs text-slate-400 hover:text-slate-700"
+                >
+                  {copied ? 'copied!' : 'copy'}
+                </button>
                 <button
                   type="button"
                   onClick={() => {
@@ -162,7 +177,7 @@ export function TryItPanel() {
                     setSchema(null)
                     setSurveyUrl('')
                   }}
-                  className="text-xs text-slate-400 hover:text-slate-700"
+                  className="shrink-0 text-xs text-slate-400 hover:text-slate-700"
                 >
                   clear
                 </button>
@@ -253,7 +268,7 @@ export function TryItPanel() {
             <>
               {/* Schema panel */}
               <div
-                className={`rounded-2xl border bg-[var(--code-surface)] transition-opacity ${
+                className={`overflow-hidden rounded-2xl border bg-[var(--code-surface)] transition-opacity ${
                   schema
                     ? 'border-[var(--panel-border)] opacity-100'
                     : 'border-dashed border-white/10 opacity-40'
