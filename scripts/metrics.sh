@@ -20,26 +20,19 @@ if [ -z "$DB_URL" ]; then
   exit 0
 fi
 
-echo "--- Totals (excluding demo) ---"
+echo "--- Totals ---"
 psql "$DB_URL" -t -c "
   SELECT 'API keys:   ' || count(*) FROM api_keys
-  UNION ALL SELECT 'Surveys:    ' || count(*) FROM surveys WHERE api_key_id IS NOT NULL
-  UNION ALL SELECT 'Responses:  ' || count(*) FROM responses r JOIN surveys s ON s.id = r.survey_id WHERE s.api_key_id IS NOT NULL;
+  UNION ALL SELECT 'Surveys:    ' || count(*) FROM surveys
+  UNION ALL SELECT 'Responses:  ' || count(*) FROM responses;
 "
 
 echo ""
-echo "--- This week (excluding demo) ---"
+echo "--- This week ---"
 psql "$DB_URL" -t -c "
   SELECT 'New keys:      ' || count(*) FROM api_keys WHERE created_at > now() - interval '7 days'
-  UNION ALL SELECT 'New surveys:   ' || count(*) FROM surveys WHERE api_key_id IS NOT NULL AND created_at > now() - interval '7 days'
-  UNION ALL SELECT 'New responses: ' || count(*) FROM responses r JOIN surveys s ON s.id = r.survey_id WHERE s.api_key_id IS NOT NULL AND r.created_at > now() - interval '7 days';
-"
-
-echo ""
-echo "--- Demo ---"
-psql "$DB_URL" -t -c "
-  SELECT 'Demo surveys:  ' || count(*) FROM surveys WHERE api_key_id IS NULL
-  UNION ALL SELECT 'Demo responses:' || count(*) FROM responses r JOIN surveys s ON s.id = r.survey_id WHERE s.api_key_id IS NULL;
+  UNION ALL SELECT 'New surveys:   ' || count(*) FROM surveys WHERE created_at > now() - interval '7 days'
+  UNION ALL SELECT 'New responses: ' || count(*) FROM responses WHERE created_at > now() - interval '7 days';
 "
 
 echo ""
