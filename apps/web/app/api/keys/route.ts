@@ -5,18 +5,32 @@ import { hashApiKey, requireAuth } from '@/lib/auth'
 import { sql } from '@/lib/db'
 
 export async function POST(request: Request) {
-  const body = (await request.json().catch(() => null)) as { name?: string } | null
+  const body = (await request.json().catch(() => null)) as {
+    name?: string
+    email?: string
+    wallet_address?: string
+    agent_client?: string
+  } | null
   const name = body?.name?.trim() || null
+  const email = body?.email?.trim() || null
+  const walletAddress = body?.wallet_address?.trim() || null
+  const agentClient = body?.agent_client?.trim() || null
   const id = nanoid(12)
   const key = `hs_sk_${nanoid(32)}`
   const keyHash = hashApiKey(key)
 
   try {
     const rows = (await sql`
-      INSERT INTO api_keys (id, key_hash, name)
-      VALUES (${id}, ${keyHash}, ${name})
-      RETURNING id, name, created_at
-    `) as Array<{ id: string; name: string | null; created_at: string }>
+      INSERT INTO api_keys (id, key_hash, name, email, wallet_address, agent_client)
+      VALUES (${id}, ${keyHash}, ${name}, ${email}, ${walletAddress}, ${agentClient})
+      RETURNING id, name, email, wallet_address, created_at
+    `) as Array<{
+      id: string
+      name: string | null
+      email: string | null
+      wallet_address: string | null
+      created_at: string
+    }>
 
     const created = rows[0]
 
@@ -25,6 +39,8 @@ export async function POST(request: Request) {
         id: created.id,
         key,
         name: created.name,
+        email: created.email,
+        wallet_address: created.wallet_address,
         created_at: created.created_at,
       },
       { status: 201 },

@@ -76,6 +76,58 @@ const server = new McpServer({
 })
 
 server.registerTool(
+  'create_key',
+  {
+    title: 'Create API Key',
+    description:
+      'Create a new HumanSurvey API key. ' +
+      'Call this before any other tool if HUMANSURVEY_API_KEY is not set. ' +
+      'Returns a key — store it as HUMANSURVEY_API_KEY in your MCP config. ' +
+      'The key cannot be retrieved again after creation.',
+    inputSchema: {
+      name: z.string().optional().describe('A label for this key, e.g. the project or agent name.'),
+      email: z.string().email().optional().describe('Contact email of the human owner. Used for billing and usage notifications in the future.'),
+      wallet_address: z.string().optional().describe('Optional wallet address in CAIP-10 format (e.g. "eip155:8453:0xabc..." for Base, "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:ABC..." for Solana). Will be used for agent-native payments in the future.'),
+    },
+  },
+  async ({ name, email, wallet_address }) => {
+    const response = await fetch(`${API_BASE_URL}/api/keys`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: name ?? null,
+        email: email ?? null,
+        wallet_address: wallet_address ?? null,
+        agent_client: (() => {
+          const info = server.server.getClientVersion()
+          return info ? `${info.name}/${info.version}` : 'mcp'
+        })(),
+      }),
+    })
+
+    const payload = (await response.json().catch(() => null)) as
+      | { id?: string; key?: string; error?: string }
+      | null
+
+    if (!response.ok || !payload?.key) {
+      return {
+        content: [{ type: 'text', text: `Failed to create API key: ${payload?.error ?? response.statusText}` }],
+        isError: true,
+      }
+    }
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `API key created!\n\nKey: ${payload.key}\n\nSave this as HUMANSURVEY_API_KEY in your MCP config — it cannot be retrieved again.`,
+        },
+      ],
+    }
+  },
+)
+
+server.registerTool(
   'create_survey',
   {
     title: 'Create Survey',
@@ -408,7 +460,7 @@ function requireApiKey() {
     content: [
       {
         type: 'text' as const,
-        text: 'Error: HUMANSURVEY_API_KEY environment variable is not set.\nGet an API key at https://www.humansurvey.co or via: POST /api/keys',
+        text: 'HUMANSURVEY_API_KEY is not set. Call create_key to get one, then save it as HUMANSURVEY_API_KEY in your MCP config.',
       },
     ],
     isError: true,
