@@ -12,7 +12,7 @@ export function Section({
       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
         {tag}
       </p>
-      <div className="space-y-4 text-[15px] leading-7 text-slate-700">
+      <div className="space-y-4 text-base leading-[1.8] text-slate-800">
         {children}
       </div>
     </section>
@@ -21,7 +21,7 @@ export function Section({
 
 export function Quote({ children }: { children: ReactNode }) {
   return (
-    <blockquote className="rounded-2xl border-l-4 border-[var(--accent)] bg-[var(--surface)] px-5 py-4 text-[15px] italic leading-7 text-slate-800">
+    <blockquote className="rounded-2xl border-l-4 border-[var(--accent)] bg-[var(--surface)] px-5 py-4 font-display text-lg leading-8 text-slate-900">
       {children}
     </blockquote>
   )
@@ -43,7 +43,7 @@ export function Ordered({ items }: { items: ReactNode[] }) {
           <span className="mt-[2px] shrink-0 font-mono text-[11px] text-[var(--accent)]">
             0{i + 1}
           </span>
-          <span className="text-slate-700">{item}</span>
+          <span className="text-slate-800">{item}</span>
         </li>
       ))}
     </ol>
@@ -56,7 +56,7 @@ export function Unordered({ items }: { items: ReactNode[] }) {
       {items.map((item, i) => (
         <li key={i} className="flex gap-2">
           <span className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
-          <span className="text-slate-700">{item}</span>
+          <span className="text-slate-800">{item}</span>
         </li>
       ))}
     </ul>

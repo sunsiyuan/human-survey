@@ -59,10 +59,10 @@ export function UseCases() {
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
           Who uses it
         </p>
-        <h2 className="text-2xl font-semibold tracking-[-0.02em] text-slate-950 sm:text-3xl">
+        <h2 className="font-display text-3xl tracking-[-0.015em] text-slate-950 sm:text-4xl">
           Whoever needs to hear from a crowd outside their company.
         </h2>
-        <p className="max-w-2xl text-sm leading-6 text-slate-600 sm:text-base sm:leading-7">
+        <p className="max-w-2xl text-sm leading-6 text-slate-700 sm:text-base sm:leading-7">
           The unifying shape: an audience of members, customers, or attendees —
           answers that can arrive over hours or days — a synthesis your AI can
           act on.

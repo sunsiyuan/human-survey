@@ -1,11 +1,18 @@
 import type { Metadata } from 'next'
-import { IBM_Plex_Mono, Instrument_Sans } from 'next/font/google'
+import { IBM_Plex_Mono, Inter, Instrument_Serif } from 'next/font/google'
 
 import './globals.css'
 
-const instrumentSans = Instrument_Sans({
+const inter = Inter({
   subsets: ['latin'],
   variable: '--font-sans',
+})
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ['latin'],
+  weight: ['400'],
+  style: ['normal', 'italic'],
+  variable: '--font-serif',
 })
 
 const plexMono = IBM_Plex_Mono({
@@ -90,7 +97,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${instrumentSans.variable} ${plexMono.variable} h-full`}>
+    <html lang="en" className={`${inter.variable} ${instrumentSerif.variable} ${plexMono.variable} h-full`}>
       <body className="flex min-h-full flex-col bg-[var(--background)] text-[var(--foreground)]">
         <script
           type="application/ld+json"

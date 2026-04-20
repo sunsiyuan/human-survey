@@ -91,10 +91,10 @@ export default function UseCasesIndex() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             Use cases
           </p>
-          <h1 className="text-3xl font-semibold tracking-[-0.03em] text-slate-950 sm:text-4xl">
+          <h1 className="text-4xl font-normal tracking-[-0.015em] text-slate-950 sm:text-5xl">
             Whoever needs to hear from a crowd outside their company.
           </h1>
-          <p className="text-base leading-7 text-slate-700">
+          <p className="text-base leading-[1.7] text-slate-800">
             HumanSurvey fits wherever an AI agent is already in your workflow
             and you need structured input from more than one person — members,
             customers, attendees, waitlist. Three full walkthroughs follow.
@@ -120,7 +120,7 @@ export default function UseCasesIndex() {
               <h2 className="mt-2 text-lg font-semibold leading-6 text-slate-950">
                 {it.headline}
               </h2>
-              <p className="mt-2 text-[14px] leading-6 text-slate-700">{it.body}</p>
+              <p className="mt-2 text-[15px] leading-[1.7] text-slate-800">{it.body}</p>
               {it.href ? (
                 <Link
                   href={it.href}

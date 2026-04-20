@@ -27,10 +27,10 @@ export function Story() {
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
           The loop
         </p>
-        <h2 className="text-2xl font-semibold tracking-[-0.02em] text-slate-950 sm:text-3xl">
+        <h2 className="font-display text-3xl tracking-[-0.015em] text-slate-950 sm:text-4xl">
           No more Typeform. No more chasing responses. No more pivot tables.
         </h2>
-        <p className="max-w-2xl text-sm leading-6 text-slate-600 sm:text-base sm:leading-7">
+        <p className="max-w-2xl text-sm leading-6 text-slate-700 sm:text-base sm:leading-7">
           Here&apos;s what running a community feedback loop looks like once
           your AI can do it for you:
         </p>

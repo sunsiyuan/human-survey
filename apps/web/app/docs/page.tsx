@@ -214,10 +214,10 @@ export default function DocsPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             Docs
           </p>
-          <h1 className="mt-4 max-w-4xl text-3xl leading-tight font-semibold tracking-[-0.05em] text-slate-950 sm:text-5xl">
+          <h1 className="mt-4 max-w-4xl text-4xl font-normal leading-[1.1] tracking-[-0.02em] text-slate-950 sm:text-6xl">
             API reference for agents that collect structured feedback from groups.
           </h1>
-          <p className="mt-4 max-w-3xl text-base leading-7 text-slate-700 sm:text-lg sm:leading-8">
+          <p className="mt-4 max-w-3xl text-base leading-[1.7] text-slate-800 sm:text-lg sm:leading-8">
             HumanSurvey exposes a minimal authenticated API plus an MCP server. Agents create surveys from
             JSON schema, a group of humans answers at a hosted URL, and the agent retrieves
             structured results when ready.

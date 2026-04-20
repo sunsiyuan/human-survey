@@ -36,9 +36,23 @@ body {
     ui-sans-serif,
     system-ui,
     sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 h1,
+.font-display {
+  font-family:
+    var(--font-serif),
+    "Iowan Old Style",
+    Georgia,
+    "Times New Roman",
+    serif;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+}
+
 h2,
 h3,
 h4 {

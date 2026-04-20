@@ -114,10 +114,10 @@ export default function ChangelogPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             Changelog
           </p>
-          <h1 className="text-3xl font-semibold tracking-[-0.03em] text-slate-950 sm:text-4xl">
+          <h1 className="text-4xl font-normal tracking-[-0.015em] text-slate-950 sm:text-5xl">
             What&apos;s shipped.
           </h1>
-          <p className="text-base leading-7 text-slate-700">
+          <p className="text-base leading-[1.7] text-slate-800">
             Dated releases since the MVP. Tracked publicly so humans and agents
             alike can tell the project is alive and moving.
           </p>
@@ -145,7 +145,7 @@ export default function ChangelogPage() {
               <h2 className="mt-2 text-lg font-semibold leading-6 text-slate-950">
                 {e.title}
               </h2>
-              <ul className="mt-3 space-y-2 text-[14px] leading-6 text-slate-700">
+              <ul className="mt-3 space-y-2 text-[15px] leading-[1.7] text-slate-800">
                 {e.items.map((it) => (
                   <li key={it} className="flex gap-2">
                     <span className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />

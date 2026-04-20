@@ -74,10 +74,10 @@ export default function EventsPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             Use case · Event organizers
           </p>
-          <h1 className="text-3xl font-semibold tracking-[-0.03em] text-slate-950 sm:text-4xl">
+          <h1 className="text-4xl font-normal tracking-[-0.015em] text-slate-950 sm:text-5xl">
             Event feedback, the AI-native way.
           </h1>
-          <p className="text-base leading-7 text-slate-700">
+          <p className="text-base leading-[1.7] text-slate-800">
             You just ran a conference, a meetup, or a webinar. Now comes the
             part everyone dreads: getting structured feedback from attendees
             while it&apos;s still fresh, writing a retro your speakers and

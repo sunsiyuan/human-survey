@@ -106,10 +106,10 @@ export default function FaqPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             FAQ
           </p>
-          <h1 className="text-3xl font-semibold tracking-[-0.03em] text-slate-950 sm:text-4xl">
+          <h1 className="text-4xl font-normal tracking-[-0.015em] text-slate-950 sm:text-5xl">
             How it works when your AI runs the survey.
           </h1>
-          <p className="text-base leading-7 text-slate-700">
+          <p className="text-base leading-[1.7] text-slate-800">
             Short answers to what community managers, brand teams, indie makers,
             and developers ask before connecting HumanSurvey to their agent.
           </p>
@@ -127,7 +127,7 @@ export default function FaqPage() {
                   +
                 </span>
               </summary>
-              <p className="mt-3 whitespace-pre-line text-[14px] leading-6 text-slate-700">
+              <p className="mt-3 whitespace-pre-line text-[15px] leading-[1.7] text-slate-800">
                 {f.a}
               </p>
             </details>

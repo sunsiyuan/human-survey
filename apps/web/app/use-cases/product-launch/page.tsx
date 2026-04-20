@@ -74,10 +74,10 @@ export default function ProductLaunchPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             Use case · Indie makers / PMs
           </p>
-          <h1 className="text-3xl font-semibold tracking-[-0.03em] text-slate-950 sm:text-4xl">
+          <h1 className="text-4xl font-normal tracking-[-0.015em] text-slate-950 sm:text-5xl">
             Post-launch feedback, the AI-native way.
           </h1>
-          <p className="text-base leading-7 text-slate-700">
+          <p className="text-base leading-[1.7] text-slate-800">
             You shipped something. Maybe it went well on Product Hunt — 600
             upvotes, 240 sign-ups. Maybe it was a quiet beta drop to your
             waitlist of 400. Either way, the next question is the same:{' '}

@@ -74,10 +74,10 @@ export default function CommunityFeedbackPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             Use case · Community / brand managers
           </p>
-          <h1 className="text-3xl font-semibold tracking-[-0.03em] text-slate-950 sm:text-4xl">
+          <h1 className="text-4xl font-normal tracking-[-0.015em] text-slate-950 sm:text-5xl">
             Community feedback, the AI-native way.
           </h1>
-          <p className="text-base leading-7 text-slate-700">
+          <p className="text-base leading-[1.7] text-slate-800">
             If you run a Discord, Telegram, or Slack community — or a brand
             audience on any channel — you already know the ritual. Something
             happens (an AMA, a drop, a campaign, a controversial proposal). You

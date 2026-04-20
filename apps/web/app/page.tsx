@@ -61,12 +61,12 @@ export default function Home() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             For community managers, brand teams, indie makers
           </p>
-          <h1 className="mt-4 text-[2.2rem] font-semibold leading-[1.15] tracking-[-0.04em] text-slate-950 sm:text-[3.5rem] sm:leading-[1.0] sm:tracking-[-0.05em]">
+          <h1 className="mt-4 text-[2.4rem] font-normal leading-[1.1] tracking-[-0.015em] text-slate-950 sm:text-[3.75rem] sm:leading-[1.02] sm:tracking-[-0.02em]">
             Ask your audience anything.{' '}
             <br className="hidden sm:block" />
             Let your AI run the loop.
           </h1>
-          <p className="mt-6 max-w-2xl text-base leading-7 text-slate-700 sm:text-lg sm:leading-8">
+          <p className="mt-6 max-w-2xl text-base leading-[1.7] text-slate-800 sm:text-lg sm:leading-8">
             Stop building forms. Tell Claude (or any agent) what you want to
             learn from your members, customers, or event attendees — it designs
             the survey, hands you a share link, and reports back once responses
