@@ -9,7 +9,9 @@ const links = [
   ['GitHub', 'https://github.com/sunsiyuan/human-survey'],
   ['npm: humansurvey-mcp', 'https://www.npmjs.com/package/humansurvey-mcp'],
   ['Docs', '/docs'],
+  ['Use cases', '/use-cases'],
   ['FAQ', '/faq'],
+  ['Changelog', '/changelog'],
   ['OpenAPI', '/api/openapi.json'],
   ['llms.txt', '/llms.txt'],
 ]
@@ -26,6 +28,12 @@ export default function Home() {
           </p>
           <div className="flex gap-2">
             <Link
+              href="/use-cases"
+              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+            >
+              Use cases
+            </Link>
+            <Link
               href="/faq"
               className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
             >
@@ -33,7 +41,7 @@ export default function Home() {
             </Link>
             <Link
               href="/docs"
-              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              className="hidden min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950 sm:inline-flex"
             >
               Docs
             </Link>
@@ -41,7 +49,7 @@ export default function Home() {
               href="https://github.com/sunsiyuan/human-survey"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              className="hidden min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950 sm:inline-flex"
             >
               GitHub
             </a>
