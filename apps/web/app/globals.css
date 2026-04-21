@@ -77,3 +77,14 @@ pre {
   background: rgba(82, 107, 130, 0.22);
   color: #111827;
 }
+
+@keyframes fadein {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

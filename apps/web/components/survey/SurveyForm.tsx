@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import type { Question, Survey } from '@/lib/survey'
 
 import { ProgressBar } from './ProgressBar'
-import { QuestionCard } from './QuestionCard'
+import { QuestionStep } from './QuestionStep'
 import { ThankYou } from './ThankYou'
+import { WelcomeStep } from './WelcomeStep'
 
 type SurveyFormProps = {
   surveyId: string
@@ -16,37 +17,38 @@ type SurveyFormProps = {
 type AnswerValue = string | string[] | number | undefined
 type AnswerMap = Record<string, string | string[] | number>
 type OptionTextMap = Record<string, Record<string, string>>
+type Stage =
+  | { kind: 'welcome' }
+  | { kind: 'question'; id: string }
+  | { kind: 'submitted' }
 
 export function SurveyForm({ surveyId, survey }: SurveyFormProps) {
+  const allQuestions = survey.sections.flatMap((section) => section.questions)
+
   const [answers, setAnswers] = useState<AnswerMap>({})
   const [optionTexts, setOptionTexts] = useState<OptionTextMap>({})
-  const [isSubmitted, setIsSubmitted] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [stage, setStage] = useState<Stage>({ kind: 'welcome' })
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const questions = survey.sections.flatMap((section) => section.questions)
-  const visibleQuestions = questions.filter((question) => isVisible(question, questions, answers))
+  const visibleQuestions = allQuestions.filter((question) =>
+    isVisible(question, allQuestions, answers),
+  )
   const visibleQuestionIds = new Set(visibleQuestions.map((question) => question.id))
-  const visibleRequiredQuestions = visibleQuestions.filter((question) => question.required)
-  const answeredQuestions = visibleQuestions.filter((question) =>
-    isQuestionAnswered(question, answers[question.id]),
-  ).length
-  const answeredRequiredQuestions = visibleRequiredQuestions.filter((question) =>
-    isQuestionAnswered(question, answers[question.id]),
-  ).length
-  const progress =
-    visibleRequiredQuestions.length === 0
-      ? 0
-      : Math.round((answeredRequiredQuestions / visibleRequiredQuestions.length) * 100)
+  const visibleIndex =
+    stage.kind === 'question'
+      ? visibleQuestions.findIndex((question) => question.id === stage.id)
+      : -1
+  const currentQuestion = visibleIndex >= 0 ? visibleQuestions[visibleIndex] : null
 
   useEffect(() => {
     const saved = window.localStorage.getItem(`mts_draft_${surveyId}`)
-
-    if (!saved) {
-      return
-    }
-
+    if (!saved) return
     try {
-      const parsed = JSON.parse(saved) as { answers?: AnswerMap; optionTexts?: OptionTextMap }
+      const parsed = JSON.parse(saved) as {
+        answers?: AnswerMap
+        optionTexts?: OptionTextMap
+      }
       setAnswers(parsed.answers ?? {})
       setOptionTexts(parsed.optionTexts ?? {})
     } catch {
@@ -66,134 +68,154 @@ export function SurveyForm({ surveyId, survey }: SurveyFormProps) {
     setOptionTexts((current) => pruneMap(current, visibleQuestionIds))
   }, [visibleQuestions.map((question) => question.id).join(',')])
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setIsSubmitting(true)
+  useEffect(() => {
+    if (stage.kind !== 'question') return
+    if (visibleQuestionIds.has(stage.id)) return
+    if (visibleQuestions.length === 0) {
+      setStage({ kind: 'welcome' })
+      return
+    }
+    setStage({ kind: 'question', id: visibleQuestions[0].id })
+  }, [stage, visibleQuestionIds, visibleQuestions])
 
+  const submit = useCallback(async () => {
+    const unmet = visibleQuestions.find(
+      (question) => question.required && !isAnswered(question, answers[question.id]),
+    )
+    if (unmet) {
+      setError('Please answer this question before continuing.')
+      setStage({ kind: 'question', id: unmet.id })
+      return
+    }
+    setSubmitting(true)
+    setError(null)
     try {
       const response = await fetch(`/api/surveys/${surveyId}/responses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ answers }),
       })
-
       if (!response.ok) {
         throw new Error('Submission failed')
       }
-
       window.localStorage.removeItem(`mts_draft_${surveyId}`)
-      setIsSubmitted(true)
+      setStage({ kind: 'submitted' })
+    } catch {
+      setError('Submission failed. Please try again.')
     } finally {
-      setIsSubmitting(false)
+      setSubmitting(false)
     }
-  }
+  }, [answers, surveyId, visibleQuestions])
 
-  if (isSubmitted) {
+  const start = useCallback(() => {
+    if (visibleQuestions.length === 0) return
+    setError(null)
+    setStage({ kind: 'question', id: visibleQuestions[0].id })
+  }, [visibleQuestions])
+
+  const next = useCallback(() => {
+    if (stage.kind !== 'question' || !currentQuestion) return
+    if (
+      currentQuestion.required &&
+      !isAnswered(currentQuestion, answers[currentQuestion.id])
+    ) {
+      setError('Please answer this question before continuing.')
+      return
+    }
+    setError(null)
+    if (visibleIndex < visibleQuestions.length - 1) {
+      setStage({ kind: 'question', id: visibleQuestions[visibleIndex + 1].id })
+    } else {
+      void submit()
+    }
+  }, [stage, currentQuestion, answers, visibleIndex, visibleQuestions, submit])
+
+  const prev = useCallback(() => {
+    if (stage.kind !== 'question') return
+    setError(null)
+    if (visibleIndex <= 0) {
+      setStage({ kind: 'welcome' })
+      return
+    }
+    setStage({ kind: 'question', id: visibleQuestions[visibleIndex - 1].id })
+  }, [stage, visibleIndex, visibleQuestions])
+
+  useEffect(() => {
+    if (stage.kind !== 'question') return
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== 'Enter') return
+      const target = e.target as HTMLElement | null
+      const tag = target?.tagName
+      if (tag === 'TEXTAREA' && !(e.metaKey || e.ctrlKey)) return
+      e.preventDefault()
+      next()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [stage, next])
+
+  const totalRequired = visibleQuestions.filter((question) => question.required).length
+  const answeredRequired = visibleQuestions.filter(
+    (question) => question.required && isAnswered(question, answers[question.id]),
+  ).length
+  const progress =
+    totalRequired === 0 ? 0 : Math.round((answeredRequired / totalRequired) * 100)
+
+  if (stage.kind === 'submitted') {
     return <ThankYou />
   }
 
   return (
-    <div className="flex flex-1 flex-col bg-slate-50">
+    <div className="flex min-h-screen flex-col bg-[var(--page-gradient)]">
       <ProgressBar percentage={progress} />
-      <form className="mx-auto w-full max-w-3xl px-4 pb-12 pt-8 sm:px-6" onSubmit={handleSubmit}>
-        <header className="rounded-[2rem] bg-white px-6 py-8 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.3)] sm:px-8">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-600">
-            Interactive survey
-          </p>
-          <h1 className="mt-3 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
-            {survey.title}
-          </h1>
-          {survey.description ? (
-            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
-              {survey.description}
-            </p>
-          ) : null}
-          <p className="mt-5 text-sm text-slate-500">
-            {answeredQuestions} of {visibleQuestions.length} visible questions answered
-          </p>
-        </header>
-
-        <div className="mt-8 space-y-6">
-          {survey.sections.map((section) => {
-            const sectionQuestions = section.questions.filter((question) =>
-              visibleQuestionIds.has(question.id),
-            )
-
-            if (sectionQuestions.length === 0) {
-              return null
-            }
-
-            return (
-              <section
-                key={section.id}
-                className="rounded-[2rem] border border-slate-200 bg-white px-5 py-6 shadow-[0_18px_50px_-40px_rgba(15,23,42,0.35)] sm:px-6"
-              >
-                {section.title ? (
-                  <h2 className="text-xl font-semibold text-slate-900">{section.title}</h2>
-                ) : null}
-                {section.description ? (
-                  <p className="mt-2 text-sm leading-6 text-slate-500">{section.description}</p>
-                ) : null}
-                <div className="mt-5 space-y-5">
-                  {sectionQuestions.map((question) => (
-                    <QuestionCard
-                      key={question.id}
-                      question={question}
-                      value={answers[question.id]}
-                      optionTexts={optionTexts[question.id] ?? {}}
-                      onChange={(value) =>
-                        setAnswers((current) => ({
-                          ...current,
-                          [question.id]: value,
-                        }))
-                      }
-                      onOptionTextChange={(optionId, value) =>
-                        setOptionTexts((current) => ({
-                          ...current,
-                          [question.id]: {
-                            ...(current[question.id] ?? {}),
-                            [optionId]: value,
-                          },
-                        }))
-                      }
-                    />
-                  ))}
-                </div>
-              </section>
-            )
-          })}
-        </div>
-
-        <div className="mt-8 flex flex-col gap-4 rounded-[2rem] bg-white px-6 py-5 shadow-[0_18px_50px_-40px_rgba(15,23,42,0.35)] sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-slate-500">Your progress is saved automatically.</p>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="min-h-11 w-full rounded-full bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300 sm:w-auto"
-          >
-            {isSubmitting ? 'Submitting...' : 'Submit response'}
-          </button>
-        </div>
-      </form>
+      {stage.kind === 'welcome' ? (
+        <WelcomeStep
+          survey={survey}
+          questionCount={visibleQuestions.length}
+          onStart={start}
+        />
+      ) : currentQuestion ? (
+        <QuestionStep
+          key={currentQuestion.id}
+          question={currentQuestion}
+          index={visibleIndex}
+          total={visibleQuestions.length}
+          value={answers[currentQuestion.id]}
+          optionTexts={optionTexts[currentQuestion.id] ?? {}}
+          isLast={visibleIndex === visibleQuestions.length - 1}
+          submitting={submitting}
+          error={error}
+          onChange={(value) => {
+            setError(null)
+            setAnswers((current) => ({ ...current, [currentQuestion.id]: value }))
+          }}
+          onOptionTextChange={(optionId, value) =>
+            setOptionTexts((current) => ({
+              ...current,
+              [currentQuestion.id]: {
+                ...(current[currentQuestion.id] ?? {}),
+                [optionId]: value,
+              },
+            }))
+          }
+          onNext={next}
+          onPrev={prev}
+        />
+      ) : null}
     </div>
   )
 }
 
 function isVisible(question: Question, questions: Question[], answers: AnswerMap) {
-  if (!question.showIf) {
-    return true
-  }
+  if (!question.showIf) return true
 
-  const sourceQuestion = questions.find((candidate) => candidate.id === question.showIf?.questionId)
+  const sourceQuestion = questions.find(
+    (candidate) => candidate.id === question.showIf?.questionId,
+  )
   const sourceAnswer = answers[question.showIf.questionId]
 
-  if (!sourceQuestion) {
-    return false
-  }
-
-  if (!isQuestionAnswered(sourceQuestion, sourceAnswer)) {
-    return false
-  }
+  if (!sourceQuestion) return false
+  if (!isAnswered(sourceQuestion, sourceAnswer)) return false
 
   const semanticAnswer = getSemanticAnswer(sourceQuestion, sourceAnswer)
 
@@ -205,21 +227,22 @@ function isVisible(question: Question, questions: Question[], answers: AnswerMap
     case 'neq':
       return !semanticEquals(semanticAnswer, question.showIf.value)
     case 'contains':
-      return Array.isArray(semanticAnswer) && semanticAnswer.includes(question.showIf.value ?? '')
+      return (
+        Array.isArray(semanticAnswer) &&
+        semanticAnswer.includes(question.showIf.value ?? '')
+      )
     default:
       return true
   }
 }
 
-function isQuestionAnswered(question: Question, value: AnswerValue) {
+function isAnswered(question: Question, value: AnswerValue) {
   if (question.type === 'text') {
     return typeof value === 'string' && value.trim().length > 0
   }
-
   if (question.type === 'scale') {
     return typeof value === 'number'
   }
-
   if (question.type === 'matrix') {
     return (
       Array.isArray(value) &&
@@ -227,45 +250,32 @@ function isQuestionAnswered(question: Question, value: AnswerValue) {
       value.length === (question.rows?.length ?? 0)
     )
   }
-
   if (question.type === 'multi_choice') {
     return Array.isArray(value) && value.length > 0
   }
-
   return typeof value === 'string' && value.length > 0
 }
 
 function getSemanticAnswer(question: Question, value: AnswerValue) {
   if (question.type === 'single_choice') {
-    if (typeof value !== 'string') {
-      return undefined
-    }
-
+    if (typeof value !== 'string') return undefined
     return findOptionLabel(question, decodeChoiceValue(value))
   }
-
   if (question.type === 'multi_choice') {
-    if (!Array.isArray(value)) {
-      return []
-    }
-
+    if (!Array.isArray(value)) return []
     return value
       .map((entry) => findOptionLabel(question, decodeChoiceValue(entry)))
       .filter((label): label is string => Boolean(label))
   }
-
   return value
 }
 
-function semanticEquals(value: string | string[] | number | undefined, expected?: string) {
-  if (expected === undefined) {
-    return false
-  }
-
-  if (Array.isArray(value)) {
-    return false
-  }
-
+function semanticEquals(
+  value: string | string[] | number | undefined,
+  expected?: string,
+) {
+  if (expected === undefined) return false
+  if (Array.isArray(value)) return false
   return String(value) === expected
 }
 
@@ -278,11 +288,11 @@ function decodeChoiceValue(value: string) {
 }
 
 function pruneMap<T>(current: Record<string, T>, visibleQuestionIds: Set<string>) {
-  const entries = Object.entries(current).filter(([questionId]) => visibleQuestionIds.has(questionId))
-
+  const entries = Object.entries(current).filter(([questionId]) =>
+    visibleQuestionIds.has(questionId),
+  )
   if (entries.length === Object.keys(current).length) {
     return current
   }
-
   return Object.fromEntries(entries)
 }

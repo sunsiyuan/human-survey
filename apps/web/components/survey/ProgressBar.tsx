@@ -4,9 +4,9 @@ type ProgressBarProps = {
 
 export function ProgressBar({ percentage }: ProgressBarProps) {
   return (
-    <div className="sticky top-0 z-20 h-2 w-full bg-slate-100">
+    <div className="sticky top-0 z-20 h-1 w-full bg-[var(--panel-border)]">
       <div
-        className="h-full bg-blue-600 transition-[width] duration-300 ease-out"
+        className="h-full bg-[var(--accent-strong)] transition-[width] duration-300 ease-out"
         style={{ width: `${percentage}%` }}
       />
     </div>

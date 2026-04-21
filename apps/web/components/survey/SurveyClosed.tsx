@@ -4,13 +4,15 @@ type SurveyClosedProps = {
 
 export function SurveyClosed({ title }: SurveyClosedProps) {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-16">
-      <div className="w-full max-w-2xl rounded-[2rem] border border-slate-200 bg-white p-8 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.25)]">
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-600">
+    <main className="flex min-h-screen items-center justify-center bg-[var(--page-gradient)] px-6 py-16">
+      <div className="w-full max-w-xl animate-[fadein_.3s_ease-out]">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)]">
           Survey closed
         </p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">{title}</h1>
-        <p className="mt-5 text-base leading-7 text-slate-600">
+        <h1 className="font-display mt-4 text-3xl leading-[1.1] tracking-[-0.02em] text-slate-950 sm:text-5xl">
+          {title}
+        </h1>
+        <p className="mt-5 text-base leading-[1.7] text-slate-700">
           This survey is no longer accepting responses.
         </p>
       </div>

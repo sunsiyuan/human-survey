@@ -1,17 +1,17 @@
 export function ThankYou() {
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 items-center justify-center px-6 py-20">
-      <div className="w-full rounded-3xl border border-blue-100 bg-white p-10 text-center shadow-[0_24px_80px_-40px_rgba(37,99,235,0.45)]">
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-600">
+    <main className="flex min-h-screen items-center justify-center bg-[var(--page-gradient)] px-6 py-16">
+      <div className="w-full max-w-xl animate-[fadein_.3s_ease-out] text-center">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)]">
           Response received
         </p>
-        <h1 className="mt-4 text-3xl font-semibold text-slate-900">
-          Thank you for your response!
+        <h1 className="font-display mt-4 text-3xl leading-[1.1] tracking-[-0.02em] text-slate-950 sm:text-5xl">
+          Thank you.
         </h1>
-        <p className="mt-3 text-base leading-7 text-slate-600">
-          Your answers have been submitted successfully.
+        <p className="mt-5 text-base leading-[1.7] text-slate-700">
+          Your answers have been submitted. You can close this tab.
         </p>
       </div>
-    </div>
+    </main>
   )
 }
