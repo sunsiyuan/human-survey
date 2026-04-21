@@ -69,9 +69,134 @@ type ResultsQuestion =
 
 const API_BASE_URL = process.env.HUMANSURVEY_API_URL ?? 'https://www.humansurvey.co'
 
+const ConditionSchema = z.object({
+  questionId: z
+    .string()
+    .describe(
+      'ID of the earlier question to check. IDs are assigned in order of appearance as q_0, q_1, q_2, ... across all sections. Must reference a question before the one where showIf is set.',
+    ),
+  operator: z
+    .enum(['eq', 'neq', 'contains', 'answered'])
+    .describe(
+      'eq = referenced answer equals value; neq = not equal; contains = multi_choice selection includes value; answered = respondent gave any answer.',
+    ),
+  value: z
+    .string()
+    .optional()
+    .describe(
+      'Option ID (opt_0, opt_1, ...) for eq/neq/contains — numbered per-question in option order. Omit for the answered operator.',
+    ),
+})
+
+const OptionSchema = z.object({
+  label: z.string().describe('Option text shown to the respondent.'),
+  hasTextInput: z
+    .boolean()
+    .optional()
+    .describe('Set true for an "Other: ___" option that lets the respondent type a free-text value.'),
+})
+
+const MatrixRowSchema = z.object({
+  label: z.string().describe('Row label — usually an item or criterion being evaluated.'),
+})
+
+const MatrixColumnSchema = z.object({
+  label: z.string().describe('Column label.'),
+  options: z
+    .array(OptionSchema)
+    .min(1)
+    .describe('Options shown in each cell of this column. Every row uses the same column options.'),
+})
+
+const BaseQuestionFields = {
+  label: z.string().describe('Question text shown to the respondent.'),
+  description: z.string().optional().describe('Optional helper text shown under the question label.'),
+  required: z
+    .boolean()
+    .optional()
+    .describe('Whether an answer is required. Defaults to false.'),
+  showIf: ConditionSchema.optional().describe(
+    'Only show this question if the condition on an earlier question is met.',
+  ),
+}
+
+const SingleChoiceQuestionSchema = z.object({
+  type: z.literal('single_choice'),
+  ...BaseQuestionFields,
+  options: z
+    .array(OptionSchema)
+    .min(1)
+    .describe('Options the respondent chooses exactly one of.'),
+})
+
+const MultiChoiceQuestionSchema = z.object({
+  type: z.literal('multi_choice'),
+  ...BaseQuestionFields,
+  options: z
+    .array(OptionSchema)
+    .min(1)
+    .describe('Options the respondent can pick one or more of.'),
+})
+
+const TextQuestionSchema = z.object({
+  type: z.literal('text'),
+  ...BaseQuestionFields,
+})
+
+const ScaleQuestionSchema = z.object({
+  type: z.literal('scale'),
+  ...BaseQuestionFields,
+  min: z.number().int().describe('Lowest scale value (usually 0 or 1).'),
+  max: z
+    .number()
+    .int()
+    .describe('Highest scale value. The range (max - min + 1) must be ≤ 11.'),
+  minLabel: z.string().optional().describe('Label shown at the min end, e.g. "Not likely".'),
+  maxLabel: z.string().optional().describe('Label shown at the max end, e.g. "Very likely".'),
+})
+
+const MatrixQuestionSchema = z.object({
+  type: z.literal('matrix'),
+  ...BaseQuestionFields,
+  rows: z
+    .array(MatrixRowSchema)
+    .min(1)
+    .describe('Rows of the matrix — usually items or criteria being evaluated.'),
+  columns: z
+    .array(MatrixColumnSchema)
+    .min(1)
+    .describe('Columns of the matrix — each column defines the options used for every row.'),
+})
+
+const QuestionSchema = z.discriminatedUnion('type', [
+  SingleChoiceQuestionSchema,
+  MultiChoiceQuestionSchema,
+  TextQuestionSchema,
+  ScaleQuestionSchema,
+  MatrixQuestionSchema,
+])
+
+const SectionSchema = z.object({
+  title: z.string().optional().describe('Optional section heading.'),
+  description: z.string().optional().describe('Optional section description.'),
+  questions: z.array(QuestionSchema).min(1).describe('Questions in this section.'),
+})
+
+const SurveyInputSchema = z.object({
+  title: z.string().describe('Survey title shown to respondents on the welcome screen.'),
+  description: z
+    .string()
+    .optional()
+    .describe('Optional intro text shown on the welcome screen.'),
+  sections: z
+    .array(SectionSchema)
+    .min(1)
+    .describe('Survey sections, each with questions. Use a single section for simple surveys.'),
+})
+
 const server = new McpServer({
   name: 'humansurvey-mcp',
-  version: '0.1.0',
+  version: '0.3.0',
 })
 
 server.registerTool(
@@ -135,14 +260,12 @@ server.registerTool(
     description:
       'Use this when an agent task involves collecting structured feedback or data from a group of people. ' +
       'Common cases: post-event attendee feedback, product satisfaction after a launch, team health checks, customer ratings after support resolution. ' +
-      'Provide a JSON schema object describing the survey. ' +
+      'The schema parameter is fully typed — follow the field types rather than guessing. ' +
       'Returns a survey_url to share with respondents and a survey_id to pass to get_results later. ' +
       'The survey accepts responses immediately and stays open until you close it or it expires.',
     inputSchema: {
-      schema: z.record(z.string(), z.unknown()).describe(
-        'Survey as a JSON schema object: { title: string, sections: [{ questions: [{ type, label, ...}] }] }. ' +
-        'Question types: single_choice (needs options), multi_choice (needs options), text, scale (needs min/max, range ≤ 11), matrix (needs rows + columns). ' +
-        'Add showIf: { questionId, operator: "eq"|"neq"|"contains"|"answered", value } to any question for conditional logic.'
+      schema: SurveyInputSchema.describe(
+        'Survey definition. Each question is a discriminated union keyed by type: single_choice, multi_choice, text, scale, or matrix. Use the typed fields below — do not send free-form JSON.',
       ),
       max_responses: z.number().int().positive().optional().describe(
         'Optional. Close the survey automatically after this many responses.'
