@@ -115,9 +115,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message }, { status: 500 })
   }
 
+  const origin = new URL(request.url).origin
+
   return NextResponse.json(
     {
-      survey_url: `/s/${id}`,
+      survey_url: `${origin}/s/${id}`,
       question_count: questionCount,
     },
     { status: 201 },

@@ -196,7 +196,7 @@ const SurveyInputSchema = z.object({
 
 const server = new McpServer({
   name: 'humansurvey-mcp',
-  version: '0.3.0',
+  version: '0.3.1',
 })
 
 server.registerTool(
@@ -315,11 +315,15 @@ server.registerTool(
       }
     }
 
+    const surveyUrl = payload.survey_url.startsWith('http')
+      ? payload.survey_url
+      : `${API_BASE_URL}${payload.survey_url.startsWith('/') ? '' : '/'}${payload.survey_url}`
+
     return {
       content: [
         {
           type: 'text',
-          text: `Survey created successfully!\n\nSurvey URL (share with respondents): ${payload.survey_url}\nSurvey ID (for get_results): ${extractSurveyId(payload.survey_url)}\n\nQuestions: ${payload.question_count ?? 0}`,
+          text: `Survey created successfully!\n\nSurvey URL (share with respondents): ${surveyUrl}\nSurvey ID (for get_results): ${extractSurveyId(surveyUrl)}\n\nQuestions: ${payload.question_count ?? 0}`,
         },
       ],
     }

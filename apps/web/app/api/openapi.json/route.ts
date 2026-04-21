@@ -205,7 +205,7 @@ const openApiDocument = {
             content: {
               'application/json': {
                 example: {
-                  survey_url: '/s/abc123efgh45',
+                  survey_url: 'https://www.humansurvey.co/s/abc123efgh45',
                   question_count: 3,
                 },
               },

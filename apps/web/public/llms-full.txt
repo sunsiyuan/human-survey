@@ -26,7 +26,7 @@ Agent is doing a long-horizon job
   → act on the structured results
 ```
 
-The survey ID is extracted from the `survey_url` field in the create response (e.g. `/s/abc123` → ID is `abc123`).
+The survey ID is extracted from the `survey_url` field in the create response (e.g. `https://www.humansurvey.co/s/abc123` → ID is `abc123`).
 
 ## Authentication
 
@@ -176,7 +176,7 @@ Supported operators:
 - Request body: `{ "schema": { ... }, "max_responses": 50, "expires_at": "2026-04-14T00:00:00Z", "webhook_url": "https://..." }`
 - `schema` is required. `max_responses`, `expires_at`, and `webhook_url` are optional.
 - `webhook_url`: if set, receives a POST request once when the survey closes. Payload: `{ "survey_id", "status": "closed", "closed_reason": "manual" | "max_responses", "response_count", "closed_at" }`. Fires for manual close (PATCH status=closed) and max_responses limit reached. Does NOT fire when expires_at elapses.
-- Response 201: `{ "survey_url": "/s/abc123", "question_count": 3 }`
+- Response 201: `{ "survey_url": "https://www.humansurvey.co/s/abc123", "question_count": 3 }`
 - Error 400: `{ "error": "schema is required" }` or `{ "error": "Invalid schema", "errors": ["..."] }`
 
 ### `GET /api/surveys`

@@ -119,7 +119,7 @@ curl -X POST https://www.humansurvey.co/api/surveys \
       }]
     }
   }'
-# → { "survey_url": "/s/abc123", "question_count": 2 }
+# → { "survey_url": "https://www.humansurvey.co/s/abc123", "question_count": 2 }
 ```
 
 ## Question Types
