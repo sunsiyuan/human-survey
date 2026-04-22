@@ -94,6 +94,15 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Demo collage */}
+        <section>
+          <img
+            src="/demo-collage.jpeg"
+            alt="Claude Desktop creating a survey with HumanSurvey MCP, and the resulting form on mobile"
+            className="w-full rounded-2xl border border-[var(--panel-border)] shadow-sm"
+          />
+        </section>
+
         {/* Install */}
         <section id="install">
           <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
