@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>HumanSurvey embed sandbox</title>
+    <style>
+      :root {
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          'Helvetica Neue',
+          Arial,
+          sans-serif;
+        color: #0f172a;
+      }
+      body {
+        max-width: 760px;
+        margin: 40px auto;
+        padding: 0 20px 80px;
+        line-height: 1.55;
+      }
+      h1 {
+        font-size: 1.8rem;
+        margin: 0 0 4px;
+      }
+      p.lede {
+        color: #475569;
+        margin-top: 0;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin: 20px 0;
+        flex-wrap: wrap;
+      }
+      input,
+      button {
+        font: inherit;
+        padding: 8px 14px;
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+      }
+      input {
+        flex: 1;
+        min-width: 220px;
+        background: white;
+      }
+      button {
+        background: #0f172a;
+        color: white;
+        border-color: #0f172a;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #1e293b;
+      }
+      iframe {
+        width: 100%;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        display: block;
+        margin: 16px 0;
+        background: white;
+      }
+      h3 {
+        margin: 24px 0 8px;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #64748b;
+      }
+      pre {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 14px;
+        margin: 0;
+        max-height: 320px;
+        overflow: auto;
+        font-size: 12.5px;
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        line-height: 1.55;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .log-loaded {
+        color: #1e40af;
+      }
+      .log-resize {
+        color: #6d28d9;
+      }
+      .log-submitted {
+        color: #15803d;
+        font-weight: 600;
+      }
+      .log-meta {
+        color: #64748b;
+      }
+      code {
+        background: #f1f5f9;
+        padding: 1px 6px;
+        border-radius: 4px;
+        font-size: 0.92em;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>HumanSurvey embed sandbox</h1>
+    <p class="lede">
+      Type a survey ID and embed it with <code>?embed=1</code>. Every
+      <code>postMessage</code> from the iframe is logged below so you can verify
+      the embed contract end-to-end.
+    </p>
+
+    <div class="row">
+      <input id="sid" placeholder="survey id (e.g. abc123def456)" />
+      <button id="go" type="button">Embed</button>
+    </div>
+
+    <iframe id="hs" title="HumanSurvey embedded form" style="display: none"></iframe>
+
+    <h3>postMessage log</h3>
+    <pre id="log">(messages will appear here once you click Embed)</pre>
+
+    <script>
+      const sidInput = document.getElementById('sid')
+      const goBtn = document.getElementById('go')
+      const iframe = document.getElementById('hs')
+      const log = document.getElementById('log')
+
+      const params = new URLSearchParams(location.search)
+      const initialId = params.get('id')
+      if (initialId) sidInput.value = initialId
+
+      function append(line, cls) {
+        if (log.textContent.startsWith('(messages')) log.textContent = ''
+        const span = document.createElement('span')
+        if (cls) span.className = cls
+        span.textContent = line + '\n'
+        log.appendChild(span)
+        log.scrollTop = log.scrollHeight
+      }
+
+      function ts() {
+        const d = new Date()
+        return d.toTimeString().slice(0, 8) + '.' + String(d.getMilliseconds()).padStart(3, '0')
+      }
+
+      function embed() {
+        const id = sidInput.value.trim()
+        if (!id) return
+        log.textContent = ''
+        iframe.style.display = 'block'
+        iframe.style.height = '100px'
+        iframe.src = location.origin + '/s/' + encodeURIComponent(id) + '?embed=1'
+        append('[' + ts() + '] iframe.src = /s/' + id + '?embed=1', 'log-meta')
+      }
+
+      goBtn.addEventListener('click', embed)
+      sidInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') embed()
+      })
+      if (initialId) embed()
+
+      window.addEventListener('message', (e) => {
+        if (e.data?.source !== 'humansurvey') return
+        const { type, surveyId } = e.data
+        if (type === 'loaded') {
+          append('[' + ts() + '] loaded surveyId=' + surveyId, 'log-loaded')
+        } else if (type === 'resize') {
+          iframe.style.height = e.data.height + 'px'
+          append('[' + ts() + '] resize height=' + e.data.height + 'px', 'log-resize')
+        } else if (type === 'submitted') {
+          append(
+            '[' + ts() + '] submitted responseId=' + e.data.responseId,
+            'log-submitted',
+          )
+          append(
+            '           answers=' + JSON.stringify(e.data.answers, null, 2),
+            'log-submitted',
+          )
+        } else {
+          append('[' + ts() + '] unknown type=' + type, 'log-meta')
+        }
+      })
+    </script>
+  </body>
+</html>

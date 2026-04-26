@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
 import type { Survey } from '@/lib/survey'
@@ -6,6 +7,10 @@ import { SurveyClosed } from '@/components/survey/SurveyClosed'
 import { isSurveyClosed } from '@/lib/lifecycle'
 import { SurveyForm } from '@/components/survey/SurveyForm'
 import { sql, parseJsonValue } from '@/lib/db'
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+}
 
 type PageProps = {
   params: Promise<{ id: string }>

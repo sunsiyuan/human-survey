@@ -46,8 +46,10 @@ export function SurveyForm({ surveyId, survey, embedded = false }: SurveyFormPro
     const node = rootRef.current
     if (!node) return
     const post = () => {
+      const height = node.offsetHeight
+      if (height === 0) return
       window.parent.postMessage(
-        { source: 'humansurvey', type: 'resize', surveyId, height: node.offsetHeight },
+        { source: 'humansurvey', type: 'resize', surveyId, height },
         '*',
       )
     }
