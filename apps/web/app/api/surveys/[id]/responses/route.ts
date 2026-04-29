@@ -140,26 +140,28 @@ export async function GET(request: Request, context: RouteContext) {
     })
 
     const responseRows = (await sql`
-      SELECT id, answers, created_at
+      SELECT id, answers, created_at, seq
       FROM responses
       WHERE survey_id = ${surveyId}
-      ORDER BY created_at DESC, id DESC
-    `) as Array<{ id: string; answers: unknown; created_at: string }>
+      ORDER BY seq DESC
+    `) as Array<{ id: string; answers: unknown; created_at: string; seq: number }>
 
+    // Keep seq internal: it's the cursor-ordering token, not part of the public payload.
+    const seqById = new Map(responseRows.map((row) => [row.id, row.seq]))
     const allResponses = responseRows.map((row) => ({
-      ...row,
+      id: row.id,
       answers: parseJsonValue<Record<string, ResponseAnswerValue>>(row.answers),
+      created_at: row.created_at,
     }))
 
     let filteredRaw = allResponses
     if (since) {
-      const cursorRow = allResponses.find((r) => r.id === since)
-      if (cursorRow) {
-        filteredRaw = allResponses.filter(
-          (r) =>
-            r.created_at > cursorRow.created_at ||
-            (r.created_at === cursorRow.created_at && r.id > cursorRow.id),
-        )
+      const cursorSeq = seqById.get(since)
+      if (cursorSeq !== undefined) {
+        // seq is strictly monotonic and unique, so a single inequality is sufficient.
+        // No (created_at, id) tie-break needed: same-microsecond inserts get distinct
+        // sequence values issued in commit order.
+        filteredRaw = allResponses.filter((r) => (seqById.get(r.id) ?? 0) > cursorSeq)
       }
     }
 

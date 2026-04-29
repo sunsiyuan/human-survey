@@ -126,8 +126,16 @@ export async function PATCH(request: Request, context: RouteContext) {
     const nextStatus = body.status ?? existingSurvey.status
     const nextMaxResponses =
       body.max_responses !== undefined ? body.max_responses : existingSurvey.max_responses
-    const nextExpiresAt =
-      body.expires_at !== undefined ? body.expires_at : existingSurvey.expires_at
+    const isManualClose = nextStatus === 'closed' && existingSurvey.status !== 'closed'
+    // Clear expires_at on manual close so cursor reads stably report
+    // completion_reason='closed' rather than drifting to 'expired' once wall-clock passes
+    // a future deadline. The webhook already fired with 'manual'; the persisted state
+    // must match.
+    const nextExpiresAt = isManualClose
+      ? null
+      : body.expires_at !== undefined
+        ? body.expires_at
+        : existingSurvey.expires_at
 
     const updatedRows = (await sql`
       UPDATE surveys
@@ -147,7 +155,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 
     const updated = updatedRows[0]
 
-    if (nextStatus === 'closed' && existingSurvey.status !== 'closed') {
+    if (isManualClose) {
       await tryFireCompletionWebhook(id, 'manual')
     }
 
