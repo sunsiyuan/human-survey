@@ -1,3 +1,4 @@
+import type { PublicCompletionReason } from '@/lib/lifecycle'
 import type { MatrixColumn, MatrixRow, Option, Question, Survey } from '@/lib/survey'
 
 export type ResponseAnswerValue = string | string[] | number
@@ -60,12 +61,19 @@ export type AggregatedSurveyResults = {
   count: number
   questions: ResultsQuestion[]
   raw: ResponseRecord[]
+  is_final: boolean
+  completion_reason: PublicCompletionReason | null
+  next_check_hint_seconds: number | null
+  next_cursor: string | null
 }
 
 export function aggregateSurveyResults(
   survey: Survey,
   responses: ResponseRecord[],
-): AggregatedSurveyResults {
+): Omit<
+  AggregatedSurveyResults,
+  'is_final' | 'completion_reason' | 'next_check_hint_seconds' | 'next_cursor'
+> {
   return {
     count: responses.length,
     questions: survey.sections.flatMap((section) =>
@@ -73,6 +81,57 @@ export function aggregateSurveyResults(
     ),
     raw: responses,
   }
+}
+
+export function buildResultsPayload(args: {
+  survey: Survey
+  allResponses: ResponseRecord[]
+  filteredRaw: ResponseRecord[]
+  isFinal: boolean
+  completionReason: PublicCompletionReason | null
+  nextCheckHintSeconds: number | null
+}): AggregatedSurveyResults {
+  const aggregated = aggregateSurveyResults(args.survey, args.allResponses)
+  return {
+    ...aggregated,
+    raw: args.filteredRaw,
+    is_final: args.isFinal,
+    completion_reason: args.completionReason,
+    next_check_hint_seconds: args.nextCheckHintSeconds,
+    // next_cursor is the id of the newest response in the full set, not the filtered set.
+    // null iff the survey has zero responses. When the caller's since_response_id already
+    // matches the newest response, next_cursor equals the input cursor (steady state).
+    next_cursor: args.allResponses[0]?.id ?? null,
+  }
+}
+
+// Advisory cadence for the next get_results call. Caller may check sooner; this is just a server-side hint
+// based on observed response rate and time-to-expiry. null when no further check is useful (is_final true,
+// or expiry already passed).
+export function computeNextCheckHintSeconds(args: {
+  isFinal: boolean
+  expiresAt: string | null
+  recentResponses1h: number
+}): number | null {
+  if (args.isFinal) return null
+
+  const now = Date.now()
+  const remainingMs = args.expiresAt
+    ? new Date(args.expiresAt).getTime() - now
+    : Number.POSITIVE_INFINITY
+
+  if (remainingMs <= 0) return null
+
+  let baseSec: number
+  if (args.recentResponses1h >= 6) baseSec = 300
+  else if (args.recentResponses1h >= 1) baseSec = 600
+  else baseSec = 1800
+
+  if (!Number.isFinite(remainingMs)) return baseSec
+
+  const remainingSec = Math.floor(remainingMs / 1000)
+  const expiryCap = Math.max(60, Math.floor(remainingSec / 4))
+  return Math.min(baseSec, expiryCap)
 }
 
 function aggregateQuestion(question: Question, responses: ResponseRecord[]): ResultsQuestion {

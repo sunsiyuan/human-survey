@@ -5,8 +5,12 @@ import type { Survey } from '@/lib/survey'
 
 import { requireAuth } from '@/lib/auth'
 import { sql, parseJsonValue } from '@/lib/db'
-import { getSurveyClosureReason } from '@/lib/lifecycle'
-import { aggregateSurveyResults } from '@/lib/results'
+import { getSurveyClosureReason, mapClosureReasonForPayload } from '@/lib/lifecycle'
+import {
+  buildResultsPayload,
+  computeNextCheckHintSeconds,
+  type ResponseAnswerValue,
+} from '@/lib/results'
 import { fireWebhook } from '@/lib/webhook'
 
 type RouteContext = {
@@ -87,21 +91,29 @@ export async function POST(request: Request, context: RouteContext) {
   }
 }
 
-export async function GET(_request: Request, context: RouteContext) {
-  const auth = await requireAuth(_request)
+export async function GET(request: Request, context: RouteContext) {
+  const auth = await requireAuth(request)
   if (auth instanceof Response) {
     return auth
   }
 
   const { id: surveyId } = await context.params
+  const since = new URL(request.url).searchParams.get('since_response_id')
 
   try {
     const surveyRows = (await sql`
-      SELECT api_key_id, schema
+      SELECT api_key_id, schema, status, response_count, max_responses, expires_at
       FROM surveys
       WHERE id = ${surveyId}
       LIMIT 1
-    `) as Array<{ api_key_id: string | null; schema: unknown }>
+    `) as Array<{
+      api_key_id: string | null
+      schema: unknown
+      status: string
+      response_count: number
+      max_responses: number | null
+      expires_at: string | null
+    }>
 
     const surveyRow = surveyRows[0]
 
@@ -120,17 +132,55 @@ export async function GET(_request: Request, context: RouteContext) {
       SELECT id, answers, created_at
       FROM responses
       WHERE survey_id = ${surveyId}
-      ORDER BY created_at DESC
+      ORDER BY created_at DESC, id DESC
     `) as Array<{ id: string; answers: unknown; created_at: string }>
 
+    const allResponses = responseRows.map((row) => ({
+      ...row,
+      answers: parseJsonValue<Record<string, ResponseAnswerValue>>(row.answers),
+    }))
+
+    let filteredRaw = allResponses
+    if (since) {
+      const cursorRow = allResponses.find((r) => r.id === since)
+      if (cursorRow) {
+        filteredRaw = allResponses.filter(
+          (r) =>
+            r.created_at > cursorRow.created_at ||
+            (r.created_at === cursorRow.created_at && r.id > cursorRow.id),
+        )
+      }
+    }
+
+    const closureReason = getSurveyClosureReason(surveyRow)
+    const isFinal = closureReason !== null
+    const completionReason = mapClosureReasonForPayload(closureReason)
+
+    let nextCheckHintSeconds: number | null = null
+    if (!isFinal) {
+      const rateRows = (await sql`
+        SELECT COUNT(*)::int AS count
+        FROM responses
+        WHERE survey_id = ${surveyId}
+          AND created_at > now() - interval '1 hour'
+      `) as Array<{ count: number }>
+      const rate1h = rateRows[0]?.count ?? 0
+      nextCheckHintSeconds = computeNextCheckHintSeconds({
+        isFinal,
+        expiresAt: surveyRow.expires_at,
+        recentResponses1h: rate1h,
+      })
+    }
+
     return NextResponse.json(
-      aggregateSurveyResults(
-        parseJsonValue<Survey>(surveyRow.schema),
-        responseRows.map((row) => ({
-          ...row,
-          answers: parseJsonValue<Record<string, string | string[] | number>>(row.answers),
-        })),
-      ),
+      buildResultsPayload({
+        survey: parseJsonValue<Survey>(surveyRow.schema),
+        allResponses,
+        filteredRaw,
+        isFinal,
+        completionReason,
+        nextCheckHintSeconds,
+      }),
     )
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Database error'

@@ -1,7 +1,7 @@
 {
   "name": "humansurvey-mcp",
   "mcpName": "io.github.sunsiyuan/human-survey",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "MCP server for HumanSurvey — let AI agents collect structured feedback from groups of people",
   "keywords": [
     "mcp",

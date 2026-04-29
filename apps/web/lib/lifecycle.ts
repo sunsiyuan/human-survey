@@ -28,3 +28,12 @@ export function getSurveyClosureReason(survey: SurveyLifecycle) {
 export function isSurveyClosed(survey: SurveyLifecycle) {
   return getSurveyClosureReason(survey) !== null
 }
+
+export type PublicCompletionReason = 'closed' | 'max_responses' | 'expired'
+
+export function mapClosureReasonForPayload(
+  reason: ReturnType<typeof getSurveyClosureReason>,
+): PublicCompletionReason | null {
+  if (reason === 'full') return 'max_responses'
+  return reason
+}

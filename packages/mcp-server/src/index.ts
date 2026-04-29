@@ -196,7 +196,7 @@ const SurveyInputSchema = z.object({
 
 const server = new McpServer({
   name: 'humansurvey-mcp',
-  version: '0.3.1',
+  version: '0.5.0',
 })
 
 server.registerTool(
@@ -341,13 +341,24 @@ server.registerTool(
       'Retrieve aggregated results for a survey. ' +
       'Shows survey status (open/closed), total response count, and per-question results: ' +
       'choice tallies with percentages, scale mean/median/distribution, and recent text responses. ' +
-      'If the survey is still open, call again later to check for new responses — the output will tell you. ' +
-      'Use close_survey when you have enough responses.',
+      'For long-running surveys (hours/days): pass since_response_id (the next_cursor from a previous call) to fetch only new responses incrementally. ' +
+      'When is_final is true, the survey has closed (manually, by max_responses, or by expiry) — act on the results. ' +
+      'When is_final is false, the survey is still collecting; you can either schedule another get_results after roughly next_check_hint_seconds, ' +
+      'or set webhook_url at survey creation to be notified asynchronously when it closes (preferred for hour/day-scale collection windows). ' +
+      'next_check_hint_seconds is advisory, not mandatory — check sooner if your task requires.',
     inputSchema: {
       survey_id: z.string().min(1).describe('The survey ID from the create_survey output (last segment of the survey_url, e.g. "abc123efgh45")'),
+      since_response_id: z
+        .string()
+        .optional()
+        .describe(
+          'Optional. Pass the next_cursor returned from a prior get_results call to fetch only responses received since then. ' +
+          'Aggregates always reflect the full survey; this only filters the raw response list. ' +
+          'Use this to incrementally consume long-running surveys without re-reading old data.',
+        ),
     },
   },
-  async ({ survey_id: surveyId }) => {
+  async ({ survey_id: surveyId, since_response_id: sinceResponseId }) => {
     const apiKeyError = requireApiKey()
     if (apiKeyError) {
       return apiKeyError
@@ -370,19 +381,27 @@ server.registerTool(
       }
     }
 
-    const responsesResponse = await fetch(
+    const responsesUrl = new URL(
       `${API_BASE_URL}/api/surveys/${encodeURIComponent(surveyId)}/responses`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.HUMANSURVEY_API_KEY}`,
-        },
-      },
     )
+    if (sinceResponseId) {
+      responsesUrl.searchParams.set('since_response_id', sinceResponseId)
+    }
+
+    const responsesResponse = await fetch(responsesUrl, {
+      headers: {
+        Authorization: `Bearer ${process.env.HUMANSURVEY_API_KEY}`,
+      },
+    })
     const responsesPayload = (await responsesResponse.json().catch(() => null)) as
       | {
           count?: number
           questions?: ResultsQuestion[]
           raw?: ResponseRecord[]
+          is_final?: boolean
+          completion_reason?: 'closed' | 'max_responses' | 'expired' | null
+          next_check_hint_seconds?: number | null
+          next_cursor?: string | null
           error?: string
         }
       | null
@@ -399,13 +418,19 @@ server.registerTool(
       }
     }
 
-    const lines = formatResultsSummary(
-      surveyPayload.title ?? 'Survey results',
-      responsesPayload.questions,
-      responsesPayload.count ?? responsesPayload.raw?.length ?? 0,
-      surveyPayload.status,
-      surveyPayload.max_responses ?? null,
-    )
+    const lines = formatResultsSummary({
+      title: surveyPayload.title ?? 'Survey results',
+      questions: responsesPayload.questions,
+      responseCount: responsesPayload.count ?? 0,
+      status: surveyPayload.status,
+      maxResponses: surveyPayload.max_responses ?? null,
+      isFinal: responsesPayload.is_final ?? null,
+      completionReason: responsesPayload.completion_reason ?? null,
+      nextCheckHintSeconds: responsesPayload.next_check_hint_seconds ?? null,
+      nextCursor: responsesPayload.next_cursor ?? null,
+      sinceCursor: sinceResponseId ?? null,
+      newCount: sinceResponseId ? responsesPayload.raw?.length ?? 0 : null,
+    })
 
     return {
       content: [
@@ -604,28 +629,72 @@ function extractSurveyId(surveyUrl: string) {
   return segments[segments.length - 1] ?? surveyUrl
 }
 
-function formatResultsSummary(
-  title: string,
-  questions: ResultsQuestion[],
-  responseCount: number,
-  status?: string,
-  maxResponses?: number | null,
-) {
+function formatResultsSummary(args: {
+  title: string
+  questions: ResultsQuestion[]
+  responseCount: number
+  status?: string
+  maxResponses: number | null
+  isFinal: boolean | null
+  completionReason: 'closed' | 'max_responses' | 'expired' | null
+  nextCheckHintSeconds: number | null
+  nextCursor: string | null
+  sinceCursor: string | null
+  newCount: number | null
+}) {
+  const {
+    title,
+    questions,
+    responseCount,
+    status,
+    maxResponses,
+    isFinal,
+    completionReason,
+    nextCheckHintSeconds,
+    nextCursor,
+    sinceCursor,
+    newCount,
+  } = args
+
   const countLabel =
     maxResponses != null
       ? `${responseCount}/${maxResponses} responses`
       : `${responseCount} response${responseCount !== 1 ? 's' : ''}`
 
-  const statusLabel = status === 'closed' ? 'closed' : 'open'
+  const finalFlag = isFinal ?? status === 'closed'
+  const reasonLabel =
+    completionReason === 'max_responses'
+      ? ' (max responses reached)'
+      : completionReason === 'expired'
+        ? ' (expired)'
+        : completionReason === 'closed'
+          ? ''
+          : ''
 
-  const collectionStatus =
-    status === 'closed'
-      ? 'Collection complete.'
-      : maxResponses != null && responseCount >= maxResponses
-        ? 'Collection complete (max responses reached).'
-        : 'Still collecting — call get_results again to check for new responses.'
+  const statusLabel = finalFlag ? `closed${reasonLabel}` : 'open'
 
-  const lines = [`Survey: ${title} | Status: ${statusLabel} | ${countLabel}`, collectionStatus, '']
+  const collectionStatus = finalFlag
+    ? 'Collection complete. Act on these results.'
+    : nextCheckHintSeconds != null
+      ? `Still collecting — recommended next check: ${formatHintInterval(nextCheckHintSeconds)}.`
+      : 'Still collecting — call get_results again to check for new responses.'
+
+  const lines = [`Survey: ${title} | Status: ${statusLabel} | ${countLabel}`, collectionStatus]
+
+  if (sinceCursor) {
+    lines.push(
+      `Cursor: showing ${newCount ?? 0} new response${(newCount ?? 0) === 1 ? '' : 's'} since ${sinceCursor}. Aggregates below reflect the full survey.`,
+    )
+  }
+  if (!finalFlag && nextCursor) {
+    if (sinceCursor && sinceCursor === nextCursor) {
+      lines.push(`Next cursor: unchanged ("${nextCursor}") — pass it again next call.`)
+    } else {
+      lines.push(`Next cursor: pass since_response_id="${nextCursor}" to your next get_results call to fetch only new responses.`)
+    }
+  }
+
+  lines.push('')
 
   questions.forEach((question, index) => {
     lines.push(`Q${index}. (${question.type}) ${question.label}`)
@@ -712,4 +781,15 @@ function truncate(value: string, length: number) {
   }
 
   return `${value.slice(0, length - 1)}…`
+}
+
+function formatHintInterval(seconds: number) {
+  if (seconds < 60) return `${seconds}s`
+  if (seconds < 3600) {
+    const minutes = Math.round(seconds / 60)
+    return `~${minutes} minute${minutes === 1 ? '' : 's'}`
+  }
+  // Round to nearest 0.1 hour: divide by 360 (= 3600/10), round, divide by 10.
+  const hours = Math.round(seconds / 360) / 10
+  return `~${hours} hour${hours === 1 ? '' : 's'}`
 }
