@@ -128,6 +128,33 @@ const patchSurveySnippet = `curl -X PATCH https://www.humansurvey.co/api/surveys
   -H "Content-Type: application/json" \\
   -d '{"status":"closed"}'`
 
+const webhookHandlerSnippet = `// Receive both event types on the same URL — branch on payload.event
+app.post('/hooks/humansurvey', (req, res) => {
+  const { event, event_id, survey_id } = req.body
+  if (alreadyProcessed(event_id)) return res.sendStatus(200) // dedupe
+
+  if (event === 'threshold_reached') {
+    // survey is still open; act on enough signal
+    wakeAgent({ survey_id, reason: 'threshold' })
+  } else if (event === 'survey_closed') {
+    // terminal: closed_reason ∈ { manual | max_responses | expired }
+    wakeAgent({ survey_id, reason: 'closed', cause: req.body.closed_reason })
+  }
+  res.sendStatus(200)
+})`
+
+const cursorPollSnippet = `// On re-entry, fetch only new responses since last cursor
+const r = await fetch(\`\${api}/api/surveys/\${id}/responses?since_response_id=\${cursor}\`,
+  { headers: { Authorization: \`Bearer \${key}\` } }).then(r => r.json())
+
+if (r.is_final) {
+  // completion_reason ∈ { closed | max_responses | expired }
+  act(r)                  // done; do not check again
+} else {
+  saveCursor(r.next_cursor)                              // r.raw is only the deltas
+  scheduleNextCheck(r.next_check_hint_seconds)            // server's advisory cadence
+}`
+
 const embedIframeSnippet = `<iframe id="hs-survey"
         src="https://www.humansurvey.co/s/abc123?embed=1"
         style="width:100%; border:0;"></iframe>
@@ -285,6 +312,9 @@ export default function DocsPage() {
               <a className="rounded-full border border-[var(--panel-border)] px-3 py-2 whitespace-nowrap text-slate-700 hover:border-slate-900 hover:text-slate-950 lg:block lg:rounded-none lg:border-0 lg:px-0 lg:py-0" href="#embed">
                 Embed
               </a>
+              <a className="rounded-full border border-[var(--panel-border)] px-3 py-2 whitespace-nowrap text-slate-700 hover:border-slate-900 hover:text-slate-950 lg:block lg:rounded-none lg:border-0 lg:px-0 lg:py-0" href="#async-results">
+                Async results
+              </a>
               <a className="rounded-full border border-[var(--panel-border)] px-3 py-2 whitespace-nowrap text-slate-700 hover:border-slate-900 hover:text-slate-950 lg:block lg:rounded-none lg:border-0 lg:px-0 lg:py-0" href="#mcp-tools">
                 MCP Tools
               </a>
@@ -410,6 +440,49 @@ export default function DocsPage() {
                   custom thank-you — your call.
                 </li>
               </ul>
+            </Section>
+
+            <Section id="async-results" title="Async results">
+              <p>
+                Surveys collect over hours or days. Agents shouldn&apos;t stay alive polling, and
+                shouldn&apos;t re-read old data on every check. Two primitives let an agent exit
+                after creating a survey and rejoin only when there&apos;s new signal.
+              </p>
+              <h3 className="text-lg font-semibold text-slate-950">Webhook events</h3>
+              <p>
+                Set <code>webhook_url</code> at create time. The same URL receives two event
+                shapes — branch on the <code>event</code> field. Use <code>event_id</code> to
+                dedupe; delivery is at-least-once per event type.
+              </p>
+              <ul className="list-disc space-y-2 pl-5">
+                <li>
+                  <code>{`{ event: 'survey_closed', closed_reason: 'manual' | 'max_responses' | 'expired', ... }`}</code>{' '}
+                  — fires once on closure. <code>expired</code> fires lazily within seconds of
+                  any next interaction with the survey (no cron).
+                </li>
+                <li>
+                  <code>{`{ event: 'threshold_reached', status: 'open', threshold, response_count, ... }`}</code>{' '}
+                  — fires once when <code>response_count</code> first crosses{' '}
+                  <code>notify_at_responses</code>. Survey stays open. Use this to wake the
+                  agent on &quot;enough signal&quot; without waiting for closure.
+                </li>
+              </ul>
+              <CodeBlock code={webhookHandlerSnippet} />
+              <h3 className="text-lg font-semibold text-slate-950">Cursor reads (pull fallback)</h3>
+              <p>
+                Webhooks can be lost. <code>GET /api/surveys/{'{id}'}/responses</code> accepts
+                a <code>since_response_id</code> query param so a re-entering agent fetches
+                only the deltas. The response carries <code>is_final</code>,{' '}
+                <code>completion_reason</code>, <code>next_check_hint_seconds</code>, and{' '}
+                <code>next_cursor</code>. Aggregates always reflect the full survey; the cursor
+                only filters <code>raw</code>.
+              </p>
+              <CodeBlock code={cursorPollSnippet} />
+              <p>
+                <code>next_check_hint_seconds</code> is advisory — server-computed from recent
+                response rate and time-to-expiry, capped to give roughly four checks before
+                expiry. Agents may check sooner if the task requires.
+              </p>
             </Section>
 
             <Section id="mcp-tools" title="MCP Tools">

@@ -173,9 +173,13 @@ Supported operators:
 ### `POST /api/surveys`
 
 - Auth required
-- Request body: `{ "schema": { ... }, "max_responses": 50, "expires_at": "2026-04-14T00:00:00Z", "webhook_url": "https://..." }`
-- `schema` is required. `max_responses`, `expires_at`, and `webhook_url` are optional.
-- `webhook_url`: if set, receives a POST request once when the survey closes. Payload: `{ "survey_id", "status": "closed", "closed_reason": "manual" | "max_responses", "response_count", "closed_at" }`. Fires for manual close (PATCH status=closed) and max_responses limit reached. Does NOT fire when expires_at elapses.
+- Request body: `{ "schema": { ... }, "max_responses": 50, "expires_at": "2026-04-14T00:00:00Z", "webhook_url": "https://...", "notify_at_responses": 10 }`
+- `schema` is required. `max_responses`, `expires_at`, `webhook_url`, and `notify_at_responses` are optional.
+- `webhook_url`: receives POST requests on notable lifecycle events. Branch on the `event` field.
+  - **Closure event** — fires on manual close, `max_responses` reached, or `expires_at` passed (lazy — within seconds of any next interaction). Payload: `{ "event_id", "event": "survey_closed", "survey_id", "status": "closed", "closed_reason": "manual" | "max_responses" | "expired", "response_count", "closed_at" }`.
+  - **Threshold event** — fires once when `response_count` first crosses `notify_at_responses` (only if that field is set). Survey stays open. Payload: `{ "event_id", "event": "threshold_reached", "survey_id", "status": "open", "response_count", "threshold", "fired_at" }`.
+  - Use `event_id` to dedupe; delivery is at-least-once per event type. Both events may fire over a survey's lifetime (separate fire-once flags).
+- `notify_at_responses`: optional positive integer for the threshold event. Must be ≤ `max_responses` if both are set. No effect unless `webhook_url` is also set.
 - Response 201: `{ "survey_url": "https://www.humansurvey.co/s/abc123", "question_count": 3 }`
 - Error 400: `{ "error": "schema is required" }` or `{ "error": "Invalid schema", "errors": ["..."] }`
 
@@ -212,10 +216,15 @@ Supported operators:
 ### `GET /api/surveys/{id}/responses`
 
 - Auth required, must own the survey
+- Optional query: `?since_response_id=<previous next_cursor>` — filters `raw` to responses received since that id. Aggregates always reflect the full survey regardless.
 - Returns:
-  - `count`: total response count
+  - `count`: total response count (full survey, ignores cursor)
+  - `is_final`: boolean — true once the survey is closed (manual / max_responses / expired)
+  - `completion_reason`: `"closed" | "max_responses" | "expired"` when `is_final` is true, else null
+  - `next_check_hint_seconds`: advisory poll cadence in seconds, server-computed from recent response rate and time-to-expiry. null when `is_final`. Treat as a suggestion — agents may check sooner.
+  - `next_cursor`: id of the newest response in the full set, or null if empty. Pass back as `since_response_id` on the next call.
   - `questions`: pre-aggregated results per question (see below)
-  - `raw`: array of individual responses
+  - `raw`: array of individual responses, optionally cursor-filtered
 
 #### Aggregated question shapes
 

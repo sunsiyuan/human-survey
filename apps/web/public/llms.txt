@@ -56,12 +56,24 @@ HumanSurvey returns a `/s/{id}` share URL. It does **not** distribute to the aud
 
 ```
 1. If no API key: call create_key MCP tool (or POST /api/keys) → save hs_sk_...
-2. POST /api/surveys  { schema: {...} }   → get /s/{id} URL + survey_id
+2. POST /api/surveys  { schema: {...}, webhook_url, notify_at_responses }
+                                          → get /s/{id} URL + survey_id
 3. share /s/{id} with the target group (email, Slack, etc.)
-4. GET  /api/surveys/{id}/responses       → check results; repeat over hours or days
-5. PATCH /api/surveys/{id} { status: "closed" }  → close when done
+4. EITHER: receive webhook on closure / threshold (preferred for hour/day-scale surveys)
+   OR:    GET /api/surveys/{id}/responses?since_response_id=...
+                → poll incrementally; use is_final + next_check_hint_seconds to pace
+5. PATCH /api/surveys/{id} { status: "closed" }  → close when done (optional)
 6. act on the structured results
 ```
+
+## Async results loop (hours/days surveys)
+
+For surveys whose collection window spans hours or days, the agent should not stay alive polling. Two primitives:
+
+- **Webhook** — set `webhook_url` at create. Receives `event: "survey_closed"` on closure (manual, max_responses, expires_at), or `event: "threshold_reached"` once when `notify_at_responses` is reached (survey stays open). Use `event_id` to dedupe.
+- **Cursor reads** — `GET /api/surveys/{id}/responses?since_response_id=...` filters `raw` to new responses since the cursor. Response includes `is_final`, `completion_reason`, `next_check_hint_seconds`, and `next_cursor` so the agent can re-enter, fetch only deltas, and know when to stop checking.
+
+Webhooks are push (preferred when the agent host can receive callbacks); cursor reads are the authoritative pull fallback for missed deliveries.
 
 ## MCP Integration (Claude Code)
 
