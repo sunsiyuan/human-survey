@@ -52,6 +52,12 @@ export function mapClosureReasonForPayload(
 // Lazy expiry handling. If the survey has passed its expires_at and is still marked open,
 // atomically transition it to closed and fire the completion webhook (idempotently).
 // Returns the survey's effective status after handling — assign it back to keep local state in sync.
+//
+// Only fires 'expired' if THIS call performed the close. If the UPDATE returned zero rows,
+// another path (e.g., concurrent PATCH manual close) already flipped the status — let that
+// path's webhook fire the correct closed_reason. Without this guard, a stale expiry handler
+// could win the completion_webhook_fired_at gate before the manual-close path stamps it,
+// emitting 'expired' for a survey that was actually closed manually.
 export async function ensureExpiredHandled(survey: {
   id: string
   status: string
@@ -61,7 +67,14 @@ export async function ensureExpiredHandled(survey: {
   if (!survey.expires_at) return survey.status
   if (new Date(survey.expires_at) > new Date()) return survey.status
 
-  await sql`UPDATE surveys SET status = 'closed' WHERE id = ${survey.id} AND status = 'open'`
-  await tryFireCompletionWebhook(survey.id, 'expired')
+  const closedRows = (await sql`
+    UPDATE surveys SET status = 'closed'
+    WHERE id = ${survey.id} AND status = 'open'
+    RETURNING id
+  `) as Array<{ id: string }>
+
+  if (closedRows.length > 0) {
+    await tryFireCompletionWebhook(survey.id, 'expired')
+  }
   return 'closed'
 }
