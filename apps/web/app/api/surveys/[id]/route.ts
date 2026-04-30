@@ -127,6 +127,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     const nextMaxResponses =
       body.max_responses !== undefined ? body.max_responses : existingSurvey.max_responses
     const isManualClose = nextStatus === 'closed' && existingSurvey.status !== 'closed'
+    const isReopen = nextStatus === 'open' && existingSurvey.status === 'closed'
     // Clear expires_at on manual close so cursor reads stably report
     // completion_reason='closed' rather than drifting to 'expired' once wall-clock passes
     // a future deadline. The webhook already fired with 'manual'; the persisted state
@@ -137,12 +138,20 @@ export async function PATCH(request: Request, context: RouteContext) {
         ? body.expires_at
         : existingSurvey.expires_at
 
+    // Reopen starts a new collection cycle: clear the completion-webhook fire-once gate
+    // so the next close (manual / max / expired) delivers a fresh `survey_closed` event.
+    // threshold_webhook_fired_at is intentionally NOT cleared — "enough signal" is a
+    // count-based fact that doesn't reset just because the owner reopened.
     const updatedRows = (await sql`
       UPDATE surveys
       SET
         status = ${nextStatus},
         max_responses = ${nextMaxResponses},
-        expires_at = ${nextExpiresAt}::timestamptz
+        expires_at = ${nextExpiresAt}::timestamptz,
+        completion_webhook_fired_at = CASE
+          WHEN ${isReopen} THEN NULL
+          ELSE completion_webhook_fired_at
+        END
       WHERE id = ${id} AND api_key_id = ${auth.keyId}
       RETURNING id, status, max_responses, expires_at, response_count
     `) as Array<{
