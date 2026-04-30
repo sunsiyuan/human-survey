@@ -158,9 +158,14 @@ export async function GET(request: Request, context: RouteContext) {
     if (since) {
       const cursorSeq = seqById.get(since)
       if (cursorSeq !== undefined) {
-        // seq is strictly monotonic and unique, so a single inequality is sufficient.
-        // No (created_at, id) tie-break needed: same-microsecond inserts get distinct
-        // sequence values issued in commit order.
+        // seq is strictly monotonic AND its commit order matches its allocation order
+        // *per survey*, because the AFTER INSERT trigger on responses takes a row lock
+        // on surveys (via increment_response_count's UPDATE) that's held until commit.
+        // Two concurrent inserts on the same survey thus serialize: tx N's seq is
+        // allocated before tx N+1's, and tx N must commit before tx N+1's trigger can
+        // proceed. So `seq > cursorSeq` cannot strand an in-flight earlier insert
+        // behind a later visible one. (If the trigger ever changes to drop the
+        // surveys-row lock, this filter would need a watermark/snapshot strategy.)
         filteredRaw = allResponses.filter((r) => (seqById.get(r.id) ?? 0) > cursorSeq)
       }
     }

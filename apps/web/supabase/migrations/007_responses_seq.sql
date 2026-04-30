@@ -2,7 +2,18 @@
 -- silently miss rows that share a created_at microsecond with the cursor row.
 -- nanoid ids are random; (created_at, id) ordering is not stable when two inserts
 -- land in the same clock tick and the later one happens to be lexicographically
--- smaller. Sequences are issued in commit order and are unique, eliminating the tie.
+-- smaller. Sequences are unique, eliminating the tie.
+--
+-- Commit-order vs. allocation-order: Postgres sequences allocate before commit, so
+-- in general two concurrent inserts can commit in opposite order from their seq
+-- values. That would let `seq > cursor` strand an earlier-seq-but-later-committed
+-- row behind the cursor. We rely on the AFTER INSERT trigger
+-- `increment_response_count` taking a row lock on surveys.id (held until commit)
+-- to serialize inserts *per survey*: tx N's seq is allocated before tx N+1's, and
+-- tx N+1's trigger blocks until tx N commits, so per-survey commit order matches
+-- per-survey seq order. Cursor reads are scoped per-survey, so this is sufficient.
+-- If that trigger is ever removed, cursor logic must move to a watermark/snapshot
+-- strategy.
 
 ALTER TABLE responses ADD COLUMN seq BIGSERIAL;
 

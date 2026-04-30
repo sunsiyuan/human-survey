@@ -9,21 +9,24 @@ export type SurveyLifecycle = {
 }
 
 export function getSurveyClosureReason(survey: SurveyLifecycle) {
-  // Check specific causes BEFORE the generic 'closed' fallback. A survey may have
-  // status='closed' because expiry passed or max_responses was hit — preserving the
-  // specific cause matters for the public completion_reason and for 410 messaging.
-  // Only fall back to 'closed' when no other cause is detectable (e.g. manual close
-  // with no max/expiry configured).
-  if (survey.expires_at && new Date(survey.expires_at) < new Date()) {
-    return 'expired'
-  }
-
+  // Order matters. Both 'full' and 'expired' are checked BEFORE the generic 'closed'
+  // fallback so auto-closed surveys don't collapse to 'closed'. Within those two,
+  // 'full' is checked first because response_count is monotonic (it never decreases
+  // once max is hit) — if a survey was closed by max_responses, that cause is stable
+  // forever. Wall-clock expiry, in contrast, can become true *after* a survey was
+  // already closed for a different reason; checking it first would cause a max-closed
+  // survey to drift to 'expired' once expires_at passes. Manual close (PATCH) clears
+  // expires_at, so it never trips the 'expired' branch.
   if (
     typeof survey.max_responses === 'number' &&
     typeof survey.response_count === 'number' &&
     survey.response_count >= survey.max_responses
   ) {
     return 'full'
+  }
+
+  if (survey.expires_at && new Date(survey.expires_at) < new Date()) {
+    return 'expired'
   }
 
   if ((survey.status ?? 'open') === 'closed') {
