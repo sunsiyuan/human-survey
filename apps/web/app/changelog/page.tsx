@@ -17,6 +17,20 @@ type Entry = {
 
 const entries: Entry[] = [
   {
+    date: '2026-04-30',
+    title: 'Async results loop — cursor reads, expired webhook, threshold notification',
+    items: [
+      'Cursor reads on GET /api/surveys/{id}/responses — pass since_response_id (the next_cursor from the last call) and the response filters raw to only new entries; aggregates always reflect the full survey.',
+      'Response payload gains is_final, completion_reason ("closed" | "max_responses" | "expired"), next_check_hint_seconds (server-computed advisory cadence), and next_cursor.',
+      'Webhook fires on all three terminal events — manual close, max_responses reached, expires_at passed — with closed_reason set accordingly. Expired closures detect lazily within seconds of any next interaction (no cron). All deliveries carry an event_id for client-side dedupe.',
+      'Optional notify_at_responses field on POST /api/surveys: same webhook_url receives event: "threshold_reached" once when response_count first crosses the threshold (survey stays open). Wakes the agent on "enough signal" without waiting for closure. Requires webhook_url at create time; must be ≤ max_responses if both are set.',
+      'Lifecycle stability: manual close clears expires_at so the close cause stays "closed" rather than drifting to "expired"; max-close stays "max_responses" past wall-clock expiry; reopen (PATCH status: "open") clears the completion-webhook fire-once gate so the next close cycle delivers a fresh survey_closed event.',
+      'Migration 007 adds responses.seq (BIGSERIAL) so cursor reads are tie-proof across same-microsecond inserts. Migration 006 adds completion_webhook_fired_at, threshold_webhook_fired_at, notify_at_responses with idempotent backfill.',
+      'humansurvey-mcp 0.5.1 — get_results accepts since_response_id; create_survey description teaches agents the threshold + cursor patterns and the webhook_url-required-for-threshold rule.',
+      'OpenAPI, /docs Async results section, llms.txt, llms-full.txt all updated.',
+    ],
+  },
+  {
     date: '2026-04-20',
     title: 'Topical cluster completion + markdown twins + Organization graph',
     items: [
