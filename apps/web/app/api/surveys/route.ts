@@ -89,6 +89,16 @@ export async function POST(request: Request) {
     )
   }
 
+  if (notifyAtResponses !== null && webhookUrl === null) {
+    return NextResponse.json(
+      {
+        error:
+          'notify_at_responses requires webhook_url; otherwise the threshold notification has no destination and cannot be added later (PATCH does not accept webhook_url).',
+      },
+      { status: 400 },
+    )
+  }
+
   let survey: Survey
 
   try {

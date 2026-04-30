@@ -179,7 +179,7 @@ Supported operators:
   - **Closure event** — fires on manual close, `max_responses` reached, or `expires_at` passed (lazy — within seconds of any next interaction). Payload: `{ "event_id", "event": "survey_closed", "survey_id", "status": "closed", "closed_reason": "manual" | "max_responses" | "expired", "response_count", "closed_at" }`.
   - **Threshold event** — fires once when `response_count` first crosses `notify_at_responses` (only if that field is set). Survey stays open. Payload: `{ "event_id", "event": "threshold_reached", "survey_id", "status": "open", "response_count", "threshold", "fired_at" }`.
   - Use `event_id` to dedupe; delivery is at-least-once per event type. Both events may fire over a survey's lifetime (separate fire-once flags).
-- `notify_at_responses`: optional positive integer for the threshold event. Must be ≤ `max_responses` if both are set. No effect unless `webhook_url` is also set.
+- `notify_at_responses`: optional positive integer for the threshold event. Requires `webhook_url` (the API rejects the create otherwise; PATCH does not accept `webhook_url`, so it can't be added later). Must be ≤ `max_responses` if both are set.
 - Response 201: `{ "survey_url": "https://www.humansurvey.co/s/abc123", "question_count": 3 }`
 - Error 400: `{ "error": "schema is required" }` or `{ "error": "Invalid schema", "errors": ["..."] }`
 

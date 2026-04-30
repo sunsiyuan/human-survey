@@ -180,7 +180,7 @@ const openApiDocument = {
                   },
                   max_responses: { type: 'integer', description: 'Close the survey automatically after this many responses' },
                   expires_at: { type: 'string', format: 'date-time', description: 'Close the survey automatically at this UTC time' },
-                  notify_at_responses: { type: 'integer', description: 'Optional. Fire the webhook once when this many responses arrive — survey stays open. Wakes the agent on "enough signal" without waiting for full closure. Must be ≤ max_responses if both are set.' },
+                  notify_at_responses: { type: 'integer', description: 'Optional. Fire the webhook once when this many responses arrive — survey stays open. Wakes the agent on "enough signal" without waiting for full closure. Requires webhook_url. Must be ≤ max_responses if both are set.' },
                   webhook_url: { type: 'string', format: 'uri', description: 'Optional URL to POST to when the survey hits a notable event. Branch on the "event" field. Closure: { event_id, event: "survey_closed", survey_id, status: "closed", closed_reason: "manual" | "max_responses" | "expired", response_count, closed_at } — fires on manual close, max_responses reached, or expires_at passed (lazy, within seconds of any next interaction). Threshold (if notify_at_responses is set): { event_id, event: "threshold_reached", survey_id, status: "open", response_count, threshold, fired_at }. Use event_id to dedupe; delivery is at-least-once per event type.' },
                 },
               },

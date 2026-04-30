@@ -285,7 +285,7 @@ server.registerTool(
       notify_at_responses: z.number().int().positive().optional().describe(
         'Optional. Fire the webhook once when this many responses arrive — survey stays open. ' +
         'Use this to wake the agent on "enough signal" without waiting for full closure. ' +
-        'Has no effect unless webhook_url is also set. ' +
+        'Requires webhook_url (rejected at create time without it). ' +
         'If equal to max_responses, both threshold and closure events fire on the same response (separate event_ids). ' +
         'Must be ≤ max_responses if both are set; otherwise rejected at create time.'
       ),
