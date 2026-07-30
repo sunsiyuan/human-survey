@@ -3,10 +3,11 @@ import { monogram } from '@/lib/catalog/platforms'
 /**
  * The fallback tile for a candidate with no icon.
  *
- * This is a primary path, not an edge case. simple-icons has no mark for ChatGPT,
- * LinkedIn or Slack following trademark requests (see lib/catalog/platforms.ts), and
- * ChatGPT is the headline channel of the whole positioning. Caller-supplied creator
- * avatars are missing just as often. §3.2 rests on "recognition all the way down", so
+ * This is a primary path, not an edge case — though no longer because of the catalog:
+ * every platform in lib/catalog/platforms.ts currently ships a mark. It is caller-supplied
+ * candidates that arrive without one, which is most of them, since creator avatars are the
+ * caller's to provide and a config written by hand rarely has any. §3.2 rests on
+ * "recognition all the way down", so
  * every row needs *something* for the eye to land on while scanning; an empty square
  * would break the scan that makes a 12–15 row list affordable (§3.3).
  *

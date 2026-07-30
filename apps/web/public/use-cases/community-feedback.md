@@ -103,6 +103,7 @@ curl "https://www.humansurvey.co/api/attribution/rollup\
 ```
 
 ```jsonc
+// ILLUSTRATIVE — every figure below is invented, to show the shape of the payload
 {
   "denominator": { "completed_responses": 512,
                    "per_node": { "channel": 512, "subreddit": 143, "slack_group": 61 } },
@@ -133,14 +134,17 @@ Run one form in the payment or upgrade flow and one in the signup flow. The paym
 The signup one is the only way to see the people a community sends who never pay. Ask only at payment and you can never learn that a subreddit delivers volume that does not convert — which is exactly the judgment that ends a channel.
 
 ```
+# ILLUSTRATIVE — invented figures, to show the arithmetic
 # same channel, two placements, one month
                         signup form   payment form
-  reddit                      0.31          0.14     ← sends volume, converts poorly
+  reddit                      0.51          0.33     ← sends volume, converts poorly
   hackernews                  0.12          0.19
   slack (Kubernetes)          0.04          0.11     ← smallest list, best rate
 
-# reddit's share among payers / its share among signups = 0.45.
-# That ratio IS reddit's signup-to-paid rate relative to the average.
+# reddit's share among payers / its share among signups = 0.33 / 0.51 = 0.65.
+# Below 1, so reddit converts worse than your average — and the ratio is an index
+# against that average, not a rate. Multiply 0.65 by your overall signup-to-paid
+# rate to get reddit's own rate: at an overall 14%, reddit converts at 9.1%.
 # Nothing computes it for you: it is two rollup calls and a division.
 ```
 

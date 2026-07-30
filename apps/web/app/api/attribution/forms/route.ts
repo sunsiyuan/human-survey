@@ -7,7 +7,9 @@ import { requireAuth } from '@/lib/auth'
  * Collection endpoint for attribution forms.
  *
  * One form is one placement (§3.7): a customer typically runs two, one in the payment
- * flow and one in signup, and the pair is what yields a channel's signup-to-paid rate.
+ * flow and one in signup, and the pair is what yields a channel's conversion index: its share of the
+ * paying population over its share of the signup population. That index times your overall
+ * signup-to-paid rate is the channel's own rate — the index alone is not a rate.
  * So creating several forms per account is the expected shape, not an edge case — the
  * pre-pivot one-survey-per-key arrangement had no way to express it.
  */

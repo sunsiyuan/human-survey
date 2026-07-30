@@ -18,17 +18,50 @@ export const metadata: Metadata = {
   },
 }
 
-const articleJsonLd = {
+// author/publisher reference the site-wide Organization from app/layout.tsx by @id instead of
+// restating it: an inline copy per page put four extra companies in the graph for a consumer
+// to reconcile. The breadcrumb is here because the hierarchy is real — this page sits two
+// levels deep and asserted its position nowhere.
+const structuredData = {
   '@context': 'https://schema.org',
-  '@type': 'Article',
-  headline: 'Attribution for community-led growth: which community, not which platform',
-  description:
-    'Configuring a how-did-you-hear-about-us question for community-led growth, so Reddit resolves to a subreddit and a Slack group resolves to a named group.',
-  datePublished: '2026-04-20',
-  dateModified: '2026-07-30',
-  author: { '@type': 'Organization', name: 'HumanSurvey' },
-  publisher: { '@type': 'Organization', name: 'HumanSurvey' },
-  mainEntityOfPage: 'https://www.humansurvey.co/use-cases/community-feedback',
+  '@graph': [
+    {
+      '@type': 'Article',
+      '@id': 'https://www.humansurvey.co/use-cases/community-feedback#article',
+      headline: 'Attribution for community-led growth: which community, not which platform',
+      description:
+        'Configuring a how-did-you-hear-about-us question for community-led growth, so Reddit resolves to a subreddit and a Slack group resolves to a named group.',
+      datePublished: '2026-04-20',
+      author: { '@id': 'https://www.humansurvey.co/#org' },
+      publisher: { '@id': 'https://www.humansurvey.co/#org' },
+      mainEntityOfPage: 'https://www.humansurvey.co/use-cases/community-feedback',
+      isPartOf: { '@id': 'https://www.humansurvey.co/use-cases#page' },
+    },
+    {
+      '@type': 'BreadcrumbList',
+      '@id': 'https://www.humansurvey.co/use-cases/community-feedback#breadcrumb',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'HumanSurvey',
+          item: 'https://www.humansurvey.co',
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Use cases',
+          item: 'https://www.humansurvey.co/use-cases',
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'Community-led growth',
+          item: 'https://www.humansurvey.co/use-cases/community-feedback',
+        },
+      ],
+    },
+  ],
 }
 
 // Verified against the shipping API on 2026-07-30: POST /api/attribution/forms, then this
@@ -92,7 +125,8 @@ const rollupSnippet = `curl "https://www.humansurvey.co/api/attribution/rollup\\
 ?form_id=abc123efgh45&by=candidate&metric=revenue&from=2026-07-01&to=2026-08-01" \\
   -H "Authorization: Bearer hs_sk_..."`
 
-const rollupShapeSnippet = `{
+const rollupShapeSnippet = `// ILLUSTRATIVE — every figure below is invented, to show the shape of the payload
+{
   "denominator": { "completed_responses": 512,
                    "per_node": { "channel": 512, "subreddit": 143, "slack_group": 61 } },
   "rows": [
@@ -110,14 +144,20 @@ const rollupShapeSnippet = `{
                              "picks": 168, "unresolved": 33, "rate": 0.196 } ]
 }`
 
-const ratioSnippet = `# same channel, two placements, one month
+// The payment column has to agree with the rollup payload above it — reddit is 0.33 there —
+// or the page publishes two different invented values for one quantity and a reader picks
+// whichever they read last.
+const ratioSnippet = `# ILLUSTRATIVE — invented figures, to show the arithmetic
+# same channel, two placements, one month
                         signup form   payment form
-  reddit                      0.31          0.14     ← sends volume, converts poorly
+  reddit                      0.51          0.33     ← sends volume, converts poorly
   hackernews                  0.12          0.19
   slack (Kubernetes)          0.04          0.11     ← smallest list, best rate
 
-# reddit's share among payers / its share among signups = 0.45.
-# That ratio IS reddit's signup-to-paid rate relative to the average.
+# reddit's share among payers / its share among signups = 0.33 / 0.51 = 0.65.
+# Below 1, so reddit converts worse than your average — and the ratio is an index
+# against that average, not a rate. Multiply 0.65 by your overall signup-to-paid
+# rate to get reddit's own rate: at an overall 14%, reddit converts at 9.1%.
 # Nothing computes it for you: it is two rollup calls and a division.`
 
 const remapSnippet = `# what people typed instead of picking, most frequent first
@@ -139,7 +179,7 @@ export default function CommunityFeedbackPage() {
     <main className="min-h-screen bg-[var(--page-gradient)]">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-4 py-8 sm:px-6 sm:py-12 lg:px-8">

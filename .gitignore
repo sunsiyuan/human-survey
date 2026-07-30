@@ -16,3 +16,4 @@ fixtures/
 # Local-only planning, strategy, and Claude context — never commit
 .local/
 .claude/
+.vercel

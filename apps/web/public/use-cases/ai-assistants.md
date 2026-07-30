@@ -4,7 +4,7 @@ _Use case · AI assistants_
 
 Canonical: https://www.humansurvey.co/use-cases/ai-assistants
 
-ChatGPT, Claude, Perplexity and Gemini do not send a referrer. The people they send you arrive as `direct / none`, in the same bucket as someone typing your domain from memory. The figure that gets quoted is around seventy percent of AI-assistant referrals landing there. Treat the exact number as folklore if you like — **the mechanism is not folklore, and no log-based method fixes it.** One row in a candidate list does.
+ChatGPT, Claude, Perplexity and Gemini do not send a referrer. The people they send you arrive as `direct / none`, in the same bucket as someone typing your domain from memory. There is no percentage worth quoting here, because nobody can measure a channel that leaves no trace — **which is the point: no log-based method fixes this, and the size of what you are missing is exactly the thing you cannot see.** One row in a candidate list is what makes it visible.
 
 ---
 
@@ -30,13 +30,13 @@ This channel is more sensitive to phrasing than any other, for a reason worth be
 - **One row per assistant, not one row for all of them.** Four rows cost four lines of config and are scanned, not read — a list with logos is affordable in a way a list of sentences is not. Collapse them into one and you can never answer "is this ChatGPT or is this all four", which is the first question anyone asks of the number.
 - Order rotates per respondent by default, so no assistant sits above Google for everybody and the raw share is unbiased by construction. If you pin the order with `"order": "fixed"`, you inherit the position bias that comes with it.
 
-One production detail rather than a surprise later: ChatGPT's mark is absent from the icon set the product generates from, following a trademark request, so that row renders as a monogram tile instead of a logo. Claude, Perplexity and Gemini have marks. The catalog tells you which is which before you configure anything — `GET /api/attribution/catalog` needs no key.
+One production detail rather than a surprise later: an assistant row renders with a logo only if the catalog carries a mark for it, and a catalog entry that carries none falls back to a two-letter monogram tile. Every entry in the catalog today ships a mark, ChatGPT included, but that is a property of the catalog rather than a promise — read `icon_url` before you configure anything, rather than assuming either way: `GET /api/attribution/catalog` needs no key.
 
 ## Where the question goes
 
 Lead with the **payment or upgrade flow**. The respondent has just paid, so the answer is joined to revenue with no conversion tracking at all, and the confirmation screen was dead space anyway. "ChatGPT produced this much revenue last month" is the sentence a budget holder acts on.
 
-Then run a second form in the **signup flow**. It is the only way to see the people an assistant sends who never pay — and with both running, the same channel's share among payers versus among signups _is_ its signup-to-paid conversion rate. Nothing else reports that, because nothing else asks twice.
+Then run a second form in the **signup flow**. It is the only way to see the people an assistant sends who never pay — and with both running, you can divide a channel's share of the paying population by its share of the signup population. Above 1 it converts better than your average, below 1 worse. Multiply that ratio by your overall signup-to-paid rate to get the channel's own rate. Nothing else reports that, because nothing else asks twice.
 
 Ask early inside each flow. Memory decays, and asking late means asking only the people who stayed: if a channel sends users who churn in week one, a late-placed question systematically under-counts it. A small sample is visibly small. A biased one is not.
 
@@ -97,7 +97,7 @@ curl "https://www.humansurvey.co/api/attribution/rollup\
 ```
 
 ```jsonc
-// illustrative — one month of a payment-flow placement
+// ILLUSTRATIVE — invented figures, one month of a payment-flow placement
 "denominator": { "completed_responses": 1204, "per_node": { "channel": 1204, "ai_topic": 118 } },
 "rows": [
   { "node_id": "channel", "candidate_id": "google",     "responses": 388, "share": 0.32, "revenue_cents": 1610000 },

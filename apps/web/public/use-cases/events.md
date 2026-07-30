@@ -64,7 +64,7 @@ One form in the payment or upgrade flow, one in the signup flow. The channel lis
 ```
 
 - **Event ids carry the edition, deliberately.** A creator id must survive a rename; an event id must _not_ merge two instances, because you buy the booth once per instance and the 2027 renewal is a separate decision from the 2026 one. Ids are yours and validated, never minted, so this is your call to make.
-- **Your own field events belong on the list.** A dinner for twenty is a channel. It has no platform, no console and no row in any analytics product — and it is frequently the line with the best return, which you will never discover if the only option is "a conference".
+- **Your own field events belong on the list.** A dinner for twenty is a channel. It has no platform, no console and no row in any analytics product — so if it is the line with the best return, that is something you will never discover while the only option on screen is "a conference".
 - **Aliases are how people actually name events.** Nobody says "KubeCon EU 2026"; they say "the one in London". Aliases are matched by the search box and never displayed, so the list stays clean while the matching stays generous.
 - **Prune it as the year moves.** Once an event is two quarters behind you, its row is costing every respondent reading time. Dropping it is a config edit, and it is safe: each config is an immutable snapshot, so removing a candidate never rewrites what an older response says was on screen.
 
@@ -80,6 +80,7 @@ curl "https://www.humansurvey.co/api/attribution/rollup\
 ```
 
 ```jsonc
+// ILLUSTRATIVE — every figure below is invented, to show the shape of the payload
 {
   "window": { "from": "2026-01-01T00:00:00.000Z", "to": "2026-07-01T00:00:00.000Z",
               "basis": "response.completed_at", "bounds": "[from, to)" },
@@ -110,7 +111,7 @@ curl "https://www.humansurvey.co/api/attribution/rollup\
 }
 ```
 
-The London dinner beat SaaStr Annual on customers produced, at a fraction of the cost. That is the finding this whole page exists for, and it is one row of a follow-up question — collapsed into "At a conference or event", it does not exist.
+In that illustration the London dinner beat SaaStr Annual on people who named it — 39 against 21 — at a fraction of the cost. Whether it beat it on customers is a different question, and the section below is where it gets answered: the event rows count responses, and `paying_responses` is reported on the channel row only. Invented numbers, but that is the shape of finding the page exists for, and it is one row of a follow-up question — collapsed into "At a conference or event", it does not exist at all.
 
 Revenue joins for free at the payment placement: the respondent has just paid, so pushing your own `paid` events keyed on the same user id turns heads into money. **Payment date does not have to fall inside the window** — a September payment is summed against the channel the response recorded in July, which is exactly the behaviour a channel with a long lag needs.
 
@@ -118,7 +119,7 @@ Revenue joins for free at the payment placement: the respondent has just paid, s
 
 Read the row above carefully: `revenue_cents` is reported on the channel node and is `null` on the event rows. That is not an oversight. A response's money belongs to the response, so booking it on every node the person answered would multiply your total by the number of questions asked — and `null` is used rather than `0`, because zero would be a claim.
 
-So the rollup tells you how many customers each event produced, and revenue per event is one join away, on an id you already own:
+So the rollup tells you how many people named each event, and both who among them paid and what they paid are one join away, on an id you already own:
 
 ```bash
 # revenue per event: take the rows and join on your own user id
@@ -161,9 +162,9 @@ The mapping is retroactive and revocable: nothing about the stored responses cha
 
 ## What the two placements tell you about an expensive booth
 
-Events are the inverse of a viral channel: low volume, high value. The form in the signup flow shows a small share; the form in the payment flow shows a much larger one.
+The case for a booth is usually that it is the inverse of a viral channel: low volume, high value. If that holds for yours, the form in the signup flow shows a small share and the form in the payment flow a larger one.
 
-**That gap is the argument for the booth** — a channel's share among payers versus its share among signups is its signup-to-paid rate, and events routinely win that comparison by a distance while losing on raw volume. Run one placement only and you get the half of the picture that makes your best channel look small.
+**That gap, if it is there, is the argument for the booth.** Divide the channel's share of the paying population by its share of the signup population: above 1 it converts better than your average, below 1 worse. Multiply that ratio by your overall signup-to-paid rate to get the channel's own rate. Whether events beat the average is not something we have measured across customers, so treat it as the hypothesis the two placements exist to test — run one placement only and you cannot test it at all, and you get the half of the picture that makes a low-volume channel look small.
 
 Ask early in each flow. Asking at the end of onboarding means asking only the people who finished, and a channel whose leads take three weeks to activate is the one most likely to be missing from that population.
 

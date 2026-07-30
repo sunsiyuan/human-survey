@@ -36,7 +36,15 @@ regenerated for the surface below and no longer describes any of the above.
 - **Account** owns data. **Keys** are credentials pointing at an account. Two layers, no
   project layer.
 - **Form** = one placement. A customer typically runs two: one in signup, one at payment.
-  Their share ratio for a channel is that channel's signup-to-paid conversion rate.
+  Divide a channel's share of the paying population by its share of the signup population.
+  Above 1 it converts better than your average, below 1 worse. Multiply that ratio by your
+  overall signup-to-paid rate to get the channel's own rate. **The ratio is an index against
+  your own average, not a rate** — writing `p_c` for the channel's share of payers, `s_c` for
+  its share of signups, `P` for total payers and `S` for total signups:
+  `p_c / s_c = (payers_c / P) / (signups_c / S) = (payers_c / signups_c) x (S / P) =
+  conversion(c) / conversion(overall)`. Two channels converting at 5% and 20% under an
+  overall rate of 14% give 0.357 and 1.429 — neither is a conversion rate, and each returns
+  its channel's true rate multiplied by 0.14
 - **Config** = a graph of ask **nodes**, each holding **candidates**. Stored as an immutable
   numbered snapshot; responses are joined against the version they were rendered with.
 - **Response** = one respondent's pass. Written progressively: POST the first pick, PATCH the
@@ -218,8 +226,11 @@ other route takes a bearer key only.
   node's own id, must not create a cycle
 - `catalog_slug` — copies `label`, `icon_url`, `tile_color` and `aliases` from the
   platform catalog at configure time. Anything you send yourself wins; a blank string means
-  "use the catalog's". An unknown slug is a 400. Copied, never joined at read time, so a
-  product-side logo swap cannot rewrite what an old rollup says was rendered
+  "use the catalog's". `tile_color` is the exception in practice: the catalog supplies one
+  only for an entry with no mark, and all 39 have marks, so it copies as null for every
+  platform today — send your own or expect none. An unknown slug is a 400. Copied, never
+  joined at read time, so a product-side logo swap cannot rewrite what an old rollup says was
+  rendered
 - `expands_by_default` from the catalog is **advisory and never applied** — expansion policy
   is the caller's monthly decision
 
@@ -500,6 +511,7 @@ history at once with no backfill, and revoking it moves them back.
   so the same pair reconciles across both endpoints
 
 ```json
+// ILLUSTRATIVE — invented figures, shown for shape
 {
   "form_id": "abc123efgh45",
   "window": { "from": null, "to": null },
@@ -575,6 +587,7 @@ Accepts a single event object, a bare array, or an envelope. An envelope `form_i
 onto every element that omits one. Batch cap 500; a larger batch is a 400 telling you to page.
 
 ```json
+// ILLUSTRATIVE — invented figures, shown for shape
 {
   "form_id": "abc123efgh45",
   "events": [
@@ -659,13 +672,14 @@ Auth required. Query: `form_id` (**required**), `by`, `metric`, `from`, `to`.
   value carrying no timezone — `2026-07-01` or `2026-07-01T00:00:00` — is read as **UTC**
 
 ```json
+// ILLUSTRATIVE — invented figures, shown for shape
 {
   "form_id": "abc123efgh45",
   "by": "candidate",
   "metric": "revenue",
   "window": { "from": "2026-07-01T00:00:00.000Z", "to": "2026-08-01T00:00:00.000Z",
               "basis": "response.completed_at", "bounds": "[from, to)" },
-  "denominator": { "completed_responses": 1330, "per_node": { "channel": 1330, "creator": 412 } },
+  "denominator": { "completed_responses": 1330, "per_node": { "channel": 1330, "creator": 374 } },
   "rows": [
     { "node_id": "channel", "candidate_id": "tiktok", "label": "TikTok",
       "label_from_node_id": null, "responses": 412, "share": 0.31,
@@ -751,9 +765,14 @@ stored response says was rendered.
 
 - `class` is one of `creator`, `ai_assistant`, `search`, `podcast`, `community`, `messaging`,
   `word_of_mouth`, `offline`, `other`
-- `icon_url` is **null** wherever a brand's mark is absent from the icon set (LinkedIn,
-  ChatGPT, Slack among them, following trademark requests); `monogram` is what to render in
-  its place, shipped here so a caller does not reimplement the two-character rule
+- `icon_url` is a `/logos/{slug}.svg` path for **every one of the 39 entries**. An earlier
+  revision of this file said it was null for LinkedIn, ChatGPT and Slack following trademark
+  requests. That described the simple-icons set; marks now come from svgl, which carries all
+  three, so **no entry returns null today**. The field stays nullable in the type so an entry
+  added ahead of its artwork degrades instead of rendering blank — but a caller that branches
+  on null against the current catalog writes a branch that never runs
+- `monogram` ships on every entry regardless: two characters off the label, for that fallback
+  and for the caller-defined candidates (a creator with no avatar) that still need one
 - `expands_by_default` is **advisory**. `PUT` never applies it — which channels earn a
   follow-up is a monthly decision about where the money went, and a static flag cannot know
 - `default_channel_slugs` errs long on purpose. A missing channel does not cost one data point;
@@ -904,10 +923,26 @@ pick a neighbouring row and book a false entry there.
 
 ## Discoverability
 
-- Site docs: https://www.humansurvey.co/docs
-- llms.txt: https://www.humansurvey.co/llms.txt
-- OpenAPI: https://www.humansurvey.co/api/openapi.json (alias: `/openapi.json`)
+Every content page listed below carries a markdown twin at the same path plus `.md`, served
+through `alternates.types["text/markdown"]`. The twin is the same substance without the
+chrome, so fetch it rather than parsing the HTML. The homepage
+(https://www.humansurvey.co) is the one page with no twin — its centrepiece is a working
+picker rather than text. `/about.md` and this file cover what it says in prose.
+
+- About: https://www.humansurvey.co/about (markdown: `/about.md`) — what this is, what it
+  refuses to do, its limitations, licence (MIT) and repository, where pricing stands, and how
+  it compares to a DIY text field and to multi-touch attribution platforms. Start here for
+  anything that is not an endpoint
+- Site docs: https://www.humansurvey.co/docs (markdown: `/docs.md`) — the same surface as this
+  file, written for someone integrating rather than for a machine enumerating fields
 - FAQ: https://www.humansurvey.co/faq (markdown: `/faq.md`) — MCP publish status lives here
-- Use cases: https://www.humansurvey.co/use-cases (markdown: `/use-cases.md`)
-- Changelog: https://www.humansurvey.co/changelog — every breaking change of the 2026-07-30
-  pivot, and what has been removed since an older entry described it
+- Use cases: https://www.humansurvey.co/use-cases (markdown: `/use-cases.md`), and the four
+  walkthroughs listed under Situations above
+- Changelog: https://www.humansurvey.co/changelog (markdown: `/changelog.md`) — every breaking
+  change of the 2026-07-30 pivot, and what has been removed since an older entry described it
+- llms.txt: https://www.humansurvey.co/llms.txt — the short overview, and the map of every page
+  and twin on the site
+- OpenAPI: https://www.humansurvey.co/api/openapi.json (alias: `/openapi.json`)
+- Human-facing account surface, neither of which an agent needs:
+  https://www.humansurvey.co/signin (six-digit code in a browser) and
+  https://www.humansurvey.co/account (list, mint and revoke keys — nothing else)

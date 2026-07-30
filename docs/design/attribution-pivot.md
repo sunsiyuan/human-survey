@@ -225,9 +225,18 @@ budget holder acts on.
 only at payment and you can never learn that TikTok delivers volume that does not
 convert — which is exactly the judgment that kills a bad channel.
 
-**Together they give a number neither gives alone.** The same channel's share in the
-paying population versus the signup population *is* that channel's signup-to-paid
-conversion rate. No incumbent produces this, because no incumbent asks twice.
+**Together they give a number neither gives alone.** Divide a channel's share of the
+paying population by its share of the signup population and you get how that channel's
+conversion compares to your overall rate — above 1 it converts better than your average,
+below 1 worse. Multiply that ratio by your overall signup-to-paid rate to get the channel's
+own rate. No incumbent produces this, because no incumbent asks twice.
+
+> An earlier revision of this section said the ratio *is* the channel's conversion rate. It
+> is not: the ratio is `conversion(channel) / conversion(overall)`, so it is an index rather
+> than a rate, and the missing factor is the overall rate. The wrong version reached the FAQ,
+> llms.txt and llms-full.txt before it was caught. Recorded rather than quietly corrected,
+> because a product whose whole argument is that most attribution numbers are confidently
+> wrong cannot afford to publish one and then pretend it never did.
 
 Two consequences worth stating:
 

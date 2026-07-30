@@ -64,8 +64,10 @@ export function Placements() {
           </p>
           <p className="mt-3 text-[15px] leading-7 text-slate-900 sm:text-base sm:leading-8">
             A channel that is 30% of your signups and 12% of your payers is being flattered
-            by the signup number, and now you can see it. Divide the two shares, multiply by
-            your overall signup-to-paid rate, and you have{' '}
+            by the signup number, and now you can see it. Divide a channel&apos;s share of
+            the paying population by its share of the signup population: above 1 it converts
+            better than your average, below 1 worse. Multiply that ratio by your overall
+            signup-to-paid rate and you have{' '}
             <strong>that channel&apos;s own conversion rate</strong> — for a channel that
             sends no referrer and appears nowhere in your analytics. Two forms, one question
             each. Nobody else produces this, because nobody else asks twice.

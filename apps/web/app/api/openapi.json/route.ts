@@ -354,7 +354,7 @@ const openApiDocument = {
         operationId: 'createForm',
         summary: 'Create a form',
         description:
-          'Authenticated. One form is one placement: a customer typically runs two — one in the payment flow, one in signup — and the pair is what yields a channel\'s signup-to-paid rate. Creating a form does not configure it; the returned warnings say so, and an unconfigured form renders nothing.',
+          'Authenticated. One form is one placement: a customer typically runs two — one in the payment flow, one in signup — and the pair is what yields a channel\'s conversion index — its share of the paying population over its share of the signup population, which times your overall signup-to-paid rate gives the channel\'s own rate. Creating a form does not configure it; the returned warnings say so, and an unconfigured form renders nothing.',
         tags: ['forms'],
         requestBody: {
           required: true,
@@ -1389,7 +1389,7 @@ const openApiDocument = {
         operationId: 'getCatalog',
         summary: 'The platform catalog',
         description:
-          'PUBLIC — no authentication, deliberately: configuration is agent-driven and an agent cannot name a catalog_slug it has never seen, so requiring a key would put a credential between the caller and the vocabulary. Nothing here is secret. icon_url is null wherever a brand\'s mark cannot be shipped (LinkedIn and ChatGPT among them, following trademark requests); monogram is what to render in its place. expands_by_default is advisory — which channels earn a follow-up is a monthly judgment about where the money went, and configureForm never applies the flag on your behalf. Cached; the catalog is a checked-in module and only changes on deploy.',
+          'PUBLIC — no authentication, deliberately: configuration is agent-driven and an agent cannot name a catalog_slug it has never seen, so requiring a key would put a credential between the caller and the vocabulary. Nothing here is secret. Every entry ships a mark today, so icon_url is non-null throughout — but that is the state of the catalog rather than a guarantee, and `monogram` is what to render for any entry whose icon_url is ever null. Read the field; do not assume either way. expands_by_default is advisory — which channels earn a follow-up is a monthly judgment about where the money went, and configureForm never applies the flag on your behalf. Cached; the catalog is a checked-in module and only changes on deploy.',
         tags: ['catalog'],
         security: [],
         responses: {

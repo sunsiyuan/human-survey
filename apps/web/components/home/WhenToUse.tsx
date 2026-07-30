@@ -20,7 +20,7 @@ const fits = [
   'A large share of your signups land as Direct / (not set), and someone is about to make a budget decision on the rest',
   'Spend is going to named creators, shows or communities, and nobody can say which of them converted',
   'You need channel numbers you can put next to revenue, not next to sessions',
-  'The same channel needs measuring in two places, because the ratio between them is the only conversion rate you will get for it',
+  'The same channel needs measuring in two places, because the ratio between the two shares — times your overall signup-to-paid rate — is the only conversion rate you will get for it',
   'Free text has piled up — "the office skits girl" — and wants resolving to real people, retroactively and across past months',
 ]
 

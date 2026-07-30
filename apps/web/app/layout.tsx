@@ -61,11 +61,26 @@ const structuredData = {
   '@context': 'https://schema.org',
   '@graph': [
     {
+      // isPartOf on every page pointed at #org, but schema.org expects a CreativeWork there —
+      // "this page is part of an organization" is a triple the vocabulary does not define. The
+      // thing pages are part of is the site, so the site has to exist as an entity.
+      '@type': 'WebSite',
+      '@id': 'https://www.humansurvey.co/#site',
+      url: 'https://www.humansurvey.co',
+      name: 'HumanSurvey',
+      publisher: { '@id': 'https://www.humansurvey.co/#org' },
+      inLanguage: 'en',
+    },
+    {
       '@type': 'Organization',
       '@id': 'https://www.humansurvey.co/#org',
       name: 'HumanSurvey',
       url: 'https://www.humansurvey.co',
-      logo: 'https://www.humansurvey.co/favicon.ico',
+      // Was /favicon.ico, which 404s: that file was deleted when the brand mark shipped, and
+      // .ico is not a format logo consumers accept anyway. Both surviving marks are real
+      // routes (verified 200 against a production build), and this is the raster one —
+      // /icon.svg resolves too, but SVG is rejected by most logo consumers.
+      logo: 'https://www.humansurvey.co/apple-icon.png',
       foundingDate: '2026-03',
       description:
         'Open-source self-reported attribution infrastructure: the channels that send no referrer, measured by asking the person.',

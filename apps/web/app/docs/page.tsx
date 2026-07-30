@@ -7,6 +7,12 @@ export const metadata: Metadata = {
     'Authentication, form config, the respondent write path, embed, cursor reads, remapping, conversion events and the rollup for HumanSurvey — the attribution API for agents.',
   alternates: {
     canonical: '/docs',
+    // public/docs.md is the same reference in markdown, and an agent doing content
+    // negotiation gets it instead of this page. It is a static file and cannot share the
+    // strings below, so it has to be edited in the same change — a twin that describes a
+    // different API is worse than no twin, because the wrong one is the one only machines
+    // read.
+    types: { 'text/markdown': '/docs.md' },
   },
 }
 
@@ -18,14 +24,14 @@ const techArticleJsonLd = {
     'Authentication, JSON form config, the respondent write path, embed contract, cursor reads, retroactive remapping, conversion events and the rollup for HumanSurvey.',
   datePublished: '2026-04-06',
   dateModified: '2026-07-30',
-  author: { '@type': 'Organization', name: 'HumanSurvey' },
-  publisher: { '@type': 'Organization', name: 'HumanSurvey' },
+  // app/layout.tsx publishes the Organization and the SoftwareApplication once, site-wide.
+  // Restating them inline here put a second company and a second product in the graph that a
+  // consumer then had to decide were the same ones — and that could disagree with the
+  // originals after any edit. Reference the @ids instead.
+  author: { '@id': 'https://www.humansurvey.co/#org' },
+  publisher: { '@id': 'https://www.humansurvey.co/#org' },
   mainEntityOfPage: 'https://www.humansurvey.co/docs',
-  about: {
-    '@type': 'SoftwareApplication',
-    name: 'HumanSurvey',
-    applicationCategory: 'DeveloperApplication',
-  },
+  about: { '@id': 'https://www.humansurvey.co/#app' },
 }
 
 const authSnippet = `# 1. mail yourself a six-digit code
@@ -162,13 +168,18 @@ const rollupSnippet = `curl "https://www.humansurvey.co/api/attribution/rollup\\
 ?form_id=abc123efgh45&by=candidate&metric=revenue&from=2026-07-01&to=2026-08-01" \\
   -H "Authorization: Bearer hs_sk_..."`
 
-const rollupShapeSnippet = `{
+// The figures have to survive the rules stated underneath them, or the example teaches the
+// error the product exists to prevent. In particular `per_node.creator` is the count that
+// ANSWERED the creator node, so it is picks minus the abandoners: 412 - 38 = 374. It read 412
+// here, which silently claimed the 38 abandoned picks answered a question they never saw.
+const rollupShapeSnippet = `// ILLUSTRATIVE — invented figures, shown for shape
+{
   "form_id": "abc123efgh45",
   "by": "candidate",
   "metric": "revenue",
   "window": { "from": "…", "to": "…",
               "basis": "response.completed_at", "bounds": "[from, to)" },
-  "denominator": { "completed_responses": 1330, "per_node": { "channel": 1330, "creator": 412 } },
+  "denominator": { "completed_responses": 1330, "per_node": { "channel": 1330, "creator": 374 } },
   "rows": [
     { "node_id": "channel", "candidate_id": "tiktok", "label": "TikTok",
       "label_from_node_id": null, "responses": 412, "share": 0.31,

@@ -18,17 +18,50 @@ export const metadata: Metadata = {
   },
 }
 
-const articleJsonLd = {
+// author/publisher reference the site-wide Organization from app/layout.tsx by @id instead of
+// restating it: an inline copy per page put four extra companies in the graph for a consumer
+// to reconcile. The breadcrumb is here because the hierarchy is real — this page sits two
+// levels deep and asserted its position nowhere.
+const structuredData = {
   '@context': 'https://schema.org',
-  '@type': 'Article',
-  headline: 'Measuring AI-assistant referrals when there is no referrer',
-  description:
-    'Why ChatGPT, Claude, Perplexity and Gemini traffic lands in Direct, how to word the option so people actually pick it, and how to read the result next to revenue.',
-  datePublished: '2026-07-30',
-  dateModified: '2026-07-30',
-  author: { '@type': 'Organization', name: 'HumanSurvey' },
-  publisher: { '@type': 'Organization', name: 'HumanSurvey' },
-  mainEntityOfPage: 'https://www.humansurvey.co/use-cases/ai-assistants',
+  '@graph': [
+    {
+      '@type': 'Article',
+      '@id': 'https://www.humansurvey.co/use-cases/ai-assistants#article',
+      headline: 'Measuring AI-assistant referrals when there is no referrer',
+      description:
+        'Why ChatGPT, Claude, Perplexity and Gemini traffic lands in Direct, how to word the option so people actually pick it, and how to read the result next to revenue.',
+      datePublished: '2026-07-30',
+      author: { '@id': 'https://www.humansurvey.co/#org' },
+      publisher: { '@id': 'https://www.humansurvey.co/#org' },
+      mainEntityOfPage: 'https://www.humansurvey.co/use-cases/ai-assistants',
+      isPartOf: { '@id': 'https://www.humansurvey.co/use-cases#page' },
+    },
+    {
+      '@type': 'BreadcrumbList',
+      '@id': 'https://www.humansurvey.co/use-cases/ai-assistants#breadcrumb',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'HumanSurvey',
+          item: 'https://www.humansurvey.co',
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Use cases',
+          item: 'https://www.humansurvey.co/use-cases',
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'AI assistants',
+          item: 'https://www.humansurvey.co/use-cases/ai-assistants',
+        },
+      ],
+    },
+  ],
 }
 
 const configSnippet = `{
@@ -69,7 +102,7 @@ const rollupSnippet = `curl "https://www.humansurvey.co/api/attribution/rollup\\
 ?form_id=abc123efgh45&by=candidate&metric=revenue&from=2026-07-01&to=2026-08-01" \\
   -H "Authorization: Bearer hs_sk_..."`
 
-const rowsSnippet = `// illustrative — one month of a payment-flow placement
+const rowsSnippet = `// ILLUSTRATIVE — invented figures, one month of a payment-flow placement
 "denominator": { "completed_responses": 1204, "per_node": { "channel": 1204, "ai_topic": 118 } },
 "rows": [
   { "node_id": "channel", "candidate_id": "google",     "responses": 388, "share": 0.32, "revenue_cents": 1610000 },
@@ -93,7 +126,7 @@ export default function AiAssistantsPage() {
     <main className="min-h-screen bg-[var(--page-gradient)]">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
@@ -136,13 +169,14 @@ export default function AiAssistantsPage() {
           <p className="text-base leading-[1.7] text-slate-800">
             ChatGPT, Claude, Perplexity and Gemini do not send a referrer. The people they
             send you arrive as <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">direct / none</code>,
-            in the same bucket as someone typing your domain from memory. The figure that
-            gets quoted is around seventy percent of AI-assistant referrals landing there.
-            Treat the exact number as folklore if you like —{' '}
+            in the same bucket as someone typing your domain from memory. There is no
+            percentage worth quoting here, because nobody can measure a channel that leaves
+            no trace —{' '}
             <strong className="font-semibold text-slate-900">
-              the mechanism is not folklore, and no log-based method fixes it.
+              which is the point: no log-based method fixes this, and the size of what you
+              are missing is exactly the thing you cannot see.
             </strong>{' '}
-            One row in a candidate list does.
+            One row in a candidate list is what makes it visible.
           </p>
         </section>
 
@@ -245,11 +279,15 @@ export default function AiAssistantsPage() {
             ]}
           />
           <p>
-            One production detail rather than a surprise later: ChatGPT&apos;s mark is absent
-            from the icon set the product generates from, following a trademark request, so
-            that row renders as a monogram tile instead of a logo. Claude, Perplexity and
-            Gemini have marks. The catalog tells you which is which before you configure
-            anything —{' '}
+            One production detail rather than a surprise later: an assistant row renders with
+            a logo only if the catalog carries a mark for it, and a catalog entry that carries
+            none falls back to a two-letter monogram tile. Every entry in the catalog today
+            ships a mark, ChatGPT included, but that is a property of the catalog rather than a
+            promise — read{' '}
+            <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">
+              icon_url
+            </code>{' '}
+            before you configure anything, rather than assuming either way:{' '}
             <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">
               GET /api/attribution/catalog
             </code>{' '}
@@ -270,9 +308,11 @@ export default function AiAssistantsPage() {
             Then run a second form in the{' '}
             <strong className="font-semibold text-slate-900">signup flow</strong>. It is the
             only way to see the people an assistant sends who never pay — and with both
-            running, the same channel&apos;s share among payers versus among signups{' '}
-            <em>is</em> its signup-to-paid conversion rate. Nothing else reports that,
-            because nothing else asks twice.
+            running, you can divide a channel&apos;s share of the paying population by its
+            share of the signup population. Above 1 it converts better than your average,
+            below 1 worse. Multiply that ratio by your overall signup-to-paid rate to get the
+            channel&apos;s own rate. Nothing else reports that, because nothing else asks
+            twice.
           </p>
           <p>
             Ask early inside each flow. Memory decays, and asking late means asking only the

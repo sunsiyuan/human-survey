@@ -5,7 +5,13 @@ export const metadata: Metadata = {
   title: 'Changelog — HumanSurvey',
   description:
     'What has shipped in HumanSurvey, dated by release — the 2026-07-30 attribution pivot, the MCP rebuild, and every breaking change before them.',
-  alternates: { canonical: '/changelog' },
+  alternates: {
+    canonical: '/changelog',
+    // public/changelog.md carries the same entries for agents doing content negotiation.
+    // A new entry has to be added in both places; the twin is a static file and cannot read
+    // the array below.
+    types: { 'text/markdown': '/changelog.md' },
+  },
 }
 
 type Entry = {
@@ -26,6 +32,17 @@ type Entry = {
  * never substituted: the original bullets above it stay verbatim.
  */
 const entries: Entry[] = [
+  {
+    date: '2026-07-31',
+    title: 'A published number was wrong, and is corrected',
+    items: [
+      'Corrected — four public surfaces said that a channel\u2019s share of the paying population against its share of the signup population IS that channel\u2019s signup-to-paid conversion rate. It is not. The ratio is conversion(channel) divided by conversion(overall): an index against your own average, not a rate. Multiply it by your overall signup-to-paid rate to get the channel\u2019s own. Fixed on /faq, llms.txt, llms-full.txt, the README, three use-case pages and the homepage.',
+      'Corrected — the AI-assistants page opened with an unsourced figure for how much assistant traffic lands in Direct. Cut rather than sourced: a hedge does not travel with a quoted sentence, and the argument does not need the number.',
+      'Corrected — a worked example narrated one account as two thirds of a channel while the payload printed 0.531 directly above it. The larger figure came from dropping the respondents who could not name an account, which is the precise error this product exists to prevent. The page now shows the correct figure and names the mistake.',
+      'Every fabricated example payload on the site now carries an ILLUSTRATIVE label inside the code block rather than in surrounding prose, because a quoted block leaves the prose behind.',
+      'Recorded here rather than fixed quietly. A product whose argument is that most attribution numbers are confidently wrong cannot publish one and then act as though it never did.',
+    ],
+  },
   {
     date: '2026-07-30',
     version: 'mcp 1.0.0',
@@ -150,9 +167,61 @@ const entries: Entry[] = [
   },
 ]
 
+/**
+ * Until this shipped, the only entities on /changelog were the site-wide Organization and
+ * SoftwareApplication from app/layout.tsx — nothing saying the page is a list, that the list
+ * is releases, or that each one has a date. A model reading it structurally learned nothing
+ * the homepage had not already told it.
+ *
+ * Everything here is derived from `entries` rather than restated, so the graph cannot claim
+ * a release the page does not render, or drift from it after the next edit.
+ */
+const changelogJsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'CollectionPage',
+      '@id': 'https://www.humansurvey.co/changelog#page',
+      url: 'https://www.humansurvey.co/changelog',
+      name: 'HumanSurvey changelog',
+      description:
+        'Dated releases since the MVP, including the 2026-07-30 attribution pivot and every breaking change before it.',
+      // The newest entry is the page's own date: a changelog changes when something ships.
+      dateModified: entries[0].date,
+      publisher: { '@id': 'https://www.humansurvey.co/#org' },
+      isPartOf: { '@id': 'https://www.humansurvey.co/#site' },
+      about: { '@id': 'https://www.humansurvey.co/#app' },
+      mainEntity: { '@id': 'https://www.humansurvey.co/changelog#releases' },
+    },
+    {
+      '@type': 'ItemList',
+      '@id': 'https://www.humansurvey.co/changelog#releases',
+      name: 'HumanSurvey releases',
+      // The page renders newest first. Without this a consumer is entitled to read
+      // position 1 as the oldest release, which inverts the whole list.
+      itemListOrder: 'https://schema.org/ItemListOrderDescending',
+      numberOfItems: entries.length,
+      itemListElement: entries.map((e, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        item: {
+          '@type': 'CreativeWork',
+          name: e.title,
+          datePublished: e.date,
+        },
+      })),
+    },
+  ],
+}
+
 export default function ChangelogPage() {
   return (
     <main className="min-h-screen bg-[var(--page-gradient)]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(changelogJsonLd) }}
+      />
+
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
         <header className="flex items-center justify-between">
           <Link

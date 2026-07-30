@@ -12,11 +12,15 @@
  * keeping the slug only for provenance (§4). A logo swap here must never rewrite what
  * an old rollup claims was rendered.
  *
- * Marks are generated from simple-icons (CC0) by scripts/generate-logos.mjs into
- * public/logos/{slug}.svg. Several major brands — LinkedIn, ChatGPT and Slack among
- * them — are absent from that set following trademark requests, so entries carry
- * `hasMark: true` and render as a monogram tile instead. That path is not an edge
- * case: ChatGPT is the headline channel of the whole positioning.
+ * Marks are fetched by scripts/generate-logos.mjs into public/logos/{slug}.svg — the brands'
+ * own marks from svgl where they exist, single-colour simple-icons silhouettes for the handful
+ * svgl has no entry for. EVERY entry ships one today, ChatGPT and LinkedIn included; an earlier
+ * revision of this comment said those two had none, which was true when simple-icons was the
+ * only source and stopped being true the day svgl became the first one.
+ *
+ * `hasMark: false` and the monogram fallback are still real paths — a caller-defined creator
+ * with no avatar takes them — so do not delete the branch on the grounds that no platform uses
+ * it today.
  */
 
 export type PlatformClass =

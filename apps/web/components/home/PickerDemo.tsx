@@ -36,8 +36,8 @@ const CREATOR_NODE_ID = 'creator'
  * They carry no `icon_url`: a real caller supplies avatars (§4 — resolving people is the
  * caller's job, not ours), and inventing three faces for a marketing page would be the
  * one thing on this card that is not the real component doing its real job. The monogram
- * tile is the honest fallback and is a primary path anyway — several catalog brands ship
- * no mark either.
+ * tile is the honest fallback and is the path most caller-supplied candidates take, since
+ * avatars are the caller's to provide.
  */
 const CREATORS: Candidate[] = [
   {

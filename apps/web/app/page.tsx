@@ -21,9 +21,13 @@ import { WhenToUse } from '@/components/home/WhenToUse'
  * the exact endpoint that backs it.
  */
 
+// /about is what llms.txt nominates as the brand hub and the page to quote from, and until
+// this entry existed no HTML page on the site linked to it — so the one page written to be
+// cited was reachable only by an agent that had already read llms.txt.
 const links = [
   ['GitHub', 'https://github.com/sunsiyuan/human-survey'],
   ['npm: humansurvey-mcp', 'https://www.npmjs.com/package/humansurvey-mcp'],
+  ['About', '/about'],
   ['Docs', '/docs'],
   ['Use cases', '/use-cases'],
   ['FAQ', '/faq'],
@@ -185,10 +189,10 @@ export default function Home() {
             You scanned that. You did not read it.
           </h2>
           <p className="mt-4 text-[15px] leading-7 text-slate-700 sm:text-base sm:leading-8">
-            Brand names carry logos, and recognizing an image beats reading a line of text by
-            roughly an order of magnitude — which is what makes a twelve-row list affordable
-            where eight rows of &ldquo;social media&rdquo; and &ldquo;online ad&rdquo; would
-            not be. Logos, then avatars: recognition all the way down, no reading
+            Brand names carry logos, and a logo is recognized rather than read — which is
+            what makes a twelve-row list affordable where eight rows of &ldquo;social
+            media&rdquo; and &ldquo;online ad&rdquo; would not be. Logos, then avatars:
+            recognition all the way down, no reading
             comprehension at any step, and no taxonomy for anyone to translate their memory
             into.
           </p>

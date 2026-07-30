@@ -18,17 +18,50 @@ export const metadata: Metadata = {
   },
 }
 
-const articleJsonLd = {
+// author/publisher reference the site-wide Organization from app/layout.tsx by @id instead of
+// restating it: an inline copy per page put four extra companies in the graph for a consumer
+// to reconcile. The breadcrumb is here because the hierarchy is real — this page sits two
+// levels deep and asserted its position nowhere.
+const structuredData = {
   '@context': 'https://schema.org',
-  '@type': 'Article',
-  headline: 'Event attribution: which of the eight conferences you run actually sent them',
-  description:
-    'Configuring a how-did-you-hear-about-us question for conferences and trade shows, where there is no referrer to lose and the signup arrives weeks after the conversation.',
-  datePublished: '2026-04-20',
-  dateModified: '2026-07-30',
-  author: { '@type': 'Organization', name: 'HumanSurvey' },
-  publisher: { '@type': 'Organization', name: 'HumanSurvey' },
-  mainEntityOfPage: 'https://www.humansurvey.co/use-cases/events',
+  '@graph': [
+    {
+      '@type': 'Article',
+      '@id': 'https://www.humansurvey.co/use-cases/events#article',
+      headline: 'Event attribution: which of the eight conferences you run actually sent them',
+      description:
+        'Configuring a how-did-you-hear-about-us question for conferences and trade shows, where there is no referrer to lose and the signup arrives weeks after the conversation.',
+      datePublished: '2026-04-20',
+      author: { '@id': 'https://www.humansurvey.co/#org' },
+      publisher: { '@id': 'https://www.humansurvey.co/#org' },
+      mainEntityOfPage: 'https://www.humansurvey.co/use-cases/events',
+      isPartOf: { '@id': 'https://www.humansurvey.co/use-cases#page' },
+    },
+    {
+      '@type': 'BreadcrumbList',
+      '@id': 'https://www.humansurvey.co/use-cases/events#breadcrumb',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'HumanSurvey',
+          item: 'https://www.humansurvey.co',
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Use cases',
+          item: 'https://www.humansurvey.co/use-cases',
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'Conferences and trade shows',
+          item: 'https://www.humansurvey.co/use-cases/events',
+        },
+      ],
+    },
+  ],
 }
 
 // Verified against the shipping API on 2026-07-30 as the body of
@@ -77,7 +110,8 @@ curl "https://www.humansurvey.co/api/attribution/rollup\\
 ?form_id=abc123efgh45&by=candidate&metric=revenue&from=2026-01-01&to=2026-07-01" \\
   -H "Authorization: Bearer hs_sk_..."`
 
-const rollupShapeSnippet = `{
+const rollupShapeSnippet = `// ILLUSTRATIVE — every figure below is invented, to show the shape of the payload
+{
   "window": { "from": "2026-01-01T00:00:00.000Z", "to": "2026-07-01T00:00:00.000Z",
               "basis": "response.completed_at", "bounds": "[from, to)" },
   "denominator": { "completed_responses": 1146,
@@ -138,7 +172,7 @@ export default function EventsPage() {
     <main className="min-h-screen bg-[var(--page-gradient)]">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
@@ -259,8 +293,9 @@ export default function EventsPage() {
                   Your own field events belong on the list.
                 </strong>{' '}
                 A dinner for twenty is a channel. It has no platform, no console and no row in any
-                analytics product — and it is frequently the line with the best return, which you
-                will never discover if the only option is &ldquo;a conference&rdquo;.
+                analytics product — so if it is the line with the best return, that is something
+                you will never discover while the only option on screen is &ldquo;a
+                conference&rdquo;.
               </>,
               <>
                 <strong className="font-semibold text-slate-900">
@@ -292,9 +327,13 @@ export default function EventsPage() {
           <CodeBlock>{rollupSnippet}</CodeBlock>
           <CodeBlock>{rollupShapeSnippet}</CodeBlock>
           <p>
-            The London dinner beat SaaStr Annual on customers produced, at a fraction of the cost.
-            That is the finding this whole page exists for, and it is one row of a follow-up
-            question — collapsed into &ldquo;At a conference or event&rdquo;, it does not exist.
+            In that illustration the London dinner beat SaaStr Annual on people who named it —
+            39 against 21 — at a fraction of the cost. Whether it beat it on customers is a
+            different question, and the section below is where it gets answered: the event rows
+            count responses, and <code>paying_responses</code> is reported on the channel row
+            only. Invented numbers, but that is the shape of finding the page
+            exists for, and it is one row of a follow-up question — collapsed into &ldquo;At a
+            conference or event&rdquo;, it does not exist at all.
           </p>
           <p>
             Revenue joins for free at the payment placement: the respondent has just paid, so
@@ -318,8 +357,8 @@ export default function EventsPage() {
             <code>0</code>, because zero would be a claim.
           </p>
           <p>
-            So the rollup tells you how many customers each event produced, and revenue per event
-            is one join away, on an id you already own:
+            So the rollup tells you how many people named each event, and both who among them
+            paid and what they paid are one join away, on an id you already own:
           </p>
           <CodeBlock>{identitySnippet}</CodeBlock>
           <p>
@@ -346,17 +385,21 @@ export default function EventsPage() {
 
         <Section tag="What the two placements tell you about an expensive booth">
           <p>
-            Events are the inverse of a viral channel: low volume, high value. The form in the
-            signup flow shows a small share; the form in the payment flow shows a much larger one.
+            The case for a booth is usually that it is the inverse of a viral channel: low
+            volume, high value. If that holds for yours, the form in the signup flow shows a
+            small share and the form in the payment flow a larger one.
           </p>
           <p>
             <strong className="font-semibold text-slate-900">
-              That gap is the argument for the booth
-            </strong>{' '}
-            — a channel&apos;s share among payers versus its share among signups is its
-            signup-to-paid rate, and events routinely win that comparison by a distance while
-            losing on raw volume. Run one placement only and you get the half of the picture that
-            makes your best channel look small.
+              That gap, if it is there, is the argument for the booth
+            </strong>
+            . Divide the channel&apos;s share of the paying population by its share of the signup
+            population: above 1 it converts better than your average, below 1 worse. Multiply that
+            ratio by your overall signup-to-paid rate to get the channel&apos;s own rate. Whether
+            events beat the average is not something we have measured across customers, so treat
+            it as the hypothesis the two placements exist to test — run one placement only and you
+            cannot test it at all, and you get the half of the picture that makes a low-volume
+            channel look small.
           </p>
           <p>
             Ask early in each flow. Asking at the end of onboarding means asking only the people

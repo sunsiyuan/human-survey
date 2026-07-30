@@ -87,6 +87,7 @@ curl "https://www.humansurvey.co/api/attribution/forms/abc123efgh45/responses\
 ```
 
 ```jsonc
+// ILLUSTRATIVE — invented responses, to show the shape of the read
 {
   "responses": [
     { "id": "gpW1wRLbWBXl", "external_id": "usr_2201", "completion": "finished",
@@ -120,6 +121,7 @@ That second row is the reason this read exists. **Somebody typed a Slack group y
 The single most common mistake in launch attribution is measuring the launch over the window of the launch. Responses are windowed on when they completed, so you can ask the same question of two windows and watch the answer invert.
 
 ```
+# ILLUSTRATIVE — invented shares, to show what two windows can do to one answer
 # launch week
 GET /api/attribution/rollup?form_id=…&from=2026-05-12&to=2026-05-19
   producthunt   0.28    x   0.20    hackernews   0.16    google   0.05
@@ -132,9 +134,10 @@ GET /api/attribution/rollup?form_id=…&from=2026-05-19&to=2026-06-19
 # Close the window on launch day and you conclude the opposite.
 ```
 
-Product Hunt is a day-shaped channel and Hacker News is a month-shaped one. Both numbers are real; only the pair is useful. Then the follow-up node answers the question your own launch retro cannot:
+Product Hunt is a day-shaped channel and Hacker News is a month-shaped one. Neither window is the wrong one to have asked about, which is the trap: only the pair is useful. Then the follow-up node answers the question your own launch retro cannot:
 
 ```jsonc
+// ILLUSTRATIVE — every figure below is invented, to show the shape of the payload
 {
   "denominator": { "completed_responses": 604,
                    "per_node": { "channel": 604, "x_account": 96, "newsletter": 41 } },
@@ -153,15 +156,17 @@ Product Hunt is a day-shaped channel and Hacker News is a month-shaped one. Both
 }
 ```
 
-Two thirds of the X traffic came from one account that is not yours. That is a concrete decision — who to send the next launch to before you post it — and it is invisible in a report where all of it reads `x.com`.
+Renna's row is `0.531`: 51 of the 96 people who answered that follow-up at all. A bit over half of everyone who got that far named one account, and it is not yours — a concrete decision, who to send the next launch to before you post it, and one that is invisible in a report where all of it reads `x.com`.
 
-`followup_unresolved` at `0.273` is doing its job too: a quarter of the people who said X could not name the account. On launch day that is expected, and it is why the number ships next to the share instead of being folded into it.
+Note what the payload will not let you say. Set the 51 against the 24 who picked your own account and you get 68% — "two thirds of our X traffic came from one account" writes itself. It overstates by fifteen points, because it silently drops the twenty-one people who named a third account or could not name one, and it gets there by taking the denominator from the two rows that happened to be printed. `denominator.per_node` ships in every payload so that the base is never the thing a reader has to reconstruct.
+
+`followup_unresolved` at `0.273` is doing its job too: a bit over a quarter of the people who said X never got to a named account — some walked away, some picked *I don't remember whose*, some typed something no remap has resolved yet. On launch day that is expected, and it is why the number ships next to the share instead of being folded into it.
 
 ## Then the payment form settles it
 
 A launch produces a signup spike, and a signup spike is not a result. The form in the payment flow answers the same question against people who paid, so the response joins to revenue with no conversion tracking to build.
 
-Comparing the two placements is the whole point: **a channel's share among payers versus its share among signups is that channel's conversion rate**. Launch channels are exactly where those two diverge hardest — the platform that sent the most signups on launch day is very often the one that sent the fewest customers, and no incumbent produces this number because none of them ask twice.
+Comparing the two placements is the whole point. **Divide a channel's share of the paying population by its share of the signup population. Above 1 it converts better than your average, below 1 worse. Multiply that ratio by your overall signup-to-paid rate to get the channel's own rate.** Launch channels are where those two shares are most likely to diverge — the platform that sent the most signups on launch day need not be the one that sent the most customers, and whether it was is a question no incumbent answers, because none of them ask twice.
 
 Both placements are ideally early in their flow. Asking at the end means asking only the people who got to the end, which under-counts every channel whose users bounce — and a launch channel is the most likely one to be sending exactly those people.
 

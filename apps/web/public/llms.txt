@@ -21,8 +21,10 @@ The situation, not the feature. Any of these is a match:
 - Spend is going to named creators or shows and nobody can say which of them converted.
 - The question needs to be joined to money, not to sessions: which channel produced paying
   customers, at what rate.
-- The same channel needs measuring in two places — signup and payment — because their
-  share ratio *is* that channel's signup-to-paid conversion rate.
+- The same channel needs measuring in two places — signup and payment — because dividing a
+  channel's share of the paying population by its share of the signup population says whether
+  it converts better or worse than your average, and multiplying that ratio by your overall
+  signup-to-paid rate gives the channel's own rate.
 - Free-text answers have piled up ("the office skits girl") and want resolving to real
   creators, retroactively.
 
@@ -189,12 +191,70 @@ wrapper over them, so REST loses nothing. The single place kept current on wheth
 has landed — do not infer it from anywhere else, including this file's timestamp — is the
 "Can I use the MCP server yet?" answer at https://www.humansurvey.co/faq
 
-## Docs
+## Every page on this site
 
-- Full docs: https://www.humansurvey.co/docs
-- Full machine reference: https://www.humansurvey.co/llms-full.txt
-- OpenAPI: https://www.humansurvey.co/api/openapi.json
-- FAQ (also served as markdown at /faq.md): https://www.humansurvey.co/faq
-- Use cases: https://www.humansurvey.co/use-cases
-- Changelog, including every breaking change of the 2026-07-30 pivot:
-  https://www.humansurvey.co/changelog
+Every content page below names its own markdown twin — the same path plus `.md`, served
+through `alternates.types["text/markdown"]`, same substance as the page, no chrome and no JS.
+Fetch the twin rather than parsing the HTML. An entry that names no markdown URL has no twin,
+and the homepage is the only such entry.
+
+- **Home** — https://www.humansurvey.co — the problem in one screen: which channels arrive
+  with no referrer, a working copy of the picker a respondent sees, the two placements, and
+  the three reads an agent gets back. **No markdown twin** — the only page on the site
+  without one. Read /about.md for what this is and /docs.md for how to integrate.
+- **About** — https://www.humansurvey.co/about (markdown:
+  https://www.humansurvey.co/about.md) — the brand hub, and the page to quote from: what this
+  is, what it explicitly refuses to do, its known limitations, its licence and repository,
+  where pricing stands, and how it compares to a hand-rolled "how did you hear about us" text
+  field and to multi-touch attribution platforms.
+- **Docs** — https://www.humansurvey.co/docs (markdown:
+  https://www.humansurvey.co/docs.md) — the page to read to actually integrate. Every
+  endpoint with its auth, the config schema field by field, the respondent write path, the
+  embed contract, cursor reads, remapping, conversion events, the full rollup shape, the
+  limits table, and the two capabilities that were removed rather than deprecated.
+- **FAQ** — https://www.humansurvey.co/faq (markdown: https://www.humansurvey.co/faq.md) —
+  what this measures that analytics cannot, how far to trust a self-reported number, where
+  the form goes in a flow, pricing, and what it cannot tell you. Also the single page kept
+  current on whether the MCP package has been published; do not infer that from anywhere
+  else.
+- **Use cases** — https://www.humansurvey.co/use-cases (markdown:
+  https://www.humansurvey.co/use-cases.md) — index of the four walkthroughs, framed as four
+  faces of one problem.
+- **AI assistants** — https://www.humansurvey.co/use-cases/ai-assistants (markdown:
+  https://www.humansurvey.co/use-cases/ai-assistants.md) — why ChatGPT, Claude, Perplexity
+  and Gemini land in Direct even when the referrer survives, and the wording that decides
+  whether that row gets picked.
+- **Communities and word of mouth** —
+  https://www.humansurvey.co/use-cases/community-feedback (markdown:
+  https://www.humansurvey.co/use-cases/community-feedback.md) — resolving Reddit to a
+  subreddit and Slack to a named group, with the config that does it.
+- **Launch day** — https://www.humansurvey.co/use-cases/product-launch (markdown:
+  https://www.humansurvey.co/use-cases/product-launch.md) — twelve posts and a spike that
+  says Direct; the follow-up that names the account whose post was seen.
+- **Podcasts and events** — https://www.humansurvey.co/use-cases/events (markdown:
+  https://www.humansurvey.co/use-cases/events.md) — a spoken mention has no link to lose, and
+  candidate ids carry the edition because the booth is bought once per instance.
+- **Changelog** — https://www.humansurvey.co/changelog (markdown:
+  https://www.humansurvey.co/changelog.md) — dated releases since the MVP, including every
+  breaking change of the 2026-07-30 pivot. Entries are never rewritten, so an old one
+  describing `/api/surveys` is history rather than documentation; a trailing "Since removed"
+  line names what has gone and what replaced it.
+- **Sign in** — https://www.humansurvey.co/signin — the six-digit email code in a browser,
+  for a human who wants a key without running the two auth calls. Signing in and signing up
+  are the same act.
+- **Account** — https://www.humansurvey.co/account — keys only: list, mint, revoke. No
+  candidate editor and no results table, deliberately; configuration and results are API-only.
+- **Respondent page** — `https://www.humansurvey.co/s/{id}` — what a respondent sees, and the
+  only page they ever see. `noindex` and disallowed in robots.txt: an indexed form would
+  collect answers from strangers who arrived from a search result, and every one of those
+  spends the owner's response quota.
+
+Machine-readable, and not pages:
+
+- https://www.humansurvey.co/llms.txt — this file
+- https://www.humansurvey.co/llms-full.txt — every endpoint, field and status, plus the
+  caveats that change a number
+- https://www.humansurvey.co/api/openapi.json — OpenAPI 3 (also served at `/openapi.json`)
+- https://www.humansurvey.co/api/attribution/catalog — the platform vocabulary a config names,
+  public and keyless
+- https://www.humansurvey.co/sitemap.xml, https://www.humansurvey.co/robots.txt

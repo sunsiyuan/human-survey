@@ -11,15 +11,6 @@ export const metadata: Metadata = {
   },
 }
 
-const collectionJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'CollectionPage',
-  name: 'HumanSurvey use cases',
-  description:
-    'Channel classes with no referrer — AI assistants, communities, launch posts, podcasts and events — and how self-reported attribution measures each one down to the person and the content.',
-  url: 'https://www.humansurvey.co/use-cases',
-}
-
 type Item = {
   channel: string
   headline: string
@@ -47,7 +38,7 @@ const items: Item[] = [
   },
   {
     channel: 'Launch day',
-    headline: 'You posted in twelve places and the spike says Direct',
+    headline: 'You posted in six places and the spike says Direct',
     body:
       'Product Hunt, Hacker News, X, three newsletters, a dozen DMs. In-app browsers and forwarded links drop the referrer, so the traffic that decides whether the launch worked is exactly the traffic you cannot attribute. Ask at signup and you learn which post; ask again at payment and you learn which post sent people who pay.',
     href: '/use-cases/product-launch',
@@ -60,6 +51,42 @@ const items: Item[] = [
     href: '/use-cases/events',
   },
 ]
+
+/**
+ * The CollectionPage here used to declare a collection and then list none of its members,
+ * which is the one thing a collection is for. The members are derived from `items` so the
+ * graph cannot list a page this index does not link to, and the ItemList carries an @id so
+ * the four use-case pages can say they are part of it.
+ */
+const collectionJsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'CollectionPage',
+      '@id': 'https://www.humansurvey.co/use-cases#page',
+      url: 'https://www.humansurvey.co/use-cases',
+      name: 'HumanSurvey use cases',
+      description:
+        'Channel classes with no referrer — AI assistants, communities, launch posts, podcasts and events — and how self-reported attribution measures each one down to the person and the content.',
+      publisher: { '@id': 'https://www.humansurvey.co/#org' },
+      isPartOf: { '@id': 'https://www.humansurvey.co/#site' },
+      about: { '@id': 'https://www.humansurvey.co/#app' },
+      mainEntity: { '@id': 'https://www.humansurvey.co/use-cases#list' },
+    },
+    {
+      '@type': 'ItemList',
+      '@id': 'https://www.humansurvey.co/use-cases#list',
+      name: 'HumanSurvey use cases',
+      numberOfItems: items.length,
+      itemListElement: items.map((it, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        name: it.channel,
+        url: `https://www.humansurvey.co${it.href}`,
+      })),
+    },
+  ],
+}
 
 export default function UseCasesIndex() {
   return (

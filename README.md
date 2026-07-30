@@ -26,8 +26,10 @@ reach, and asking a human is the only always-on signal that survives every refer
 
 Two placements answer different questions. In the payment flow, the respondent is already
 a paying customer, so the answer joins to revenue with no conversion ingest at all. In the
-signup flow, it is the only way to see the people a channel sends who never pay. The same
-channel's share in each population *is* its signup-to-paid rate.
+signup flow, it is the only way to see the people a channel sends who never pay. Divide a
+channel's share of the paying population by its share of the signup population. Above 1 it
+converts better than your average, below 1 worse. Multiply that ratio by your overall
+signup-to-paid rate to get the channel's own rate.
 
 It is designed for:
 - hosts embedding a form in their own onboarding or checkout

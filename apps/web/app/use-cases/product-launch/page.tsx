@@ -18,17 +18,50 @@ export const metadata: Metadata = {
   },
 }
 
-const articleJsonLd = {
+// author/publisher reference the site-wide Organization from app/layout.tsx by @id instead of
+// restating it: an inline copy per page put four extra companies in the graph for a consumer
+// to reconcile. The breadcrumb is here because the hierarchy is real — this page sits two
+// levels deep and asserted its position nowhere.
+const structuredData = {
   '@context': 'https://schema.org',
-  '@type': 'Article',
-  headline: 'Launch attribution: which of the six places you posted actually worked',
-  description:
-    'Configuring a how-did-you-hear-about-us question for a launch, so Product Hunt, Hacker News and X separate, and X resolves to the specific account whose post was seen.',
-  datePublished: '2026-04-20',
-  dateModified: '2026-07-30',
-  author: { '@type': 'Organization', name: 'HumanSurvey' },
-  publisher: { '@type': 'Organization', name: 'HumanSurvey' },
-  mainEntityOfPage: 'https://www.humansurvey.co/use-cases/product-launch',
+  '@graph': [
+    {
+      '@type': 'Article',
+      '@id': 'https://www.humansurvey.co/use-cases/product-launch#article',
+      headline: 'Launch attribution: which of the six places you posted actually worked',
+      description:
+        'Configuring a how-did-you-hear-about-us question for a launch, so Product Hunt, Hacker News and X separate, and X resolves to the specific account whose post was seen.',
+      datePublished: '2026-04-20',
+      author: { '@id': 'https://www.humansurvey.co/#org' },
+      publisher: { '@id': 'https://www.humansurvey.co/#org' },
+      mainEntityOfPage: 'https://www.humansurvey.co/use-cases/product-launch',
+      isPartOf: { '@id': 'https://www.humansurvey.co/use-cases#page' },
+    },
+    {
+      '@type': 'BreadcrumbList',
+      '@id': 'https://www.humansurvey.co/use-cases/product-launch#breadcrumb',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'HumanSurvey',
+          item: 'https://www.humansurvey.co',
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Use cases',
+          item: 'https://www.humansurvey.co/use-cases',
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: 'Launch day',
+          item: 'https://www.humansurvey.co/use-cases/product-launch',
+        },
+      ],
+    },
+  ],
 }
 
 // Verified against the shipping API on 2026-07-30 as the body of
@@ -84,7 +117,8 @@ const cursorSnippet = `curl "https://www.humansurvey.co/api/attribution/forms/ab
 ?since_seq=8412&limit=100" \\
   -H "Authorization: Bearer hs_sk_..."`
 
-const cursorShapeSnippet = `{
+const cursorShapeSnippet = `// ILLUSTRATIVE — invented responses, to show the shape of the read
+{
   "responses": [
     { "id": "gpW1wRLbWBXl", "external_id": "usr_2201", "completion": "finished",
       "awaiting_node_id": null, "metadata": { "placement": "signup" },
@@ -107,7 +141,8 @@ const cursorShapeSnippet = `{
   "next_check_hint_seconds": 120
 }`
 
-const windowsSnippet = `# launch week
+const windowsSnippet = `# ILLUSTRATIVE — invented shares, to show what two windows can do to one answer
+# launch week
 GET /api/attribution/rollup?form_id=…&from=2026-05-12&to=2026-05-19
   producthunt   0.28    x   0.20    hackernews   0.16    google   0.05
 
@@ -118,7 +153,8 @@ GET /api/attribution/rollup?form_id=…&from=2026-05-19&to=2026-06-19
 # Product Hunt was the day. Hacker News and search were the month.
 # Close the window on launch day and you conclude the opposite.`
 
-const rollupShapeSnippet = `{
+const rollupShapeSnippet = `// ILLUSTRATIVE — every figure below is invented, to show the shape of the payload
+{
   "denominator": { "completed_responses": 604,
                    "per_node": { "channel": 604, "x_account": 96, "newsletter": 41 } },
   "rows": [
@@ -140,7 +176,7 @@ export default function ProductLaunchPage() {
     <main className="min-h-screen bg-[var(--page-gradient)]">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
@@ -313,21 +349,37 @@ export default function ProductLaunchPage() {
           </p>
           <CodeBlock>{windowsSnippet}</CodeBlock>
           <p>
-            Product Hunt is a day-shaped channel and Hacker News is a month-shaped one. Both
-            numbers are real; only the pair is useful. Then the follow-up node answers the
-            question your own launch retro cannot:
+            Product Hunt is a day-shaped channel and Hacker News is a month-shaped one. Neither
+            window is the wrong one to have asked about, which is the trap: only the pair is
+            useful. Then the follow-up node answers the question your own launch retro cannot:
           </p>
           <CodeBlock>{rollupShapeSnippet}</CodeBlock>
           <p>
-            Two thirds of the X traffic came from one account that is not yours. That is a
-            concrete decision — who to send the next launch to before you post it — and it is
-            invisible in a report where all of it reads <code>x.com</code>.
+            Renna&apos;s row is <code>0.531</code>: 51 of the 96 people who answered that
+            follow-up at all. A bit over half of everyone who got that far named one account, and
+            it is not yours — a concrete decision, who to send the next launch to before you post
+            it, and one that is invisible in a report where all of it reads <code>x.com</code>.
+          </p>
+          {/* This paragraph is here because an earlier version of the one above it said "two
+              thirds", which is 51/(51+24) — the two rows that happen to be printed. Getting the
+              denominator from the rows you can see rather than from the payload is the exact
+              failure mode the product argues against, so the correction is shown rather than
+              quietly made. */}
+          <p>
+            Note what the payload will not let you say. Set the 51 against the 24 who picked your
+            own account and you get 68% — &ldquo;two thirds of our X traffic came from one
+            account&rdquo; writes itself. It overstates by fifteen points, because it silently
+            drops the twenty-one people who named a third account or could not name one, and it
+            gets there by taking the denominator from the two rows that happened to be printed.{' '}
+            <code>denominator.per_node</code> ships in every payload so that the base is never the
+            thing a reader has to reconstruct.
           </p>
           <p>
-            <code>followup_unresolved</code> at <code>0.273</code> is doing its job too: a
-            quarter of the people who said X could not name the account. On launch day that is
-            expected, and it is why the number ships next to the share instead of being folded
-            into it.
+            <code>followup_unresolved</code> at <code>0.273</code> is doing its job too: a bit
+            over a quarter of the people who said X never got to a named account — some walked
+            away, some picked <em>I don&apos;t remember whose</em>, some typed something no remap
+            has resolved yet. On launch day that is expected, and it is why the number ships next
+            to the share instead of being folded into it.
           </p>
         </Section>
 
@@ -338,14 +390,16 @@ export default function ProductLaunchPage() {
             to revenue with no conversion tracking to build.
           </p>
           <p>
-            Comparing the two placements is the whole point:{' '}
+            Comparing the two placements is the whole point.{' '}
             <strong className="font-semibold text-slate-900">
-              a channel&apos;s share among payers versus its share among signups is that
-              channel&apos;s conversion rate
-            </strong>
-            . Launch channels are exactly where those two diverge hardest — the platform that
-            sent the most signups on launch day is very often the one that sent the fewest
-            customers, and no incumbent produces this number because none of them ask twice.
+              Divide a channel&apos;s share of the paying population by its share of the signup
+              population. Above 1 it converts better than your average, below 1 worse. Multiply
+              that ratio by your overall signup-to-paid rate to get the channel&apos;s own rate.
+            </strong>{' '}
+            Launch channels are where those two shares are most likely to diverge — the platform
+            that sent the most signups on launch day need not be the one that sent the most
+            customers, and whether it was is a question no incumbent answers, because none of
+            them ask twice.
           </p>
           <p>
             Both placements are ideally early in their flow. Asking at the end means asking only
