@@ -1,5 +1,7 @@
 import Link from 'next/link'
 
+import { Wordmark } from '@/components/Logo'
+
 import { PickerDemo } from '@/components/home/PickerDemo'
 import { Placements } from '@/components/home/Placements'
 import { Setup } from '@/components/home/Setup'
@@ -42,9 +44,12 @@ export default function Home() {
 
         {/* Header */}
         <header className="flex items-center justify-between gap-3">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)]">
-            Self-reported attribution
-          </p>
+          {/* The tagline that used to sit here said "Self-reported attribution", which the H1
+              two lines below says better and at greater length. A header's job is to say whose
+              site this is. */}
+          <Link href="/" aria-label="HumanSurvey home">
+            <Wordmark />
+          </Link>
           <div className="flex gap-2">
             <Link
               href="/docs"

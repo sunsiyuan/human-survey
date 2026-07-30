@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/next'
 import type { Metadata } from 'next'
 import { Fraunces, IBM_Plex_Mono, Inter } from 'next/font/google'
 
@@ -106,6 +107,19 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
         {children}
+
+        {/*
+          Page-level analytics for this marketing site: which pages get read, from where.
+          Deliberately only that.
+
+          Worth naming the irony, since somebody will notice it: this product exists because
+          page analytics CANNOT see the channels that matter — an arrival from TikTok in-app,
+          a Slack group or ChatGPT lands in Direct with no referrer, which is the whole premise
+          on the page above. Vercel Analytics is not a contradiction of that; it is the half of
+          the picture it can actually measure, and this site should be honest about needing the
+          other half too. The other half is our own form, on our own signup, once there is one.
+        */}
+        <Analytics />
       </body>
     </html>
   )
