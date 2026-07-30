@@ -24,35 +24,35 @@ const plexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.humansurvey.co'),
-  title: 'HumanSurvey — Feedback collection for AI agents',
+  title: 'HumanSurvey — find out where your signups actually come from',
   description:
-    'AI agents create surveys from JSON schema, collect structured feedback from groups of people, and retrieve machine-usable results via API or MCP.',
+    'Self-reported attribution for the channels that send no referrer. Ask people how they heard about you inside your own signup or payment flow, down to which creator, and read the answers back over the API.',
   applicationName: 'HumanSurvey',
   keywords: [
-    'survey api',
+    'self-reported attribution',
+    'how did you hear about us',
+    'attribution api',
+    'direct traffic attribution',
+    'creator attribution',
+    'dark social',
     'mcp server',
-    'ai agent tools',
-    'feedback collection',
-    'survey infrastructure',
-    'json schema forms',
-    'agent feedback',
   ],
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: 'HumanSurvey — Feedback collection for AI agents',
+    title: 'HumanSurvey — find out where your signups actually come from',
     description:
-      'Agents create surveys, groups of humans respond, agents get structured results back.',
+      'The channels with no referrer, measured by asking the person — down to which account, not just which platform.',
     url: 'https://www.humansurvey.co',
     siteName: 'HumanSurvey',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'HumanSurvey — Feedback collection for AI agents',
+    title: 'HumanSurvey — find out where your signups actually come from',
     description:
-      'Agents create surveys from JSON schema, collect group feedback, retrieve structured results via API or MCP.',
+      'Self-reported attribution at creator granularity, embedded in your signup and payment flows, read back over the API.',
   },
 }
 
@@ -67,7 +67,7 @@ const structuredData = {
       logo: 'https://www.humansurvey.co/favicon.ico',
       foundingDate: '2026-03',
       description:
-        'Open-source feedback collection infrastructure for AI agents.',
+        'Open-source self-reported attribution infrastructure: the channels that send no referrer, measured by asking the person.',
       sameAs: [
         'https://github.com/sunsiyuan/human-survey',
         'https://www.npmjs.com/package/humansurvey-mcp',
@@ -79,7 +79,8 @@ const structuredData = {
       '@id': 'https://www.humansurvey.co/#app',
       name: 'HumanSurvey',
       applicationCategory: 'DeveloperApplication',
-      description: 'Feedback collection infrastructure for AI agents',
+      description:
+        'Self-reported attribution at creator granularity, configured and read by agents over an API',
       url: 'https://www.humansurvey.co',
       operatingSystem: 'Web',
       publisher: { '@id': 'https://www.humansurvey.co/#org' },

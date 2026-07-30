@@ -5,7 +5,7 @@ const BASE = 'https://www.humansurvey.co'
 
 // Used when `git log` is unavailable (e.g. shallow clone on Vercel that
 // doesn't reach the file's last commit). Bump when content broadly changes.
-const FALLBACK = new Date('2026-04-26T00:00:00Z')
+const FALLBACK = new Date('2026-07-30T00:00:00Z')
 
 function lastModified(sourcePath: string): Date {
   try {
@@ -30,6 +30,7 @@ const ROUTES: Entry[] = [
   { path: '/docs', source: 'app/docs/page.tsx', changeFrequency: 'weekly', priority: 0.9 },
   { path: '/faq', source: 'app/faq/page.tsx', changeFrequency: 'weekly', priority: 0.85 },
   { path: '/use-cases', source: 'app/use-cases/page.tsx', changeFrequency: 'monthly', priority: 0.85 },
+  { path: '/use-cases/ai-assistants', source: 'app/use-cases/ai-assistants/page.tsx', changeFrequency: 'monthly', priority: 0.8 },
   { path: '/use-cases/community-feedback', source: 'app/use-cases/community-feedback/page.tsx', changeFrequency: 'monthly', priority: 0.8 },
   { path: '/use-cases/product-launch', source: 'app/use-cases/product-launch/page.tsx', changeFrequency: 'monthly', priority: 0.8 },
   { path: '/use-cases/events', source: 'app/use-cases/events/page.tsx', changeFrequency: 'monthly', priority: 0.8 },
@@ -38,6 +39,7 @@ const ROUTES: Entry[] = [
   { path: '/llms-full.txt', source: 'public/llms-full.txt', changeFrequency: 'weekly', priority: 0.8 },
   { path: '/faq.md', source: 'public/faq.md', changeFrequency: 'weekly', priority: 0.6 },
   { path: '/use-cases.md', source: 'public/use-cases.md', changeFrequency: 'monthly', priority: 0.6 },
+  { path: '/use-cases/ai-assistants.md', source: 'public/use-cases/ai-assistants.md', changeFrequency: 'monthly', priority: 0.6 },
   { path: '/use-cases/community-feedback.md', source: 'public/use-cases/community-feedback.md', changeFrequency: 'monthly', priority: 0.6 },
   { path: '/use-cases/product-launch.md', source: 'public/use-cases/product-launch.md', changeFrequency: 'monthly', priority: 0.6 },
   { path: '/use-cases/events.md', source: 'public/use-cases/events.md', changeFrequency: 'monthly', priority: 0.6 },

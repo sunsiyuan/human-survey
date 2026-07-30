@@ -5,10 +5,11 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
-    "test": "turbo test",
+    "test": "pnpm --filter web test",
     "lint": "turbo lint"
   },
   "devDependencies": {
+    "simple-icons": "^16.27.1",
     "turbo": "^2",
     "typescript": "^5"
   }

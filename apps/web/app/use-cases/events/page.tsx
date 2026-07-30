@@ -3,16 +3,15 @@ import Link from 'next/link'
 
 import {
   CodeBlock,
-  Ordered,
   Quote,
   Section,
   Unordered,
 } from '@/components/use-cases/primitives'
 
 export const metadata: Metadata = {
-  title: 'Event feedback with AI — HumanSurvey use case',
+  title: 'Event and trade-show attribution — HumanSurvey use case',
   description:
-    'How conference and meetup organizers collect session ratings, speaker feedback, and retro input by telling Claude (or any agent) what to learn — matrix questions, open text, and grounded retro synthesis.',
+    'A conference conversation produces no click, no referrer and a signup days or weeks later, so search or Direct takes the credit. Ask which event, in your signup and payment flow, and tell the eight you run apart.',
   alternates: {
     canonical: '/use-cases/events',
     types: { 'text/markdown': '/use-cases/events.md' },
@@ -22,15 +21,117 @@ export const metadata: Metadata = {
 const articleJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Article',
-  headline: 'Event feedback with AI: session ratings and retros, agent-driven',
+  headline: 'Event attribution: which of the eight conferences you run actually sent them',
   description:
-    'A worked walkthrough of using HumanSurvey and Claude to collect post-event feedback from conference, meetup, and webinar attendees.',
+    'Configuring a how-did-you-hear-about-us question for conferences and trade shows, where there is no referrer to lose and the signup arrives weeks after the conversation.',
   datePublished: '2026-04-20',
-  dateModified: '2026-04-20',
+  dateModified: '2026-07-30',
   author: { '@type': 'Organization', name: 'HumanSurvey' },
   publisher: { '@type': 'Organization', name: 'HumanSurvey' },
   mainEntityOfPage: 'https://www.humansurvey.co/use-cases/events',
 }
+
+// Verified against the shipping API on 2026-07-30 as the body of
+// PUT /api/attribution/forms/{id}. Note the event ids carry the edition: the booth is
+// bought once per instance, so KubeCon 2027 is a different line item from KubeCon 2026.
+const configSnippet = `{
+  "nodes": [
+    {
+      "id": "channel",
+      "prompt": "Where did you first hear about us?",
+      "candidates": [
+        { "id": "event", "catalog_slug": "event", "expands": "which_event" },
+        { "id": "friend",            "catalog_slug": "friend" },
+        { "id": "coworker-internal", "catalog_slug": "coworker-internal" },
+        { "id": "linkedin",          "catalog_slug": "linkedin" },
+        { "id": "press",             "catalog_slug": "press" },
+        { "id": "email",             "catalog_slug": "email" },
+        { "id": "ad",                "catalog_slug": "ad" },
+        { "id": "google",            "catalog_slug": "google" },
+        { "id": "chatgpt",           "catalog_slug": "chatgpt" },
+        { "id": "dunno", "label": "I don't remember",
+          "pinned": "end", "dont_remember": true }
+      ]
+    },
+    {
+      "id": "which_event",
+      "prompt": "Which one?",
+      "candidates": [
+        { "id": "evt_kubecon_eu_2026", "label": "KubeCon EU 2026",
+          "aliases": ["kubecon london"] },
+        { "id": "evt_reinvent_2025", "label": "AWS re:Invent 2025",
+          "aliases": ["reinvent", "las vegas"] },
+        { "id": "evt_devopsdays_nyc_2026", "label": "DevOpsDays NYC 2026" },
+        { "id": "evt_saastr_2026", "label": "SaaStr Annual 2026" },
+        { "id": "evt_london_dinner_2026_03", "label": "Our London dinner, March 2026",
+          "aliases": ["the dinner"] },
+        { "id": "which_event_dunno", "label": "I don't remember which",
+          "pinned": "end", "dont_remember": true }
+      ]
+    }
+  ]
+}`
+
+const rollupSnippet = `# a wide window, because the answer arrives long after the event
+curl "https://www.humansurvey.co/api/attribution/rollup\\
+?form_id=abc123efgh45&by=candidate&metric=revenue&from=2026-01-01&to=2026-07-01" \\
+  -H "Authorization: Bearer hs_sk_..."`
+
+const rollupShapeSnippet = `{
+  "window": { "from": "2026-01-01T00:00:00.000Z", "to": "2026-07-01T00:00:00.000Z",
+              "basis": "response.completed_at", "bounds": "[from, to)" },
+  "denominator": { "completed_responses": 1146,
+                   "per_node": { "channel": 1146, "which_event": 202 } },
+  "rows": [
+    { "node_id": "channel", "candidate_id": "event",
+      "label": "At a conference or event",
+      "responses": 231, "share": 0.202,
+      "revenue_cents": 8742000, "paying_responses": 214 },
+
+    { "node_id": "which_event", "candidate_id": "evt_kubecon_eu_2026",
+      "label": "KubeCon EU 2026", "responses": 74, "share": 0.366,
+      "revenue_cents": null },
+    { "node_id": "which_event", "candidate_id": "evt_reinvent_2025",
+      "label": "AWS re:Invent 2025", "responses": 46, "share": 0.228,
+      "revenue_cents": null },
+    { "node_id": "which_event", "candidate_id": "evt_london_dinner_2026_03",
+      "label": "Our London dinner, March 2026", "responses": 39, "share": 0.193,
+      "revenue_cents": null },
+    { "node_id": "which_event", "candidate_id": "evt_saastr_2026",
+      "label": "SaaStr Annual 2026", "responses": 21, "share": 0.104,
+      "revenue_cents": null }
+  ],
+  "followup_unresolved": [ { "node_id": "channel", "candidate_id": "event",
+                             "follow_node_id": "which_event",
+                             "picks": 231, "unresolved": 39, "rate": 0.169 } ]
+}`
+
+const identitySnippet = `# revenue per event: take the rows and join on your own user id
+curl "https://www.humansurvey.co/api/attribution/forms/abc123efgh45/responses\\
+?since_seq=0&limit=500" \\
+  -H "Authorization: Bearer hs_sk_..."
+# each row carries external_id plus its answers:
+#   { "external_id": "usr_4410", "completion": "finished",
+#     "answers": [ { "node_id": "channel",     "candidate_id": "event" },
+#                  { "node_id": "which_event", "candidate_id": "evt_kubecon_eu_2026" } ] }
+
+# or one person at a time, to stamp the event onto their user record
+curl "https://www.humansurvey.co/api/attribution/forms/abc123efgh45/responses\\
+?external_id=usr_4410" \\
+  -H "Authorization: Bearer hs_sk_..."`
+
+const remapSnippet = `curl "https://www.humansurvey.co/api/attribution/forms/abc123efgh45/unresolved" \\
+  -H "Authorization: Bearer hs_sk_..."
+# → { "entries": [ { "node_id": "which_event", "raw_normalized": "the london thing",
+#                    "occurrences": 6, "variants": ["the London thing", "London dinner?"] } ], … }
+
+curl -X POST https://www.humansurvey.co/api/attribution/forms/abc123efgh45/remaps \\
+  -H "Authorization: Bearer hs_sk_..." \\
+  -H "Content-Type: application/json" \\
+  -d '{"node_id": "which_event", "raw": "the london thing",
+       "candidate_id": "evt_london_dinner_2026_03"}'
+# → 201 { "resolved_responses": 6,
+#          "candidate_label": "Our London dinner, March 2026" }`
 
 export default function EventsPage() {
   return (
@@ -72,329 +173,222 @@ export default function EventsPage() {
 
         <section className="space-y-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
-            Use case · Event organizers
+            Use case · Conferences and trade shows
           </p>
           <h1 className="text-4xl tracking-[-0.02em] text-slate-950 sm:text-5xl">
-            Event feedback, the AI-native way.
+            The booth sent them. Analytics says they found you on Google.
           </h1>
           <p className="text-base leading-[1.7] text-slate-800">
-            You just ran a conference, a meetup, or a webinar. Now comes the
-            part everyone dreads: getting structured feedback from attendees
-            while it&apos;s still fresh, writing a retro your speakers and
-            sponsors can actually read, and deciding what to change for next
-            time.{' '}
+            Events are the most expensive thing on the marketing plan and the worst tracked. There
+            is no referrer to lose here, because there was never a click: someone talked to you at
+            a booth, took a sticker, and signed up nine days later by typing your name into a
+            browser.{' '}
             <strong className="font-semibold text-slate-900">
-              This page is about making your AI agent run that whole loop —
-              session ratings, open text, speaker-specific feedback, and a
-              grounded synthesis — before the attendees log off for the day.
+              Search or Direct takes the credit, which is worse than no answer — it looks like an
+              answer.
             </strong>
           </p>
         </section>
 
-        <Section tag="The old way">
-          <p>
-            Rebuild a post-event Typeform, one row per session in a matrix
-            question. Export the attendee list from Eventbrite or Luma. Send
-            them the link with a generic &ldquo;we&apos;d love your
-            feedback&rdquo; subject line. 22% respond. Export the CSV. Open
-            Sheets. Sort by session. Paste open-text responses into a doc and
-            try to summarize. Tell the keynote speaker &ldquo;people loved
-            it&rdquo; and the workshop host &ldquo;there were some
-            comments&rdquo; based on vibes. Send a retro Slack message three
-            days later that half the org skims.
-          </p>
-          <p>
-            None of that is broken — it&apos;s just slow, and it leaves a
-            mountain of nuance on the cutting-room floor. The synthesis step is
-            the one that actually matters for deciding what to change next
-            time, and it&apos;s the step a human is least good at when tired on
-            a Sunday evening.
-          </p>
-        </Section>
-
-        <Section tag="The new loop">
-          <p>
-            HumanSurvey is a small hosted-form service fronted by an MCP server
-            and a REST API. Your agent — Claude Code, Claude Desktop, Cursor,
-            any MCP client — takes on three jobs:
-          </p>
-          <Ordered
-            items={[
-              'Designs the schema from your intent: per-session matrix ratings, an overall NPS, open text, and whatever speaker-specific or sponsor-specific questions you want.',
-              'Creates the survey and returns /s/{id}. You drop the link in the event Slack, Discord, or the day-of attendee email. Or ask your agent to post to the channel if it has that tool.',
-              'Reads the results and synthesizes — by session, by track, by speaker, by sponsor — into whatever format you need (retro doc, per-speaker email drafts, sponsor-facing PDF).',
-            ]}
-          />
-          <p>
-            The whole point is that an organizer (often a volunteer or a very
-            tired full-timer) doesn&apos;t spend Sunday night pivoting a
-            spreadsheet. The agent does the reading. You review the output.
-          </p>
-        </Section>
-
-        <Section tag="Worked example — post-conference retro">
-          <p>
-            You organized a two-day developer conference. Four tracks, 22
-            sessions, 380 attendees. Monday morning, you open Claude Code with
-            HumanSurvey installed and say:
-          </p>
-
-          <Quote>
-            &ldquo;Run our post-conference feedback survey. Matrix: for each of
-            these 22 sessions, 1–5 rating and would-recommend yes/no. Overall
-            NPS for the whole conference. Open text: what should we change next
-            year? Multi-choice: which tracks do you want more of? Keep it 4
-            minutes max, expires Friday.&rdquo;
-          </Quote>
-
-          <p>
-            You paste in the session list from the event page. Claude
-            generates the schema — the matrix question is the one organizers
-            always write badly by hand, and the agent gets the row/column
-            shape right on the first try:
-          </p>
-
-          <CodeBlock>{`{
-  "title": "DevConf 2026 — your feedback",
-  "description": "4 minutes. Helps us plan DevConf 2027.",
-  "sections": [{
-    "questions": [
-      { "type": "matrix",
-        "label": "Rate each session you attended (1–5; skip if you didn't go)",
-        "rows": [
-          "Keynote — What's next for open-source databases",
-          "Track A: Building an agent-native backend",
-          "Track A: Workshop — MCP server basics",
-          "Track B: From prototype to 10M requests/day",
-          "Track C: Fireside — the future of serverless"
-          /* … 17 more rows … */
-        ],
-        "columns": ["1", "2", "3", "4", "5", "N/A"]
-      },
-      { "type": "scale",
-        "label": "How likely are you to recommend DevConf to a colleague?",
-        "min": 0, "max": 10,
-        "minLabel": "Not at all", "maxLabel": "Definitely" },
-      { "type": "multi_choice",
-        "label": "Which tracks do you want more of next year?",
-        "options": [
-          { "label": "Databases & storage" },
-          { "label": "Agent infrastructure" },
-          { "label": "Scaling & performance" },
-          { "label": "Developer experience" },
-          { "label": "Security" }
-        ]
-      },
-      { "type": "text", "label": "One thing we should change next year?" }
-    ]
-  }],
-  "max_responses": 500,
-  "expires_at": "2026-04-24T23:59:00Z"
-}`}</CodeBlock>
-
-          <p>
-            Claude calls{' '}
-            <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">
-              create_survey
-            </code>{' '}
-            and returns <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">https://www.humansurvey.co/s/evt445</code>.
-            You drop it into the post-event attendee email and pin it in the
-            #general Slack channel. By Thursday, 241 responses are in. You ask
-            Claude:
-          </p>
-
-          <Quote>&ldquo;Summarize DevConf feedback, grouped by track. Include what to change.&rdquo;</Quote>
-
-          <p>
-            Claude calls{' '}
-            <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">
-              get_results
-            </code>{' '}
-            and returns:
-          </p>
-
-          <CodeBlock>{`241 responses (63%). NPS: 56 (strong).
-
-Top-rated sessions:
-  1. Keynote — Open-source databases  (4.7 / 5, 92% recommend)
-  2. Track B workshop — 10M req/day   (4.6 / 5, 88% recommend)
-  3. Fireside — future of serverless  (4.5 / 5, 85% recommend)
-
-Bottom-rated sessions:
-  1. Track A: MCP server basics       (3.1 / 5, 41% recommend)
-     → open text theme: "too basic, expected deeper content"
-  2. Track C: Security panel          (3.3 / 5, 48% recommend)
-     → open text theme: "panelists talked past each other"
-
-Track demand for next year:
-  1. Agent infrastructure (71%)  ← clear #1, up from 52% last year
-  2. Scaling & performance (54%)
-  3. Developer experience (48%)
-  4. Databases & storage (33%)
-  5. Security (22%)
-
-Top "what to change" themes (from 188 open-text responses):
-  1. Longer breaks between sessions (47 mentions)
-  2. Food queue was too slow on Day 2 (31 mentions)
-  3. Track A needs advanced content, not intro talks (24 mentions)
-  4. More ad-hoc unconference space (18 mentions)
-
-Suggested moves for DevConf 2027:
-  1. Double the agent-infra track — demand has shifted there.
-  2. Rework Track A content design — split beginner vs advanced.
-  3. Extend between-session breaks to 20 min (currently 10).
-  4. Fix food logistics on Day 2 — separate queue or staggered lunch.
-  5. Send per-speaker feedback packets (Claude can draft these).`}</CodeBlock>
-
-          <p>
-            Then you ask Claude to draft per-speaker emails with the relevant
-            slice of the data, which it does grounded in the raw JSON — each
-            speaker gets their own rating, their own open-text comments, and
-            nothing about the other 21 sessions.
-          </p>
-        </Section>
-
-        <Section tag="Other event scenarios that fit the same loop">
+        <Section tag="Why this is the hardest channel you spend on">
           <Unordered
             items={[
               <>
                 <strong className="font-semibold text-slate-900">
-                  Pre-event expectation survey.
+                  There is no digital trace at all.
                 </strong>{' '}
-                Two weeks before the event, ask registered attendees what
-                they&apos;re hoping to get out of it. Your agent cross-checks
-                against the agenda and flags mismatches so you can adjust
-                session framing or prep speakers.
+                Not a stripped referrer, not a missing UTM — nothing. The exposure happened in a
+                conversation. A badge scan tells you who you talked to, not who came back.
               </>,
               <>
                 <strong className="font-semibold text-slate-900">
-                  Mid-event daily pulse.
+                  A QR code only measures the people who scanned it at the booth.
                 </strong>{' '}
-                For multi-day conferences, send a short end-of-Day-1 survey. If
-                something&apos;s going wrong (food, AV, pacing), you find out
-                in time to fix Day 2 — not in the retro three weeks later.
+                The ones who scan on the spot are usually collecting the giveaway. The ones who
+                actually buy do it later, from a laptop, after talking to their team.
               </>,
               <>
                 <strong className="font-semibold text-slate-900">
-                  Sponsor feedback.
+                  The gap is days or weeks.
                 </strong>{' '}
-                Post-event, ask sponsors about booth traffic quality, lead
-                capture, and whether they&apos;d sponsor again. Your agent
-                drafts a sponsor-facing retro PDF grounded in their own
-                responses plus overall attendee metrics.
+                By the time they sign up, every session-scoped attribution model has expired the
+                event out of existence.
               </>,
               <>
                 <strong className="font-semibold text-slate-900">
-                  Speaker self-reflection.
+                  &ldquo;Events&rdquo; is not a channel you can act on.
                 </strong>{' '}
-                A private survey sent to speakers only — what worked, what
-                they&apos;d change about their slot, venue/AV issues. Keeps
-                institutional knowledge in a machine-readable form for next
-                year&apos;s program committee.
-              </>,
-              <>
-                <strong className="font-semibold text-slate-900">
-                  Meetup / community retro.
-                </strong>{' '}
-                Smaller, faster cadence. 3 questions, closes in 48 hours, your
-                agent reads the results and updates the next month&apos;s
-                meetup agenda proposal automatically.
-              </>,
-              <>
-                <strong className="font-semibold text-slate-900">
-                  Webinar / online workshop feedback.
-                </strong>{' '}
-                Triggered at the end of the Zoom/Meet session. Quick NPS, one
-                ranking question on which follow-up topic people want, one
-                open text. Your agent compiles the list and feeds it into your
-                next-session planning.
+                A company running eight a year signs for the next one six months in advance, and
+                the decision is <em>which</em> — the flagship conference, the regional one, or the
+                dinner for twenty people that cost a twentieth as much.
               </>,
             ]}
           />
-        </Section>
-
-        <Section tag="How this compares">
           <p>
-            Event feedback tools fall into three rough shapes — platforms with
-            bundled surveying, general form builders, and agent-native
-            infrastructure. Pick based on who is going to consume the output:
+            So the highest cost per lead in the plan is defended, every year, with an argument
+            rather than a number. That is what makes this the most valuable place to simply ask.
           </p>
-
-          <div className="overflow-x-auto rounded-2xl border border-[var(--panel-border)] bg-[var(--surface)]">
-            <table className="w-full text-[13px]">
-              <thead>
-                <tr className="border-b border-[var(--panel-border)] text-left text-[11px] uppercase tracking-[0.14em] text-slate-500">
-                  <th className="px-4 py-3 font-semibold">Tool</th>
-                  <th className="px-4 py-3 font-semibold">Build</th>
-                  <th className="px-4 py-3 font-semibold">Read</th>
-                </tr>
-              </thead>
-              <tbody className="text-slate-700">
-                <tr className="border-b border-[var(--panel-border)]">
-                  <td className="px-4 py-3 font-medium text-slate-900">Sched / Whova</td>
-                  <td className="px-4 py-3">Human, in the event platform</td>
-                  <td className="px-4 py-3">Human, platform dashboard</td>
-                </tr>
-                <tr className="border-b border-[var(--panel-border)]">
-                  <td className="px-4 py-3 font-medium text-slate-900">Typeform</td>
-                  <td className="px-4 py-3">Human, visual builder</td>
-                  <td className="px-4 py-3">Human, dashboard</td>
-                </tr>
-                <tr className="border-b border-[var(--panel-border)]">
-                  <td className="px-4 py-3 font-medium text-slate-900">Eventbrite survey</td>
-                  <td className="px-4 py-3">Human, bundled tool</td>
-                  <td className="px-4 py-3">Human, CSV export</td>
-                </tr>
-                <tr className="border-b border-[var(--panel-border)]">
-                  <td className="px-4 py-3 font-medium text-slate-900">Google Forms</td>
-                  <td className="px-4 py-3">Human, visual builder</td>
-                  <td className="px-4 py-3">Human, Sheets</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 font-medium text-slate-900">HumanSurvey</td>
-                  <td className="px-4 py-3">Agent, from plain language</td>
-                  <td className="px-4 py-3">Agent, structured JSON</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
           <p>
-            If your event is already running on Sched or Whova and you have
-            time to read the responses by eye, use the bundled survey. If
-            you&apos;re a volunteer meetup organizer who just wants structured
-            feedback without extra tooling, HumanSurvey is probably the lowest
-            overhead — especially if Claude is already the tool you use to
-            draft the post-event email.
+            A sponsored podcast episode has the same shape and takes the same configuration: no
+            link to lose, a spoken name typed in days later, and a memory of the <em>show</em>{' '}
+            rather than the app it was played in. Swap the event list for a show list and
+            everything below is unchanged.
           </p>
         </Section>
 
-        <Section tag="Getting started in two steps">
-          <Ordered
+        <Section tag="The configuration">
+          <p>
+            One form in the payment or upgrade flow, one in the signup flow. The channel list
+            includes the non-digital rows that no analytics tool has any equivalent of, and{' '}
+            <code>event</code> is the one that expands.
+          </p>
+          <CodeBlock>{configSnippet}</CodeBlock>
+          <Unordered
             items={[
               <>
-                Add HumanSurvey as an MCP server in Claude Code (
-                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">
-                  ~/.claude.json
-                </code>
-                ). Full config snippet in the{' '}
-                <Link href="/docs" className="underline underline-offset-2">
-                  docs
-                </Link>
-                .
+                <strong className="font-semibold text-slate-900">
+                  Event ids carry the edition, deliberately.
+                </strong>{' '}
+                A creator id must survive a rename; an event id must <em>not</em> merge two
+                instances, because you buy the booth once per instance and the 2027 renewal is a
+                separate decision from the 2026 one. Ids are yours and validated, never minted, so
+                this is your call to make.
               </>,
               <>
-                Ask Claude:{' '}
-                <em>&quot;create an API key for HumanSurvey.&quot;</em> It
-                calls{' '}
-                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">
-                  create_key
-                </code>
-                . Next time an event wraps, describe the retro you want —
-                Claude does the rest.
+                <strong className="font-semibold text-slate-900">
+                  Your own field events belong on the list.
+                </strong>{' '}
+                A dinner for twenty is a channel. It has no platform, no console and no row in any
+                analytics product — and it is frequently the line with the best return, which you
+                will never discover if the only option is &ldquo;a conference&rdquo;.
+              </>,
+              <>
+                <strong className="font-semibold text-slate-900">
+                  Aliases are how people actually name events.
+                </strong>{' '}
+                Nobody says &ldquo;KubeCon EU 2026&rdquo;; they say &ldquo;the one in
+                London&rdquo;. Aliases are matched by the search box and never displayed, so the
+                list stays clean while the matching stays generous.
+              </>,
+              <>
+                <strong className="font-semibold text-slate-900">
+                  Prune it as the year moves.
+                </strong>{' '}
+                Once an event is two quarters behind you, its row is costing every respondent
+                reading time. Dropping it is a config edit, and it is safe: each config is an
+                immutable snapshot, so removing a candidate never rewrites what an older response
+                says was on screen.
               </>,
             ]}
           />
+        </Section>
+
+        <Section tag="Reading it back, and the window that trips people up">
+          <p>
+            Window the read wide. The window filters on when the <em>response</em> completed, not
+            on when the event happened, so a KubeCon conversation in April shows up in whatever
+            month that person finally signed up.
+          </p>
+          <CodeBlock>{rollupSnippet}</CodeBlock>
+          <CodeBlock>{rollupShapeSnippet}</CodeBlock>
+          <p>
+            The London dinner beat SaaStr Annual on customers produced, at a fraction of the cost.
+            That is the finding this whole page exists for, and it is one row of a follow-up
+            question — collapsed into &ldquo;At a conference or event&rdquo;, it does not exist.
+          </p>
+          <p>
+            Revenue joins for free at the payment placement: the respondent has just paid, so
+            pushing your own <code>paid</code> events keyed on the same user id turns heads into
+            money.{' '}
+            <strong className="font-semibold text-slate-900">
+              Payment date does not have to fall inside the window
+            </strong>{' '}
+            — a September payment is summed against the channel the response recorded in July,
+            which is exactly the behaviour a channel with a long lag needs.
+          </p>
+        </Section>
+
+        <Section tag="Revenue per event needs one join">
+          <p>
+            Read the row above carefully:{' '}
+            <code>revenue_cents</code> is reported on the channel node and is <code>null</code> on
+            the event rows. That is not an oversight. A response&apos;s money belongs to the
+            response, so booking it on every node the person answered would multiply your total by
+            the number of questions asked — and <code>null</code> is used rather than{' '}
+            <code>0</code>, because zero would be a claim.
+          </p>
+          <p>
+            So the rollup tells you how many customers each event produced, and revenue per event
+            is one join away, on an id you already own:
+          </p>
+          <CodeBlock>{identitySnippet}</CodeBlock>
+          <p>
+            The second form is the more interesting one long-term: it makes the event a property
+            of a user record rather than a line in a monthly report, which is what lets sales open
+            an account and see <em>we met these people at KubeCon</em>.
+          </p>
+        </Section>
+
+        <Section tag="People will type the event name. That is fine.">
+          <p>
+            There is no <em>Other</em> option — if the event is not listed, they type it, and the
+            text is stored verbatim rather than normalized on the way in. For events this happens
+            more than anywhere else, because the thing people remember is a city and a month.
+          </p>
+          <CodeBlock>{remapSnippet}</CodeBlock>
+          <p>
+            The mapping is retroactive and revocable: nothing about the stored responses changes,
+            and the rollup resolves free text against the live table on every read. So one row
+            fixes six months of history at once — which matters here more than anywhere, because
+            an event&apos;s answers arrive over a season, not a week.
+          </p>
+        </Section>
+
+        <Section tag="What the two placements tell you about an expensive booth">
+          <p>
+            Events are the inverse of a viral channel: low volume, high value. The form in the
+            signup flow shows a small share; the form in the payment flow shows a much larger one.
+          </p>
+          <p>
+            <strong className="font-semibold text-slate-900">
+              That gap is the argument for the booth
+            </strong>{' '}
+            — a channel&apos;s share among payers versus its share among signups is its
+            signup-to-paid rate, and events routinely win that comparison by a distance while
+            losing on raw volume. Run one placement only and you get the half of the picture that
+            makes your best channel look small.
+          </p>
+          <p>
+            Ask early in each flow. Asking at the end of onboarding means asking only the people
+            who finished, and a channel whose leads take three weeks to activate is the one most
+            likely to be missing from that population.
+          </p>
+        </Section>
+
+        <Section tag="Getting started">
+          <p>
+            Sign in at{' '}
+            <Link href="/" className="underline underline-offset-2">
+              humansurvey.co
+            </Link>
+            , copy a key, and hand it to your agent with your event calendar.
+          </p>
+          <Quote>
+            &ldquo;Add a how-did-you-hear-about-us question to signup and to checkout. When
+            someone says they met us at an event, ask which: KubeCon EU 2026, re:Invent 2025,
+            DevOpsDays NYC, SaaStr, and our London dinner in March. Keep last year&apos;s events
+            in the list until June.&rdquo;
+          </Quote>
+          <p>
+            Your agent creates the forms, writes the candidate lists, and hands back the URLs to
+            embed. Before the next sponsorship deadline:{' '}
+            <em>&ldquo;how many customers came from each event, and what did they pay?&rdquo;</em>
+          </p>
+          <p>
+            What this is not: a post-event feedback form. It does not rate sessions, poll
+            attendees or collect speaker feedback — there is one question here, asked of your own
+            users inside your own product, and it is where they first heard about you.
+          </p>
         </Section>
 
         <section className="space-y-3 border-t border-[var(--panel-border)] pt-8">
@@ -404,13 +398,20 @@ Suggested moves for DevConf 2027:
           <ul className="space-y-2 text-sm text-slate-700">
             <li>
               ·{' '}
+              <Link href="/docs" className="underline underline-offset-2 hover:text-slate-950">
+                Docs
+              </Link>{' '}
+              — form config, the embed contract, cursor reads, the rollup
+            </li>
+            <li>
+              ·{' '}
               <Link
                 href="/use-cases/community-feedback"
                 className="underline underline-offset-2 hover:text-slate-950"
               >
-                Community feedback
+                Community attribution
               </Link>{' '}
-              — for Discord / Slack / Telegram members
+              — Reddit, Discord, Slack groups, and which community it was
             </li>
             <li>
               ·{' '}
@@ -418,16 +419,26 @@ Suggested moves for DevConf 2027:
                 href="/use-cases/product-launch"
                 className="underline underline-offset-2 hover:text-slate-950"
               >
-                Product launch feedback
+                Launch attribution
               </Link>{' '}
-              — for indie makers and PMs
+              — Product Hunt, Hacker News, X, and the spike that lands as Direct
+            </li>
+            <li>
+              ·{' '}
+              <Link
+                href="/use-cases/ai-assistants"
+                className="underline underline-offset-2 hover:text-slate-950"
+              >
+                AI assistant attribution
+              </Link>{' '}
+              — ChatGPT, Claude, Perplexity and Gemini, which all arrive as Direct
             </li>
             <li>
               ·{' '}
               <Link href="/faq" className="underline underline-offset-2 hover:text-slate-950">
                 FAQ
               </Link>{' '}
-              — anonymity, distribution, pricing, agent compatibility
+              — anonymity, what a form can and cannot ask, pricing
             </li>
             <li>
               ·{' '}

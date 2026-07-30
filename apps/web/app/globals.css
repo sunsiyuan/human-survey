@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* Dark mode is a token the HOST declares (§3.9), not a property of the viewer's
+   machine. Tailwind's stock `dark:` compiles to prefers-color-scheme, which would put
+   an embedded form in dark mode inside a light checkout — the exact "looks foreign"
+   failure §3.9 says costs completion rate directly — and would leave the host no way to
+   override it from outside the iframe. Rebinding the variant to an attribute lets the
+   embed root stamp [data-theme] from the form's theme config, so every existing `dark:`
+   class in the tree follows the host instead of the OS. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 :root {
   --background: #f2f1ec;
   --foreground: #18212b;
@@ -11,10 +20,30 @@
   --accent-soft: rgba(88, 112, 134, 0.14);
   --accent-fg: #e5edf5;
   --code-surface: #0b1320;
+
+  /* The candidate row's real border-box, and the gap between rows. Declared once
+     because two places must agree on them: CandidateRow's own min-height, and the
+     height CandidatePicker reserves for the listbox so it does not collapse as a query
+     narrows it. The picker renders in an iframe whose height a ResizeObserver reports
+     to the host, so a collapse reflows someone else's checkout page mid-keystroke.
+     3.125rem is that box measured, not min-h-11 (2.75rem): the 2rem icon plus py-2's
+     1rem plus the 1px border top and bottom. Writing the two out separately is how the
+     reservation came to under-measure every row by 12% and collapse anyway. Change
+     these only together with the row's px/py/icon size. */
+  --picker-row-h: 3.125rem;
+  --picker-row-gap: 0.25rem;
   --page-gradient:
     radial-gradient(circle at top left, rgba(88, 112, 134, 0.1), transparent 28%),
     radial-gradient(circle at top right, rgba(148, 159, 170, 0.1), transparent 20%),
     linear-gradient(180deg, #f7f6f1 0%, #f1efea 50%, #ece9e2 100%);
+}
+
+/* Only the tokens that render differently, not a second palette. --accent-soft is the
+   fill of a COMMITTED row; at 14% of a mid-slate over a dark surface it comes out
+   fainter than the hover fill (white at 8%), so the row the respondent actually chose
+   reads as less selected than whichever row their cursor happens to be resting on. */
+[data-theme="dark"] {
+  --accent-soft: rgba(140, 174, 206, 0.26);
 }
 
 @theme inline {
@@ -71,6 +100,23 @@ pre {
     var(--font-mono),
     ui-monospace,
     monospace;
+}
+
+/* An inline <code> in prose is almost always a route, a header or an identifier, and the
+   line breaker will not break any of them: UAX #14 gives no break opportunity after a
+   slash or inside a snake_case run, so `GET /api/attribution/forms/{id}/responses` is one
+   355px word. On a 360px phone that is wider than the 286px column holding it, and it does
+   not merely spill — an unbreakable word raises the min-content size of its block, which is
+   the floor an `auto` grid track sizes to. That is the mechanism that had /docs laying out
+   1730px wide inside a 520px viewport with every paragraph clipped mid-sentence, and this
+   one span was the last 32px of it still standing after the grid items got min-w-0.
+
+   `anywhere` rather than `break-word` on purpose: only `anywhere` lowers the intrinsic size
+   too, and the intrinsic size is what track sizing reads. Excluding anything under <pre>
+   is the other half — a code block keeps its lines intact and swipes sideways inside its
+   own overflow-x container, because a reader can scroll a code sample but not a sentence. */
+code:not(pre code) {
+  overflow-wrap: anywhere;
 }
 
 ::selection {

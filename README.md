@@ -4,117 +4,151 @@
 
 [![human-survey MCP server](https://glama.ai/mcp/servers/sunsiyuan/human-survey/badges/card.svg)](https://glama.ai/mcp/servers/sunsiyuan/human-survey)
 
-Feedback collection infrastructure for AI agents.
+Attribution for the channels that have no referrer.
 
-HumanSurvey lets an agent doing long-horizon work collect structured feedback from a group of people:
+HumanSurvey asks one question — how did you hear about us — inside the host's own signup or
+payment flow, at a granularity that is actually actionable: the platform first, then which
+creator, podcast, event or store.
 
 ```text
-Agent is doing a job
-  → needs structured feedback from a group
-  → creates survey from JSON schema
-  → shares /s/{id} URL with respondents
-  → humans respond over hours or days
-  → agent retrieves structured JSON results and acts on them
+Agent configures a form   → platforms from the catalog, creators supplied by the caller
+Host embeds /s/{id}       → in its signup flow, its payment flow, or both
+Respondent answers        → picks a platform; that pick expands the follow-up in place
+Host pushes conversions   → POST /api/attribution/events, keyed on its own user id
+Agent reads back          → rollup, raw response stream, free text awaiting a mapping
 ```
 
 ## What is this?
 
-HumanSurvey is a minimal API and MCP server for one narrow job: let agents collect structured feedback from groups of humans and get machine-usable results back.
+An API and MCP server for self-reported attribution. TikTok in-app, Instagram, podcasts,
+communities, word of mouth, AI assistants: the exposure happens where tracking cannot
+reach, and asking a human is the only always-on signal that survives every referrer leak.
+
+Two placements answer different questions. In the payment flow, the respondent is already
+a paying customer, so the answer joins to revenue with no conversion ingest at all. In the
+signup flow, it is the only way to see the people a channel sends who never pay. The same
+channel's share in each population *is* its signup-to-paid rate.
 
 It is designed for:
-- AI agents running event management, product launches, or community workflows that need to survey a group
-- Developers building agent products that need a lightweight feedback-collection primitive
+- hosts embedding a form in their own onboarding or checkout
+- agents that keep the candidate list current and read the results back
 
 It is not designed for:
-- survey dashboards
-- visual form builders
-- template libraries
-- email campaigns
-- analytics/reporting UI
+- general-purpose surveys — arbitrary question types, Markdown authoring and conditional
+  logic were removed in the attribution pivot
+- a human-facing analytics dashboard: the aggregates are an API resource, and the agent is
+  the dashboard
+- reaching your audience for you — HumanSurvey never contacts respondents; the transports
+  it offers (the `/s/{id}` URL and the iframe embed) are ones you control
 
 ## Features
 
-- **JSON schema input** — structured, precise, and directly machine-generated
-- **MCP server** — create surveys and read results directly from Claude Code
-- **Minimal API surface** — authenticated creator routes, public respondent submission
-- **Four semantic question types** — `choice`, `text`, `scale`, `matrix`
-- **Conditional logic** — `showIf` in Markdown and JSON schema
-- **Explicit lifecycle** — close surveys, expiry, and max response limits
+- **Progressive disclosure, not pagination** — POST the platform answer, PATCH the
+  follow-up. The first answer is durable before the second is asked, and a respondent who
+  abandons the follow-up is still real data.
+- **Rotation by default** — the orderable candidates are permuted per respondent, seeded
+  by a client-minted `render_id`, so the raw share is unbiased by construction. `fixed`
+  order exists for callers who want it and does not hide its bias.
+- **Retroactive remapping** — free text is stored verbatim and resolved against the remap
+  table on every read, so one mapping fixes months of history with no backfill.
+- **Immutable config snapshots** — a response is joined to the version it was rendered
+  against, so reconfiguring cannot rewrite what history says was shown.
+- **One join key, both directions** — `external_id` brings revenue in and carries
+  per-user attribution back out to your own user table.
+- **Cursor reads** — a response becomes visible once it is complete, is emitted exactly
+  once, and is final when emitted. Nothing downstream has to upsert.
 
 ## Product Principles
 
-- **Semantic over visual**: HumanSurvey has a small protocol, not a zoo of UI-specific field types.
-- **AI-first I/O**: agents write the survey and agents consume the results; humans are in the middle.
+- **AI-first I/O**: agents configure the form and consume the results; humans are in the middle.
 - **Everything is an API**: creator functionality must be available over authenticated HTTP and MCP.
-- **Narrow scope wins**: if a feature mainly serves human survey operators, it probably does not belong here.
-
-## Supported Question Types
-
-- `single_choice`
-- `multi_choice`
-- `text`
-- `scale`
-- `matrix`
-
-## Markdown Syntax
-
-```markdown
-# Survey Title
-
-**Description:** Instructions for the respondent.
-
-## Section Name
-
-**Q1. Your question here?**
-
-- ☐ Option A
-- ☐ Option B
-- ☐ Option C
-
-**Q2. Multi-select question?** (select all that apply)
-
-- ☐ Choice 1
-- ☐ Choice 2
-- ☐ Choice 3
-
-**Q3. Open-ended question:**
-
-> _______________
-
-| # | Item | Rating |
-|---|------|--------|
-| 1 | Item A | ☐Good ☐OK ☐Bad |
-| 2 | Item B | ☐Good ☐OK ☐Bad |
-```
-
-Scale questions:
-
-```markdown
-**Q4. How severe is this issue?**
-
-[scale 1-5 min-label="Low" max-label="Critical"]
-```
-
-Conditional logic:
-
-```markdown
-**Q1. Did the deploy fail?**
-
-- ☐ Yes
-- ☐ No
-
-**Q2. Which step failed?**
-
-> show if: Q1 = "Yes"
-
-> _______________________________________________
-```
+- **Narrow scope wins**: one question, asked well. A feature that mainly serves a human survey operator probably does not belong here.
+- **No confident percentages**: every number ships beside the denominator it was computed over, and a number we cannot compute honestly is null rather than smoothed.
 
 ## Quick Start
 
-### Use with Claude Code
+### Get an API key
 
-Add to your Claude Code config (`~/.claude.json`):
+```bash
+curl -X POST https://www.humansurvey.co/api/auth/code \
+  -H "Content-Type: application/json" \
+  -d '{ "email": "you@example.com" }'
+
+curl -X POST https://www.humansurvey.co/api/auth/verify \
+  -H "Content-Type: application/json" \
+  -d '{ "email": "you@example.com", "code": "481920", "grant": "api_key" }'
+```
+
+Anonymous key creation is gone. Every key belongs to an account from birth, which is what
+gives a lost key a recovery path and makes rotation free.
+
+### Create a form, then configure it
+
+```bash
+curl -X POST https://www.humansurvey.co/api/attribution/forms \
+  -H "Authorization: Bearer hs_sk_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Checkout — how did you hear about us",
+    "allowed_origins": ["https://app.example.com"]
+  }'
+```
+
+```json
+{
+  "id": "abc123efgh45",
+  "form_url": "https://www.humansurvey.co/s/abc123efgh45",
+  "warnings": ["this form has no config yet; PUT /api/attribution/forms/abc123efgh45 with {nodes} before embedding it"]
+}
+```
+
+A form renders nothing until it has a config. `PUT` stores one as an immutable snapshot:
+
+```bash
+curl -X PUT https://www.humansurvey.co/api/attribution/forms/abc123efgh45 \
+  -H "Authorization: Bearer hs_sk_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nodes": [
+      {
+        "id": "channel",
+        "prompt": "Where did you first hear about us?",
+        "candidates": [
+          { "id": "tiktok", "catalog_slug": "tiktok", "expands": "creator" },
+          { "id": "reddit", "catalog_slug": "reddit" },
+          { "id": "friend", "label": "A friend or colleague" },
+          { "id": "dunno", "label": "I don'\''t remember", "pinned": "end", "dont_remember": true }
+        ]
+      },
+      {
+        "id": "creator",
+        "prompt": "Which account was it?",
+        "candidates": [
+          { "id": "oecuid_8812", "label": "Jade", "handle": "@jade.work0" }
+        ]
+      }
+    ]
+  }'
+```
+
+Platform labels, marks and aliases come from `GET /api/attribution/catalog` and are copied
+into the snapshot. Creator candidates are yours: the product renders a candidate set and
+returns the id that was chosen, and matching a vague description against a creator
+database is upstream work.
+
+### Read the results
+
+```bash
+curl "https://www.humansurvey.co/api/attribution/rollup?form_id=abc123efgh45&by=candidate&from=2026-07-01&to=2026-08-01" \
+  -H "Authorization: Bearer hs_sk_..."
+```
+
+Also on the read side: `GET /api/attribution/forms/{id}/responses` (cursor stream, or one
+identity via `?external_id=`), `.../unresolved` for free text awaiting a mapping, and
+`POST .../remaps` to resolve it retroactively. Full request and response shapes are in
+[the OpenAPI document](https://www.humansurvey.co/api/openapi.json).
+
+### Use with Claude Code
 
 ```json
 {
@@ -130,65 +164,10 @@ Add to your Claude Code config (`~/.claude.json`):
 }
 ```
 
-Then in Claude Code:
-```
-> Create a post-event feedback survey with a 1-5 rating, open text, and a yes/no question
-```
-
-Available tools:
-- `create_key` — self-provision an API key; no human setup required
-- `create_survey` — create from JSON schema; optional `max_responses`, `expires_at`, `webhook_url`
-- `get_results` — aggregated results + raw responses
-- `list_surveys` — list surveys owned by your key
-- `close_survey` — close a survey immediately
-
-### Use the HTTP API
-
-```bash
-curl -X POST https://www.humansurvey.co/api/keys \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "my claude agent",
-    "email": "you@example.com",
-    "wallet_address": "eip155:8453:0xabc..."
-  }'
-```
-
-All fields optional. `wallet_address` uses [CAIP-10](https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-10.md) format — will be used for agent-native payments in the future.
-
-Then create a survey:
-
-```bash
-curl -X POST https://www.humansurvey.co/api/surveys \
-  -H "Authorization: Bearer hs_sk_..." \
-  -H "Content-Type: application/json" \
-  -d '{
-    "schema": {
-      "title": "Post-Event Feedback",
-      "sections": [{
-        "questions": [
-          { "type": "scale", "label": "How would you rate the event?", "min": 1, "max": 5 },
-          { "type": "text", "label": "What should we improve?" }
-        ]
-      }]
-    }
-  }'
-```
-
-Response:
-```json
-{
-  "survey_url": "/s/abc123",
-  "question_count": 1
-}
-```
-
-Read results:
-
-```bash
-curl https://www.humansurvey.co/api/surveys/abc123/responses \
-  -H "Authorization: Bearer hs_sk_..."
-```
+The server name stays `survey` and the package stays `humansurvey-mcp` — both sit inside
+every existing user's config. Its nine tools now speak the attribution API — see
+[`packages/mcp-server/README.md`](./packages/mcp-server/README.md). npm publishes separately
+from this repo, so the version on npm can lag what is here.
 
 ## Public Surface
 
@@ -202,7 +181,6 @@ curl https://www.humansurvey.co/api/surveys/abc123/responses \
 |-----------|-----------|
 | Framework | Next.js (App Router) |
 | Database | Neon (serverless Postgres) |
-| Parser | remark (unified ecosystem) |
 | Frontend | React + Tailwind CSS |
 | MCP Server | @modelcontextprotocol/sdk |
 | Deployment | Vercel |
@@ -210,10 +188,11 @@ curl https://www.humansurvey.co/api/surveys/abc123/responses \
 ## Project Structure
 
 ```
-├── apps/web/          # Next.js app (API + frontend)
-├── packages/parser/   # Markdown → Survey JSON parser
+├── apps/web/            # Next.js app (API + respondent page + site)
+│   ├── lib/attribution/ # config, responses, reads, rollup, remap
+│   └── supabase/migrations/  # applied through scripts/migrate.sh, with a ledger
 ├── packages/mcp-server/ # MCP server for Claude Code
-└── docs/              # Architecture docs
+└── docs/                # architecture, roadmap, design docs
 ```
 
 ## Contributing
@@ -224,9 +203,9 @@ Read [CONTRIBUTING.md](./CONTRIBUTING.md) before opening a PR. The most importan
 
 ```bash
 pnpm install
-pnpm dev              # Start Next.js dev server
-pnpm --filter @mts/parser test
-pnpm build            # Build all packages
+pnpm dev               # Start Next.js dev server
+pnpm test              # node --test over apps/web/lib/**/*.test.ts
+pnpm build             # Build all packages
 ```
 
 ## License

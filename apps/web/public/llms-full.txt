@@ -1,330 +1,913 @@
 # HumanSurvey
 
-> Feedback collection infrastructure for AI agents. An agent working on a long-horizon task creates a survey from JSON schema, shares the URL with a group of people, and retrieves structured results when ready.
+> Self-reported attribution for channels with no referrer. One question — "how did you hear
+> about us" — rendered inside a host's own signup or payment flow, answered at
+> creator/show/event granularity, and read back by an agent as a row stream or as a rollup.
 
-## What HumanSurvey is NOT
+Machine reference. Every endpoint, field and status below was checked against the shipping
+code. Where a capability does not exist, this file says so rather than omitting it.
 
-HumanSurvey does not provide: survey dashboards, visual form builders, email campaigns, analytics/reporting UI, template libraries, or human-in-the-loop decision gates for single users. If a feature mainly serves human survey operators, it is out of scope.
+## Removed — do not call, do not generate
 
-## Typical agent scenarios
+These were documented in earlier revisions of this file and no longer exist. Calling them is
+a 404 or a 401, not a deprecation.
 
-- **Post-event feedback** — event management agent creates an attendee satisfaction survey after the event ends, collects responses over 48 hours, summarizes results for the organizer
-- **Product launch survey** — product agent sends a feedback survey to users after a feature ships, aggregates NPS and open-ended responses
-- **Team pulse** — HR or team agent runs a periodic health check survey across a team, tracks trends over time
-- **Post-resolution CSAT** — customer success agent triggers a satisfaction survey when a support ticket closes
+- `POST/GET /api/surveys`, `GET/PATCH /api/surveys/{id}`,
+  `POST/GET /api/surveys/{id}/responses`, `POST /api/demo/parse`
+- The Markdown survey syntax and the LLM that translated it
+- The question types `single_choice`, `multi_choice`, `text`, `scale`, `matrix`
+- `showIf` and its `eq` / `neq` / `contains` / `answered` operators
+- `create_survey` inputs of any shape, including the `{ markdown }` form this file still
+  documented after it was removed in 0.3.0
+- The `max_responses` / `expires_at` / `notify_at_responses` / `webhook_url` create fields and
+  the `survey_closed` and `threshold_reached` webhook events
+- The `open` / `closed` / `expired` / `full` lifecycle, and `close_survey`
+- `is_final` and `completion_reason` on any read — see Cursor reads
+- The `"optionId::typed text"` fill-in encoding; free text is now a first-class `raw` answer
+- Anonymous `POST /api/keys`; key creation requires a credential
+- The noun `survey` in the creator API. A placement is a **form**; a question is a **node**;
+  an option is a **candidate**
 
-## Core Flow
+The OpenAPI document at `/api/openapi.json` (also served at `/openapi.json`) has been
+regenerated for the surface below and no longer describes any of the above.
+
+## Model
+
+- **Account** owns data. **Keys** are credentials pointing at an account. Two layers, no
+  project layer.
+- **Form** = one placement. A customer typically runs two: one in signup, one at payment.
+  Their share ratio for a channel is that channel's signup-to-paid conversion rate.
+- **Config** = a graph of ask **nodes**, each holding **candidates**. Stored as an immutable
+  numbered snapshot; responses are joined against the version they were rendered with.
+- **Response** = one respondent's pass. Written progressively: POST the first pick, PATCH the
+  follow-up. Visible to readers only once complete or swept.
+- **Catalog** = product-owned platform vocabulary (slug, label, mark, aliases). **Candidates**
+  are caller-owned. The product renders a candidate set and returns the id that was chosen; it
+  does not resolve identities.
+- An attribution form is a **perpetual stream**. There is no terminal state and no field
+  claims one. Status is `active` or `paused`; pausing is reversible.
+
+## Core flow
 
 ```
-Agent is doing a long-horizon job
-  → decides it needs structured feedback from a group
-  → POST /api/keys           # one-time setup, save the key
-  → POST /api/surveys        # create survey from JSON schema
-  → share /s/{id} with the target group (email, Slack, in-product, etc.)
-  → GET  /api/surveys/{id}/responses  # check results over hours or days
-  → PATCH /api/surveys/{id}  # close when done
-  → act on the structured results
+POST /api/auth/code     { email }                          # six-digit code, 202
+POST /api/auth/verify   { email, code, grant: "api_key" }   # → hs_sk_...
+GET  /api/attribution/catalog                              # public: slugs to configure with
+POST /api/attribution/forms          { name, allowed_origins }
+PUT  /api/attribution/forms/{id}     { nodes }              # → immutable config version
+  host embeds /s/{id}?embed=1&external_id=<their user id>
+POST /api/attribution/events         { form_id, events: [...] }
+GET  /api/attribution/rollup?form_id=...&from=&to=
+GET  /api/attribution/forms/{id}/responses?since_seq=...
+GET  /api/attribution/forms/{id}/unresolved
+POST /api/attribution/forms/{id}/remaps
+PUT  /api/attribution/forms/{id}     { nodes }              # monthly retune
 ```
-
-The survey ID is extracted from the `survey_url` field in the create response (e.g. `https://www.humansurvey.co/s/abc123` → ID is `abc123`).
 
 ## Authentication
 
-Creator endpoints require:
+Creator endpoints require `Authorization: Bearer hs_sk_...`. The header must start with
+`Bearer hs_sk_` or the answer is 401 before any lookup.
 
-`Authorization: Bearer hs_sk_...`
+Public endpoints (no key):
 
-Public endpoints:
-
-- `GET /api/surveys/{id}`
-- `POST /api/surveys/{id}/responses`
+- `POST /api/auth/code`, `POST /api/auth/verify`
+- `GET /api/attribution/catalog`
+- `POST /api/attribution/forms/{id}/responses`, `PATCH /api/attribution/forms/{id}/responses`
 - `/s/{id}`
 
-## Markdown Syntax
+### `POST /api/auth/code`
 
-### Choice
+- Public. Request: `{ "email": "you@example.com" }`
+- Response 202: `{ "sent": true, "expires_in_seconds": 600 }` — identical whether or not the
+  address has an account, so this cannot be used to test for one
+- 400 on an implausible email; 429 when throttled (per address and per client IP)
 
-```markdown
-**Q1. Which area needs the most attention?**
+### `POST /api/auth/verify`
 
-- ☐ Onboarding
-- ☐ Performance
-- ☐ Reporting
-```
-
-### Multi-choice
-
-```markdown
-**Q2. Which constraints apply?** (select all that apply)
-
-- ☐ Budget
-- ☐ Time
-- ☐ Access
-```
-
-### Text
-
-```markdown
-**Q3. What should we never change without review?**
-
-> _______________________________________________
-```
-
-### Scale
-
-```markdown
-**Q4. How likely are you to recommend us?**
-
-[scale 0-10]
-
-**Q5. Rate onboarding difficulty**
-
-[scale 1-5 min-label="Very hard" max-label="Very easy"]
-```
-
-### Matrix
-
-```markdown
-| # | Item | Rating |
-|---|------|--------|
-| 1 | Onboarding | ☐Good ☐OK ☐Bad |
-| 2 | Support | ☐Good ☐OK ☐Bad |
-```
-
-### Conditional Logic
-
-```markdown
-**Q1. Have you used the product before?**
-
-- ☐ Yes
-- ☐ No
-
-**Q2. How satisfied are you?**
-
-> show if: Q1 = "Yes"
-
-[scale 1-5]
-```
-
-Supported operators:
-
-- `show if: Q1 = "Yes"`
-- `show if: Q1 != "No"`
-- `show if: Q2 contains "Other"`
-- `show if: Q3 answered`
-
-## JSON Schema Input
-
-```json
-{
-  "schema": {
-    "title": "Product Feedback",
-    "sections": [
-      {
-        "title": "Core",
-        "questions": [
-          {
-            "type": "single_choice",
-            "label": "What is your primary use case?",
-            "required": true,
-            "options": [
-              { "label": "Work" },
-              { "label": "Personal" }
-            ]
-          },
-          {
-            "type": "scale",
-            "label": "How satisfied are you overall?",
-            "required": true,
-            "min": 1,
-            "max": 5,
-            "showIf": {
-              "questionId": "q_0",
-              "operator": "eq",
-              "value": "Work"
-            }
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-## API Reference
+- Public. Request: `{ "email", "code", "grant"?, "name"?, "agent_client"? }`
+- `code` must be exactly six digits. `grant` is `"api_key"` or `"session"` (default
+  `"session"`; any other value is treated as `"session"`)
+- `grant: "api_key"` → 201 `{ "id", "key" }`. The only time the key is readable; stored hashed
+- `grant: "session"` → 200 `{ "signed_in": true }` plus an httpOnly `hs_session` cookie,
+  30-day TTL. Consumed by /signin, which sets it, and accepted by the three /api/keys routes
+so that /account can list and issue keys for a visitor who does not have one yet. Every
+other route takes a bearer key only.
+  `grant: "api_key"` is the only useful grant today
+- 400 `{ "error": "That code is not valid" }` for both a wrong code and no outstanding code —
+  deliberately indistinguishable. 400 on expiry, 429 after too many wrong attempts
 
 ### `POST /api/keys`
 
-- No auth required
-- Request: `{ "name": "my-agent" }` (name is optional)
-- Response 201: `{ "id": "abc123", "key": "hs_sk_...", "name": "my-agent", "created_at": "..." }`
-- **Save the key value — it is shown only once**
+- **Auth required.** Anonymous key creation is gone: a key is issued only against a verified
+  email code or an existing key
+- Request: `{ "name"?, "agent_client"? }`. There are no `email` or `wallet_address` fields
+- Response 201: `{ "id", "key", "name", "created_at" }`
 
 ### `GET /api/keys`
 
-- Auth required
-- Returns metadata (id, name, created_at, last_used_at) for the current key — key value is not returned. A key only sees itself; there is no account grouping multiple keys.
+- Auth required. Returns **every key on the account**, newest first — a key that can see only
+  itself cannot be rotated
+- Each entry: `{ "id", "name", "agent_client", "created_at", "last_used_at", "revoked_at",
+  "current" }`. `current` flags the key in the Authorization header. Key values are never
+  returned
 
 ### `DELETE /api/keys/{id}`
 
-- Auth required; `{id}` must be the current key's own id (a key can only revoke itself)
-- Revokes the current key. Surveys remain (hosted `/s/{id}` URLs keep accepting responses) but the key can no longer call creator endpoints.
-- No in-place rotation: to rotate, `POST /api/keys` for a replacement, move the integration to it, then `DELETE` the old key. A survey is owned by its creating key, so the new key cannot read results for surveys created under the old key — re-create any still-needed surveys under the new key.
+- Auth required. Revokes **any** key on the account, including one you are not holding — that
+  is the case that matters, killing a leaked key from somewhere safe
+- 204 on success. 404 for unknown id, another account's key, and already-revoked alike
+- Soft delete; the row is kept as an audit trail. Forms and responses belong to the account,
+  so rotation orphans nothing
 
-### `POST /api/surveys`
+## Form config
 
-- Auth required
-- Request body: `{ "schema": { ... }, "max_responses": 50, "expires_at": "2026-04-14T00:00:00Z", "webhook_url": "https://...", "notify_at_responses": 10 }`
-- `schema` is required. `max_responses`, `expires_at`, `webhook_url`, and `notify_at_responses` are optional.
-- `webhook_url`: receives POST requests on notable lifecycle events. Branch on the `event` field.
-  - **Closure event** — fires on manual close, `max_responses` reached, or `expires_at` passed (lazy — within seconds of any next interaction). Payload: `{ "event_id", "event": "survey_closed", "survey_id", "status": "closed", "closed_reason": "manual" | "max_responses" | "expired", "response_count", "closed_at" }`.
-  - **Threshold event** — fires once when `response_count` first crosses `notify_at_responses` (only if that field is set). Survey stays open. Payload: `{ "event_id", "event": "threshold_reached", "survey_id", "status": "open", "response_count", "threshold", "fired_at" }`.
-  - Use `event_id` to dedupe; delivery is at-least-once per event type. Both events may fire over a survey's lifetime (separate fire-once flags).
-- `notify_at_responses`: optional positive integer for the threshold event. Requires `webhook_url` (the API rejects the create otherwise; PATCH does not accept `webhook_url`, so it can't be added later). Must be ≤ `max_responses` if both are set.
-- Response 201: `{ "survey_url": "https://www.humansurvey.co/s/abc123", "question_count": 3 }`
-- Error 400: `{ "error": "schema is required" }` or `{ "error": "Invalid schema", "errors": ["..."] }`
+### `POST /api/attribution/forms`
 
-### `GET /api/surveys`
+- Auth required. Request: `{ "name", "allowed_origins"?, "theme"?, "per_response_webhook_url"? }`
+- `name` is required, ≤ 120 characters
+- Response 201: `{ "id", "form_url": "https://www.humansurvey.co/s/{id}", "warnings": [...] }`
+- `warnings` always includes `this form has no config yet; PUT /api/attribution/forms/{id}
+  with {nodes} before embedding it`, and includes the empty-allowlist warning when
+  `allowed_origins` is absent or empty
+- 400 `{ "error", "errors": [...] }` on invalid settings — every problem at once, not the first
 
-- Auth required
-- Returns array of surveys owned by the current key, newest first
-- Each item: `{ "id", "title", "status", "response_count", "max_responses", "expires_at", "created_at" }`
+### `GET /api/attribution/forms`
 
-### `GET /api/surveys/{id}`
+- Auth required. Array, newest first. Each: `{ "id", "name", "status", "current_version",
+  "response_count", "allowed_origins", "created_at", "form_url" }`
 
-- **Public** — no auth required
-- Returns survey metadata, full schema, response count, status, lifecycle fields
-- status is `"open"` or `"closed"`
+### `GET /api/attribution/forms/{id}`
 
-### `PATCH /api/surveys/{id}`
+- Auth required. `{ "id", "name", "status", "current_version", "allowed_origins", "theme",
+  "per_response_webhook_url", "response_count", "created_at", "form_url",
+  "config": { "version", "nodes", "root_node_id", "config_hash", "created_at" } | null }`
+- `config` is null when the form has never been configured
+- 404 for both "no such form" and "not your form", on this and every route taking a form id.
+  Splitting them would let a key holder enumerate the id space
 
-- Auth required, must own the survey
-- Update any subset of: `{ "status": "closed" | "open", "max_responses": 100, "expires_at": "..." }`
-- Lifecycle transitions:
-  - **Manual close** (`status: "closed"` from open): fires `survey_closed` webhook with `closed_reason: "manual"`, and clears `expires_at` in the same UPDATE so a previously-set future deadline doesn't later cause `completion_reason` to drift from `"closed"` to `"expired"`. If a deadline is desired post-close, supply `expires_at` in the same PATCH or via a follow-up.
-  - **Reopen** (`status: "open"` from closed): starts a new collection cycle. Clears the completion-webhook fire-once gate so the next close (manual / max_responses / expired) delivers a fresh `survey_closed` event. The threshold gate is **not** cleared. If the survey was max-closed (so `expires_at` was preserved) and that timestamp is now past, ensureExpiredHandled will close it again on the next read; pass a new `expires_at` if you want to extend the window.
-  - Other field updates (`max_responses`, `expires_at`) without a status change don't touch webhook gates.
-- `webhook_url` and `notify_at_responses` cannot be changed after create — they are set once at POST time.
-- Response 200: `{ "id", "status", "max_responses", "expires_at" }`
+### `PUT /api/attribution/forms/{id}` — configure
 
-### `POST /api/surveys/{id}/responses`
+- Auth required. Request: `{ "nodes": [...], "root_node_id"? }`
+- Validates, snapshots, and points the form at the snapshot
+- Response 200: `{ "id", "version", "created", "warnings" }`. 200 on both paths — a 201/200
+  split would tempt a caller to read the dedupe as a failure
+- `created: false` means an identical config already existed and its version was reused.
+  `current_version` still moves: re-posting an old config is a request for it to be live
+  again, only the minting is skipped. Dedupe is on a content hash of the **hydrated** config,
+  so a catalog label or mark changing in a deploy mints a new version on the next configure
+- Do not defeat the dedupe by adding noise. The position-effect sample is scoped to one
+  config version, so a fresh version every month fragments it silently
+- 400 `{ "error": "Invalid attribution config", "errors": [...] }`
 
-- **Public** — no auth required
-- Request: `{ "answers": { "q_0": "opt_1", "q_1": ["opt_0", "opt_2"], "q_2": 4, "q_3": "free text" }, "metadata": { "source": "pricing" } }`
-- `answers` is an object keyed by question id (`q_0`, `q_1`, ...), not an array. Only answered questions appear (skipped-optional and conditionally-hidden questions are omitted).
-- Answer value types by question type:
-  - `single_choice` → option ID string (e.g. `"opt_0"`)
-  - `multi_choice` → array of option ID strings (e.g. `["opt_0", "opt_2"]`)
-  - `scale` → number within the defined range (e.g. `4`)
-  - `text` → string
-  - `matrix` → array of `"rowId:optionId"` strings, one per answered row (e.g. `["row_0:opt_1", "row_1:opt_0"]`)
-- Choice fill-in text: if a `single_choice`/`multi_choice` option has a text input, its value carries the typed text after a `::` separator — `"optionId::typed text"`. Split on the first `::` for the option id. This same `answers` object is what the embed `submitted` event delivers and what `get_results` returns in `raw[]`.
-- `metadata`: optional response tags. The survey page captures this automatically from custom (non-reserved) URL query params — see Embedding § Response tagging. Sanitized: string values only, at most 20 keys, keys ≤ 64 chars, values ≤ 512 chars.
-- Response 201: `{ "id": "responseId" }`
-- Error 410: `{ "error": "This survey is closed" }` / `"...expired"` / `"...full"`
+#### Node
 
-### `GET /api/surveys/{id}/responses`
-
-- Auth required, must own the survey
-- Optional query: `?since_response_id=<previous next_cursor>` — filters `raw` to responses received since that id. Aggregates always reflect the full survey regardless.
-- Returns:
-  - `count`: total response count (full survey, ignores cursor)
-  - `is_final`: boolean — true once the survey is closed (manual / max_responses / expired)
-  - `completion_reason`: `"closed" | "max_responses" | "expired"` when `is_final` is true, else null. Vocabulary differs from the webhook `closed_reason` in one spot: cursor `"closed"` corresponds to webhook `closed_reason: "manual"`. Each cause is stable post-close (no drift over time).
-  - `next_check_hint_seconds`: advisory poll cadence in seconds, server-computed from recent response rate and time-to-expiry. null when `is_final`. Treat as a suggestion — agents may check sooner.
-  - `next_cursor`: id of the newest response in the full set, or null if empty. Pass back as `since_response_id` on the next call. Cursor reads are tie-proof — concurrent inserts that share a clock-tick still all surface in subsequent deltas.
-  - `questions`: pre-aggregated results per question (see below)
-  - `raw`: array of individual responses, optionally cursor-filtered. Each entry: `{ "id", "answers", "metadata", "created_at" }` — `metadata` is the response tags object (`{}` when none were sent).
-
-#### Aggregated question shapes
-
-**single_choice / multi_choice:**
 ```json
-{ "id": "q_0", "type": "single_choice", "label": "...", "options": [...], "tally": { "opt_0": 3, "opt_1": 1 } }
+{
+  "id": "channel",
+  "prompt": "Where did you first hear about us?",
+  "candidates": [ ... ],
+  "allow_free_text": true,
+  "order": "rotate"
+}
 ```
 
-**scale:**
+- `id` required, ≤ 128 chars, unique across nodes. `prompt` required, ≤ 120 chars
+- `candidates` required, non-empty, ≤ 500 entries. At most 12 nodes per form
+- `allow_free_text` default `true`. When false, a `raw` answer on that node is a 400
+- `order` is `"rotate"` (default) or `"fixed"`. `rotate` permutes the orderable segment per
+  respondent, seeded by `render_id`, so every option spends equal expected time at every
+  position and the raw share is unbiased by construction. `fixed` uses the array order
+  verbatim and accepts the position bias
+
+#### Candidate
+
 ```json
-{ "id": "q_1", "type": "scale", "label": "...", "min": 1, "max": 5, "stats": { "count": 4, "mean": 3.5, "median": 4, "distribution": { "1": 0, "2": 1, "3": 1, "4": 1, "5": 1 } } }
+{
+  "id": "oecuid_8f21",
+  "label": "Jade",
+  "handle": "@jade.work0",
+  "icon_url": "https://cdn.example.com/avatars/jade.jpg",
+  "aliases": ["the one who does the office skits"],
+  "monogram_color": "#0A66C2",
+  "pinned": "end",
+  "dont_remember": true,
+  "expands": "creator",
+  "catalog_slug": "tiktok"
+}
 ```
 
-**text:**
+- `id` required, ≤ 128 chars, unique within the node, **caller-defined**. The product
+  validates ids rather than minting them. Use a key that survives a rename; a handle used as
+  an id splits that creator's history the day they rename
+- `label` required, ≤ 120 chars. `handle`, `icon_url`, `monogram_color` optional and held to
+  the same 120-char cap — **an avatar URL longer than 120 characters is rejected**, so shorten
+  it or proxy it. `expands` and `catalog_slug` share that cap too, which means an id longer
+  than 120 characters cannot be referenced even though ids themselves allow 128
+- `aliases` ≤ 24 entries, lowercased and deduped, matched by search and **never displayed**.
+  They exist because people remember descriptions, not handles. Merged with the catalog's
+  rather than overriding them
+- `pinned: "end"` — the only accepted value. Excluded from ordering and rendered last, in
+  `fixed` mode too, because pinning is a property of the candidate and not of the mode. At
+  most one per node
+- `dont_remember: true` — the only accepted value. Records the pick as a non-answer rather
+  than as a channel, and **requires** `pinned: "end"`. At most one per node. Semantics live
+  in the snapshot, not in the client: a headless integrator sending
+  `{ "candidate_id": "dunno" }` gets `kind: "dont_remember"`, same as the browser picker
+- `expands` — the id of the node this pick reveals, in place. Must resolve, must not be the
+  node's own id, must not create a cycle
+- `catalog_slug` — copies `label`, `icon_url`, `monogram_color` and `aliases` from the
+  platform catalog at configure time. Anything you send yourself wins; a blank string means
+  "use the catalog's". An unknown slug is a 400. Copied, never joined at read time, so a
+  product-side logo swap cannot rewrite what an old rollup says was rendered
+- `expands_by_default` from the catalog is **advisory and never applied** — expansion policy
+  is the caller's monthly decision
+
+#### Graph rules
+
+- Exactly one node must have no incoming `expands` edge. That node is the root, derived rather
+  than declared; sending `root_node_id` is checked against the derived root
+- Expansion cycles are rejected. Nodes unreachable from the root are rejected
+- Errors arrive as a full list, with paths like
+  `nodes[0].candidates[3].id is required and must be a non-empty string`
+
+### `PATCH /api/attribution/forms/{id}` — settings
+
+- Auth required. Accepts any subset of `name`, `status`, `allowed_origins`, `theme`,
+  `per_response_webhook_url`. At least one is required
+- **Rejects `nodes` and `root_node_id` with 400** naming `PUT`, rather than accepting them and
+  silently dropping the candidate list
+- `status`: `"active"` or `"paused"`. Nothing else exists — no open/closed/expired/full
+- `allowed_origins`: ≤ 20 absolute http/https origins, compared against the host page's
+  origin (scheme + host + port). A path, query or fragment is rejected at configure time,
+  because the value is compared against an `Origin` and would silently match nothing.
+  **An empty list is enforced as allow-all**, and every write warns about it: an unlisted
+  origin embedding the form spends the account's response quota
+- `theme`: exactly four tokens, unknown keys are a 400 — `accent` (hex `#rgb`/`#rrggbb`/
+  `#rrggbbaa`), `radius` (integer 0–48 px), `font` (font-family list, restricted charset),
+  `dark_mode` (`"light"` / `"dark"` / `"auto"`). Replaces the stored theme wholesale, so `{}`
+  resets it. Not a theme editor — a bounded set, because a form that looks foreign inside
+  someone's checkout costs completion rate
+- `per_response_webhook_url`: http/https URL, ≤ 2048 chars, or `null` to clear. **Validated
+  and stored; nothing delivers to it yet.** Do not build on it — use the cursor read
+- Response 200: the form summary plus `form_url` and `warnings`
+
+## Respondent write path
+
+Public on both verbs, because it is called from inside a form embedded in someone else's
+payment flow. What stands in for auth is per verb: POST is gated on the origin allowlist,
+PATCH on the one-time token POST mints.
+
+### `POST /api/attribution/forms/{id}/responses`
+
 ```json
-{ "id": "q_2", "type": "text", "label": "...", "responses": [{ "value": "...", "created_at": "..." }] }
+{
+  "render_id": "V1StGXR8_Z5j",
+  "config_version": 7,
+  "node_id": "channel",
+  "answer": { "candidate_id": "tiktok" },
+  "selected_via_search": false,
+  "external_id": "usr_8812",
+  "host_origin": "https://app.example.com",
+  "metadata": { "plan": "pro" }
+}
 ```
 
-**matrix:**
+- Response 201: `{ "response_id", "patch_token", "next_node"? }`. `next_node` is the full node
+  object to render; its absence means the response is already complete
+- `render_id` required, ≤ 64 chars, minted by the client **before first paint** — it is the
+  rotation seed, so it cannot be the response id, which is minted server-side inside this call
+- **Send no position data.** `positions` and `position` in the body are read by nothing and
+  are also not rejected (grace period for clients built against the old contract). The server
+  derives the impressions map *and* the chosen index from `(render_id, config_version, node)`
+  by running the same pure permutation the client rendered with. Neither number is forgeable,
+  and no honest submission can be rejected for disagreeing
+- `selected_via_search` optional boolean, default false, and stays client-supplied because the
+  server sees the list but not the keystrokes. It can only **suppress** a recorded position,
+  never invent one: someone who types "jad" and takes the only match did not choose row 0 over
+  eleven alternatives. A client that lies withholds its own data point and nothing else
+- `node_id` must be the root node. Any other node is a 400 — a POST is the first selection by
+  definition, and accepting another would create a response carrying no channel answer
+- `config_version` optional positive int4. Omitted means the form's current version, which is
+  only right for a client predating the field. A version belonging to another form is a 400
+- `external_id` optional, ≤ 256 chars, opaque. The join key in both directions. Deliberately
+  **not unique** — a retake is allowed — and the rollup counts the first response per
+  `(form_id, external_id)`. **Respondent-asserted and never verified:** it identifies, it does
+  not authenticate. Not backfillable, so capture it from day one
+- `host_origin` optional, ≤ 256 chars, the embedding page's origin. Checked instead of the
+  `Origin` header because the iframe is served from our origin, so every embed is same-origin
+  by construction. **Billing hygiene, not a security boundary** — anything in the browser can
+  assert it. The `Origin` header is the fallback for a direct cross-origin caller
+- `metadata` optional. Sanitized: string and number values only, ≤ 20 keys, keys ≤ 64 chars,
+  values ≤ 512 chars; `embed`, `external_id` and `host_origin` are dropped
+- All respondent strings reject C0 control characters, DEL, and unpaired UTF-16 surrogates
+  (tab, newline and carriage return are allowed in free text)
+
+#### `answer`
+
+Exactly one of four keys. Two, or none, is a 400 naming the count. `false` counts as absent,
+so spreading a full shape is safe.
+
 ```json
-{ "id": "q_3", "type": "matrix", "label": "...", "rows": [...], "columns": [...], "tally": { "row_0": { "opt_0": 2, "opt_1": 1 } } }
+{ "candidate_id": "tiktok" }
+{ "raw": "the office skits girl" }
+{ "dont_remember": true }
+{ "skipped": true }
 ```
 
-## Embedding (iframe)
+- `candidate_id` must be a candidate of that node in that config version, or 400. A candidate
+  carrying `dont_remember` is recorded as `kind: "dont_remember"` and opens no follow-up
+- `raw` ≤ 500 characters, **rejected rather than truncated** when longer — it is the remap key,
+  and a clipped key resolves to a different bucket than the respondent typed. Stored verbatim,
+  never trimmed; normalization is `lower(btrim(raw))`, a generated column in Postgres
+- Skipping is allowed on purpose: making the question required converts non-rememberers into
+  random pickers, which lowers data quality while appearing to raise completion
 
-The hosted survey page can be dropped into any third-party site for onboarding / lead-capture flows. Append `?embed=1` to the survey URL to render without the site chrome.
+#### Statuses
 
-### URL contract
+- 400 `{ "error": "Invalid response payload", "errors": [...] }`
+- 403 `This origin is not allowed to submit to this form`
+- 404 `Form not found`
+- 409 `This form is not accepting responses` — paused. **409 and not 410**, because pausing is
+  reversible and 410 tells a client the resource is gone for good
+- 409 `This form has not been configured yet`
 
-- `https://www.humansurvey.co/s/{id}?embed=1` — renders the form on a transparent, full-width container with no header, footer, or page gradient.
+### `PATCH /api/attribution/forms/{id}/responses`
 
-### Response tagging
+```json
+{ "response_id": "xyz789abcd01", "patch_token": "…", "node_id": "creator",
+  "answer": { "candidate_id": "oecuid_8f21" }, "selected_via_search": false }
+```
 
-Append custom query params to the survey URL (embedded or standalone) to tag where a response came from — e.g. `?embed=1&source=pricing&tier=lite`. Any param that is not reserved is captured and stored with the response as a `metadata` object, surfaced on each `raw[]` entry from `GET /api/surveys/{id}/responses` and as a per-tag breakdown in `get_results`.
+- Response 200: `{ "response_id", "completed", "next_node"? }`
+- `patch_token` is required and is good until the response completes, not for exactly one
+  call, so an expansion chain deeper than two levels works. Stored hashed, compared in
+  constant time
+- `node_id` must equal the response's `awaiting_node_id`
+- The render id comes off the stored row, never the body — taking it from a later request
+  would let a caller choose the permutation their pick is scored against after seeing the list
+- Deliberately **not** gated on the origin allowlist or on form status: both decide whether a
+  response should be *created*, and re-checking here would convert a real answer into an
+  abandonment whenever an origin list or a pause landed mid-response
+- 403 `Unknown response id or patch token` — one answer for both, because response ids are 12
+  nanoid characters handed back to a browser and separating the cases is an existence oracle
+- 409 `This response is already complete`, or `This response is awaiting node "<id>"`
 
-- Reserved param: `embed` — consumed by the renderer, never stored. Every other param is captured.
-- Sanitized on capture: string keys/values only, at most 20 keys, keys ≤ 64 chars, values ≤ 512 chars. Repeated params keep their last value.
-- Responses with no custom params carry `metadata: {}`.
+### Visibility gate
+
+A response becomes visible to the reads below only when it is **complete**, or when the
+abandonment sweep closes it out. The cursor token is stamped at that moment, not at insert, so
+every row is emitted exactly once and is final when emitted — no consumer has to upsert.
+
+The sweep runs lazily on authenticated reads of that form (cursor read, identity read,
+rollup), rate-limited to once a minute per form and batched. The current threshold is 30
+minutes and is a placeholder. A swept response has `completion: "abandoned"`, is billed and
+counted exactly like a finished one — its channel answer is real data — and keeps its
+`awaiting_node_id`.
+
+## Cursor reads
+
+`GET /api/attribution/forms/{id}/responses` — auth required. Two reads on one verb, dispatched
+on the query string. Sending both `since_seq` and `external_id` is a 400: two different
+orderings and two different meanings of "first row", and a cursor from one is not a cursor
+into the other.
+
+### `?since_seq=<next_cursor>&limit=<1..500>`
+
+The agent's delta read. `since_seq` is **exclusive**; absent means from the beginning of the
+stream, so a first call needs no cursor. `limit` defaults to 100 and an out-of-range value is
+**rejected, not clamped** — an agent that asked for 5000 and silently got 500 believes it
+drained the stream.
+
+```json
+{
+  "responses": [ ... ],
+  "count": 100,
+  "next_cursor": "48211",
+  "has_more": true,
+  "open_responses": true,
+  "next_check_hint_seconds": 0
+}
+```
+
+- **`is_final` was REMOVED and is not coming back.** It could never legitimately be true: its
+  condition included `status !== 'active'`, i.e. a paused form — but pausing is reversible, so
+  an agent that stopped on it stopped reading a stream that resumes the next day. An
+  attribution form is perpetual by design; it has no terminal state, so no field may claim
+  one. `completion_reason` is gone with it
+- `has_more` — a row past this page exists **right now**. A fact, not a
+  `rows.length === limit` guess: the page is read with `LIMIT limit + 1` and the extra row
+  dropped, so a page ending exactly on the boundary does not claim a page that is not there
+- `open_responses` — a response is in flight: it answered its first question and has not yet
+  resolved or been swept. Derived from the **same snapshot** as the page, in one statement,
+  because computing it afterwards reports "drained" about a stream that grew in between — and
+  an agent stops polling on that, so the row is not delayed, it is lost
+- `next_check_hint_seconds` — advisory, derived from the two above: `0` when `has_more`, `120`
+  when something is open, `3600` when drained. Server-side so the cadence is tunable in one
+  place; agents may check sooner
+- `next_cursor` — this page's own last cursor, never the stream's maximum (which would skip
+  every row between). Echoes the caller's cursor on an empty page rather than resetting to
+  null, which would restart the stream from the beginning
+- The cursor is `completed_seq`, not insert order and not `created_at`
+
+### `?external_id=<id>&limit=<1..500>`
+
+One identity, so a customer can join our answer into their own user table one row at a time.
+
+```json
+{
+  "external_id": "usr_8812",
+  "responses": [ { "canonical": true, ... }, { "canonical": false, ... } ],
+  "count": 2,
+  "canonical_response_id": "xyz789abcd01",
+  "has_retakes": true,
+  "truncated": false
+}
+```
+
+- Ordered by `created_at` (tie-broken by `completed_seq`), **not** by the cursor token: an
+  abandoned response is stamped complete by the sweep up to the threshold after it was
+  created, so ordering on the cursor would call a retake canonical and book that identity's
+  revenue against the channel they answered second
+- The first row is `canonical` — the one the rollup books revenue against
+- `has_retakes` surfaces the extras rather than hiding them; `truncated` is true when the
+  identity has more responses than `limit` returned
+- Only completed responses are visible here too, so an empty result can mean "still
+  answering", not "never answered"
+
+### Response row
+
+```json
+{
+  "id": "xyz789abcd01",
+  "external_id": "usr_8812",
+  "config_version": 7,
+  "completion": "finished",
+  "completed_at": "2026-07-14T09:12:00.000Z",
+  "cursor": "48211",
+  "awaiting_node_id": null,
+  "answers": [
+    { "node_id": "channel", "kind": "candidate", "raw": null,
+      "candidate_id": "tiktok", "resolved_candidate_id": "tiktok",
+      "resolved_via": "answer", "resolved_label": "TikTok",
+      "position": 3, "selected_via_search": false },
+    { "node_id": "creator", "kind": "raw", "raw": "the office skits girl",
+      "candidate_id": null, "resolved_candidate_id": "oecuid_8f21",
+      "resolved_via": "remap", "resolved_label": "Jade",
+      "position": null, "selected_via_search": false }
+  ],
+  "positions": { "channel": { "tiktok": 3, "chatgpt": 0, "reddit": 1 } },
+  "metadata": { "plan": "pro" },
+  "created_at": "2026-07-14T09:11:12.000Z"
+}
+```
+
+- `completion` is `"finished"` or `"abandoned"`. `awaiting_node_id` non-null is the row-level
+  candidate-coverage read-out: the follow-up this respondent never came back for
+- `cursor` is this row's `completed_seq`, as a **string** because it is an int8 — `Number()`
+  rounds past 2^53. Treat it as an opaque token
+- `kind` is `"candidate"`, `"raw"`, `"dont_remember"` or `"skipped"`
+- `raw` is verbatim, exactly as typed. `candidate_id` is the pick before any remap
+- `resolved_candidate_id` = `COALESCE(live_remap.candidate_id, candidate_id)`, computed at read
+  time against the live remap table. `resolved_via` is `"answer"`, `"remap"`, or null when
+  nothing resolved. **The unresolved values ship next to the resolved one on purpose:** a
+  caller who only sees the resolved answer cannot audit a mapping it disagrees with
+- `resolved_label` comes from the most recent config version containing that id on that node,
+  never from the live catalog. Null is normal for a remap target — the target is deliberately
+  not a foreign key, so a candidate can be dropped while history still needs the mapping
+- `position` is the rendered index in the initial unfiltered list, or null when no position
+  exists: a `raw`/`dont_remember`/`skipped` answer, a pinned candidate, a candidate past the
+  12 visible rows, or a pick flagged `selected_via_search`
+- `positions` is `{node_id: {candidate_id: index}}` for the initial unfiltered render. Pinned
+  rows and rows past the visible cap are excluded entirely — an impression is a claim that the
+  respondent could have chosen that row
+
+## Free text and remapping
+
+Free text is never normalized at write time and never discarded. Because candidate ids are
+caller-defined, there is no way to end up with a `TikTok` bucket beside a `tiktok` one.
+
+**A mapping is not an edit.** Nothing about a response or an answer row changes; the rollup and
+the row reads resolve against the live remap table on every read, joined on
+`(form_id, node_id, raw_normalized) WHERE revoked_at IS NULL`. So one row fixes two months of
+history at once with no backfill, and revoking it moves them back.
+
+### `GET /api/attribution/forms/{id}/unresolved`
+
+- Auth required. Query: `node_id`, `from`, `to`, `include_mapped` (`1`/`0`/`true`/`false`),
+  `limit`, `offset`. An unrecognized boolean is a 400, not a silent false
+- The window filters the response's `completed_at` and `to` is exclusive, matching the rollup,
+  so the same pair reconciles across both endpoints
+
+```json
+{
+  "form_id": "abc123efgh45",
+  "window": { "from": null, "to": null },
+  "totals": { "raw_responses": 63, "mapped_responses": 12, "unmapped_responses": 51,
+              "texts": 44, "unmapped_texts": 38 },
+  "returned": 38,
+  "truncated": false,
+  "entries": [
+    { "node_id": "creator", "raw_normalized": "the office skits girl",
+      "occurrences": 12, "variants": ["The office skits girl", "the office skits girl"],
+      "variant_count": 2, "first_seen": "…", "last_seen": "…",
+      "mapped": false, "remap_id": null,
+      "mapped_candidate_id": null, "mapped_candidate_label": null }
+  ],
+  "notes": [ ... ]
+}
+```
+
+- Grouped by `(node_id, raw_normalized)`, ordered by `occurrences` descending — work the
+  twelve-occurrence entry before the singleton
+- Entries a live remap already covers are excluded unless `include_mapped=1`
+- `variants` is capped at 5 distinct spellings; `variant_count` is the truth
+
+### `POST /api/attribution/forms/{id}/remaps`
+
+- Auth required. Request: `{ "node_id", "candidate_id", "raw" | "raw_normalized", "note"? }`
+- Send **exactly one** of `raw` (a verbatim sample straight out of the unresolved list) or
+  `raw_normalized`; both take the identical path, `lower(btrim(...))` evaluated in Postgres,
+  which is the same function that generated the stored key. Sending both, or neither, is a 400
+- Not trimmed client-side on purpose: JavaScript `trim()` strips tabs, newlines and Unicode
+  spaces where `btrim` strips spaces only, so trimming first would produce a key that matches
+  nothing for any text pasted with a trailing newline — a mapping that resolves zero rows,
+  reported as success
+- Response 201: `{ "remap": { "id", "node_id", "raw_normalized", "candidate_id", "note",
+  "created_at", "revoked_at" }, "resolved_responses", "candidate_label",
+  "candidate_label_version", "warnings" }`
+- `resolved_responses` is the exact number of completed responses that just moved, so "I
+  mapped it and nothing changed" is visible immediately rather than in next month's numbers
+- `candidate_id` is **not** validated against the current config — the candidate may have been
+  dropped while history still needs the mapping — but an id present in no version of the form
+  comes back in `warnings`, because the likelier cause is a typo
+- 409 `{ "error", "existing": { ... } }` when a live remap of the same string already exists —
+  two live remaps of one string double-count in the read-time join, so this is a real conflict
+  and the body names the row to revoke
+
+### `GET /api/attribution/forms/{id}/remaps`
+
+- Auth required. Query: `include_revoked`, `limit`, `offset`
+- `{ "form_id", "returned", "truncated", "remaps": [ ... ], "notes": [ ... ] }`, each remap
+  carrying `candidate_label`, `candidate_label_version` and `resolved_responses`
+
+### `DELETE /api/attribution/forms/{id}/remaps/{remapId}`
+
+- Auth required. **Soft** — `revoked_at` is stamped and the row stays, because the row is the
+  record that a number was once reported differently
+- Response 200: `{ "remap", "revoked", "resolved_responses", "notes" }`
+- Idempotent: revoking an already-revoked mapping is 200 with `revoked: false` and the original
+  timestamp, not a 409. Moving `revoked_at` forward would rewrite when the mapping stopped
+  applying
+- Scoped by `form_id` as well as id — a remap id alone never revokes another form's mapping
+- 404 covers "no such form", "not your form" and "no such remap" alike
+
+## Conversion events
+
+### `POST /api/attribution/events`
+
+Auth required. The inbound half of the `external_id` join: the host pushes what happened to a
+person, we already know which channel that person named, and the rollup becomes channel ×
+revenue instead of channel × heads. Caller-pushed on purpose — there is no Stripe or AppsFlyer
+integration.
+
+Accepts a single event object, a bare array, or an envelope. An envelope `form_id` is pushed
+onto every element that omits one. Batch cap 500; a larger batch is a 400 telling you to page.
+
+```json
+{
+  "form_id": "abc123efgh45",
+  "events": [
+    { "external_id": "usr_8812", "event": "paid", "value_cents": 4900, "currency": "USD",
+      "occurred_at": "2026-07-14T09:12:00Z", "idempotency_key": "stripe_in_1P9x" },
+    { "external_id": "usr_9130", "event": "signup", "occurred_at": "2026-07-14T10:01:00Z" }
+  ]
+}
+```
+
+- `form_id`, `external_id`, `event`, `occurred_at` required. `event` is one of `signup`,
+  `activated`, `paid`, `churned`
+- `value_cents` optional, a safe integer of minor units within ±(2^53 − 1), negatives allowed,
+  and it **requires `currency`** — money with no unit cannot be summed. `currency` is 2–12
+  alphabetic characters. `occurred_at` must be an ISO 8601 timestamp string
+- `idempotency_key` optional, ≤ 200 chars, unique per `(form_id, idempotency_key)`
+- `external_id` is held to the same rules as the write path, **including the same trimming** —
+  the join key has to be byte-identical to the one the embed stored, or the event lands and
+  joins to nobody
+
+```json
+{
+  "accepted": 1, "duplicates": 1, "rejected": 0,
+  "results": [
+    { "index": 0, "status": "created", "id": "kQ8fL2mN7pRt", "form_id": "abc123efgh45",
+      "external_id": "usr_8812", "event": "paid", "idempotency_key": "stripe_in_1P9x" },
+    { "index": 1, "status": "duplicate", "id": "kQ8fL2mN7pRt", "form_id": "abc123efgh45",
+      "external_id": "usr_8812", "event": "paid", "idempotency_key": "stripe_in_1P9x",
+      "existing": { ... }, "warnings": ["value_cents differs: stored 4900, sent 5900"],
+      "duplicate_of_index": 0 }
+  ],
+  "join_check": { "checked": 2, "matched": 1, "unmatched": 1, "examples": ["usr_9130"] },
+  "notes": [ ... ]
+}
+```
+
+- **One bad row does not fail the batch.** Every element is validated independently and
+  reported at its own index as `created`, `duplicate` or `rejected`; a rejected element is
+  `{ "index", "status": "rejected", "errors": [...] }`
+- A replay is a success that says so, **and warns when the replayed payload disagrees with
+  what is stored**. Without that a caller reusing one key for two different amounts believes
+  the second landed, and every revenue number downstream is quietly the first
+- `duplicate_of_index` names the earlier element when one request reuses a key twice
+- `join_check` counts how many `external_id`s match a response on the named form, with up to
+  five unmatched examples. An event for someone who never answered is legitimate and expected
+  — it usually arrives before the answer — which is why this is a count and not a rejection.
+  It is also where an id-format mismatch becomes visible at push time instead of as a zero in
+  the rollup
+- Status: **201** when at least one event was created; **200** when nothing was new but
+  something was a clean replay; **400** when nothing was written; **404** when nothing was
+  written and every rejection named a form this key cannot see
+
+Facts the endpoint returns in `notes`, restated because each one changes a number:
+
+- `value_cents` is summed as revenue **only** for `event: "paid"`. A value on `signup`,
+  `activated` or `churned` is stored and never counted, so a refund has to be pushed as a
+  negative-value `paid` event to move the total
+- An event with no `idempotency_key` cannot be deduplicated, so a retried request stores it
+  twice and doubles that person's revenue
+- `occurred_at` is **not** what the rollup windows on. The rollup windows on the response's
+  `completed_at` and then sums all `paid` events for those responses whatever their date: a
+  payment in March belongs to the channel recorded in January
+- The rollup sums cents across whatever currencies it finds and warns when there is more than
+  one. It does not convert
+
+## Rollup
+
+### `GET /api/attribution/rollup`
+
+Auth required. Query: `form_id` (**required**), `by`, `metric`, `from`, `to`.
+
+- `form_id` is required and there is **no union across forms**: candidate populations differ
+  per form, so a union would divide one form's selections by another form's respondents.
+  One-form-per-key was never a constraint — a customer runs one form in signup and another at
+  checkout
+- `by` is `"candidate"` (default, one row per node × candidate) or `"node"` (candidates rolled
+  together; `candidate_id`, `label` and `label_from_node_id` are null)
+- `metric` is `"responses"` (default) or `"revenue"`. **It chooses the sort, not which columns
+  ship** — every column is present either way
+- `from` / `to` filter the response's `completed_at`, half-open `[from, to)`. `from == to` is
+  a 400 rather than a payload full of zeroes that reads as "this channel stopped working". A
+  value carrying no timezone — `2026-07-01` or `2026-07-01T00:00:00` — is read as **UTC**
+
+```json
+{
+  "form_id": "abc123efgh45",
+  "by": "candidate",
+  "metric": "revenue",
+  "window": { "from": "2026-07-01T00:00:00.000Z", "to": "2026-08-01T00:00:00.000Z",
+              "basis": "response.completed_at", "bounds": "[from, to)" },
+  "denominator": { "completed_responses": 1330, "per_node": { "channel": 1330, "creator": 412 } },
+  "rows": [
+    { "node_id": "channel", "candidate_id": "tiktok", "label": "TikTok",
+      "label_from_node_id": null, "responses": 412, "share": 0.31,
+      "share_corrected": null, "revenue_cents": 1840000, "paying_responses": 96,
+      "resolved_by_remap": 7 }
+  ],
+  "unresolved": { "raw": 63, "dont_remember": 128, "skipped": 91,
+                  "per_node": { "channel": { "raw": 41, "dont_remember": 128, "skipped": 91 } } },
+  "followup_unresolved": [ { "node_id": "channel", "candidate_id": "tiktok",
+                             "follow_node_id": "creator", "picks": 412,
+                             "unresolved": 91, "rate": 0.22 } ],
+  "followup_abandoned":  [ { "node_id": "channel", "candidate_id": "tiktok",
+                             "follow_node_id": "creator", "picks": 412,
+                             "abandoned": 38, "rate": 0.09 } ],
+  "revenue": { "total_cents": 3910000, "paying_responses": 204, "event": "paid",
+               "currencies": ["USD"],
+               "basis": "first response per (form_id, external_id); all their paid events, regardless of occurred_at" },
+  "position_effect": null,
+  "calibration": null,
+  "notes": [ ... ]
+}
+```
+
+- Only completed responses count. A response swept as `abandoned` **is** complete and does
+  count — its channel answer is real, which is also the rule billing uses
+- **The denominator ships in the payload.** `share = responses / denominator.per_node[node_id]`,
+  where that denominator is every completed response that answered that node. Resolved shares
+  therefore sum to less than 1 and the remainder is the `unresolved` block for the same node. A
+  number whose denominator a reader cannot locate is worse than no number
+- A response that picked a channel and never answered the follow-up is counted for the channel
+  node and is absent from the follow-up node's denominator entirely. It appears in
+  `followup_abandoned`
+- `followup_unresolved` and `followup_abandoned` share a denominator (picks that opened a
+  follow-up) and count different things; **neither is derivable from the other**.
+  `followup_unresolved` is candidate coverage: a follow-up counts as resolved only when it
+  resolves to a candidate id, so never-returned, `dont_remember`, `skipped` and free text with
+  no live remap are all unresolved — and free text a remap *has* resolved counts as resolved,
+  so a mapping visibly moves the number. `followup_abandoned` counts only the picks with no
+  answer row for the follow-up node
+- Both follow-up read-outs are **arrays keyed by explicit fields**, never a map keyed
+  `node:candidate` — both ids are caller-defined, so any separator is a character a caller may
+  already be using inside an id
+- Revenue is booked **once per response**, against the first response per
+  `(form_id, external_id)`. A retake counts in `responses` and books no revenue, so
+  revenue-weighted and head-weighted shares can legitimately disagree
+- Per-row `revenue_cents` and `paying_responses` appear **only on rows of the root node** and
+  are `null` elsewhere: a response's money belongs to the response, so repeating it on every
+  node answered would multiply the total by the number of questions. Null rather than 0,
+  because 0 would read as "this candidate produced no revenue"
+- `revenue.total_cents` can exceed the sum of `rows[].revenue_cents`: a response whose channel
+  answer is unresolved still paid, and has no row to book it on
+- `share_corrected`, `position_effect` and `calibration` are **null in v1**, returned as
+  explicit nulls so their absence is visible rather than mysterious. Under the default `rotate`
+  order the raw share is already unbiased, and the estimator needs volume before it can return
+  anything but null
+- Labels come from the config snapshots, never the live catalog. `label_from_node_id` is set
+  when a label had to be read off another node of this form, which only happens for a remap
+  target. `label` is null only when no version of the form contains the id at all
+- Read `notes[]`. It carries these caveats plus a multi-currency warning when the window mixes
+  currencies, in which case the totals are unusable as-is
+
+## Catalog
+
+### `GET /api/attribution/catalog`
+
+**Public, no key** — configuration is agent-driven and an agent cannot name a `catalog_slug` it
+has never seen. `Cache-Control: public, max-age=300, s-maxage=3600`; it is a checked-in module
+and only changes on deploy, and a stale read can misinform discovery but can never alter what a
+stored response says was rendered.
+
+```json
+{
+  "platforms": [
+    { "slug": "tiktok", "label": "TikTok", "class": "creator", "brand_color": "#000000",
+      "icon_url": "/logos/tiktok.svg", "monogram": "TI",
+      "aliases": ["douyin", "short video"], "expands_by_default": true }
+  ],
+  "default_channel_slugs": ["google", "chatgpt", "linkedin", "x", "tiktok", "youtube",
+                            "instagram", "reddit", "friend", "coworker-internal",
+                            "press", "event"]
+}
+```
+
+- `class` is one of `creator`, `ai_assistant`, `search`, `podcast`, `community`, `messaging`,
+  `word_of_mouth`, `offline`, `other`
+- `icon_url` is **null** wherever a brand's mark is absent from the icon set (LinkedIn,
+  ChatGPT, Slack among them, following trademark requests); `monogram` is what to render in
+  its place, shipped here so a caller does not reimplement the two-character rule
+- `expands_by_default` is **advisory**. `PUT` never applies it — which channels earn a
+  follow-up is a monthly decision about where the money went, and a static flag cannot know
+- `default_channel_slugs` errs long on purpose. A missing channel does not cost one data point;
+  its traffic lands in a neighbouring bucket and books a false entry there
+
+## Respondent page and embed
+
+`/s/{id}` is public, `noindex`, never cached, and the only page a respondent sees. It renders
+"This form isn't accepting responses right now" when the form is paused **or** has never been
+configured — publicly indistinguishable on purpose, since a respondent cannot act on the
+difference.
+
+- `?embed=1` renders on a transparent full-width container with no header, footer or page
+  gradient
+- Reserved query params, consumed by the page and never stored as tags: `embed`,
+  `external_id`, `host_origin`. Every other param is captured as response `metadata`
+- Metadata sanitization: string and number values only, ≤ 20 keys, keys ≤ 64 chars, values
+  ≤ 512 chars, repeated params keep their last value, `metadata: {}` when none were sent
 
 ### postMessage events
 
-The iframe posts to `window.parent` with `source: 'humansurvey'` on every event:
+Five types, each posted to `window.parent` with `source: 'humansurvey'` and `formId`. Fired
+only when `?embed=1`. `targetOrigin` is `*`, because the host's origin is not knowable from
+inside the frame — every payload is content the host already has.
 
-- `{ source: 'humansurvey', type: 'mounting',  surveyId }` — fired the instant the iframe HTML is parsed, before the form bundle downloads or hydrates. Use it to show a skeleton while the embed cold-loads instead of a blank spinner.
-- `{ source: 'humansurvey', type: 'loaded',    surveyId }` — fired once the form has hydrated and is interactive.
-- `{ source: 'humansurvey', type: 'resize',    surveyId, height }` — fired whenever content height changes. Hosts use this to auto-size the iframe so there is no inner scrollbar.
-- `{ source: 'humansurvey', type: 'submitted', surveyId, responseId, answers }` — fired after a successful POST to `/api/surveys/{id}/responses`. `answers` is keyed by question id; see the answer value types under `POST /api/surveys/{id}/responses` for the per-type shape.
+- `{ source: 'humansurvey', type: 'mounting',  formId }` — fired the instant the iframe HTML is
+  parsed, by an inline script, before React hydrates. Use it to swap a blank spinner for a
+  skeleton during the cold load
+- `{ source: 'humansurvey', type: 'loaded',    formId }` — hydrated and interactive
+- `{ source: 'humansurvey', type: 'resize',    formId, height }` — content height changed; size
+  the iframe so there is no inner scrollbar. Deduped, and a zero height is never reported: a
+  collapsed frame stops producing resize callbacks and never recovers
+- `{ source: 'humansurvey', type: 'submitted', formId, responseId, answers }` — the first
+  answer is durable. **Not the end of the flow** — the follow-up may still be on screen, and a
+  host that hides the iframe here cuts the respondent off mid-question
+- `{ source: 'humansurvey', type: 'completed', formId, responseId, answers }` — the follow-up
+  landed, or the respondent finished in one step. Route on this one
 
-There is no `redirect` / `callback` / `message+html` mode — the host JS decides what to do on `submitted` (route the user, hide the iframe, render a custom thank-you, fire analytics, etc.).
+`answers` is keyed by **node id** and carries only the node just answered — the same answer
+object the write path accepts, not a whole-form map:
 
-### Host snippet
+```json
+{ "channel": { "candidate_id": "tiktok" } }
+{ "creator": { "raw": "the office skits girl" } }
+{ "channel": { "dont_remember": true } }
+{ "channel": { "skipped": true } }
+```
+
+There is no `::` fill-in encoding any more, and no `redirect` / `callback` / `message+html`
+mode — the host JS decides what happens on `completed`.
 
 ```html
-<iframe id="hs-survey"
-        src="https://www.humansurvey.co/s/abc123?embed=1"
+<iframe id="hs-form"
+        src="https://www.humansurvey.co/s/abc123?embed=1&external_id=usr_8812&plan=pro"
         style="width:100%; border:0;"></iframe>
 <script>
   window.addEventListener('message', e => {
     if (e.origin !== 'https://www.humansurvey.co') return
     if (e.data?.source !== 'humansurvey') return
-    const f = document.getElementById('hs-survey')
+    const f = document.getElementById('hs-form')
     if (e.data.type === 'resize')    f.style.height = e.data.height + 'px'
-    if (e.data.type === 'submitted') console.log('lead:', e.data.responseId, e.data.answers)
+    if (e.data.type === 'submitted') track('hdyhau_channel', e.data.answers)
+    if (e.data.type === 'completed') routeUser()
   })
 </script>
 ```
 
-## MCP Tools
+## Distribution boundary
 
-### `create_survey`
+HumanSurvey returns a `/s/{id}` URL and an iframe that renders it. It does **not** distribute
+to the audience — no email blast, no auto-posting to Slack/Discord, no SMS — and it never
+contacts a respondent. Getting the question in front of people is the host's job (embed it in a
+flow they already own) or the agent's job (if it has a messaging tool connected). This is
+intentional: reaching the audience requires access to the audience, which belongs to the user,
+not to this service. Transports the host or user controls — the URL, the iframe — are fine.
 
-- Input: `{ markdown }` or `{ schema }`
-- Output: survey URL, survey ID, question count
+## Limits
 
-### `get_results`
+| Thing | Limit |
+|---|---|
+| nodes per form | 12 |
+| candidates per node | 500 stored, 12 rendered (search carries the rest) |
+| aliases per candidate | 24 |
+| label / prompt / handle / `icon_url` / `expands` / `catalog_slug` | 120 characters |
+| any id | 128 characters |
+| `render_id` | 64 characters |
+| `external_id` | 256 characters |
+| free-text answer (`raw`) | 500 characters, rejected not truncated |
+| `allowed_origins` | 20 entries |
+| `theme.radius` | 0–48 px |
+| response page `limit` | 1–500, default 100 |
+| events per batch | 500 |
+| `idempotency_key` | 200 characters |
+| metadata | 20 keys, keys ≤ 64, values ≤ 512 |
 
-- Input: `{ survey_id }`
-- Output: human-readable summary with choice tallies, scale mean/median, recent text responses
+## MCP
 
-### `list_surveys`
+Two facts that point in opposite directions. Both are true as written.
 
-- Output: table of survey IDs, titles, status, responses, created date
+**In the repo — 1.0.0, speaks this API.** `packages/mcp-server` carries nine tools, verified end
+to end against the endpoints above:
 
-### `close_survey`
+| Tool | Wraps | Direction |
+|---|---|---|
+| `login` | `POST /api/auth/code`, then `POST /api/auth/verify` | bootstrap — mails the six-digit code on the first call, stores the key at `~/.humansurvey/credentials` on the second, and never prints it |
+| `get_catalog` | `GET /api/attribution/catalog` | read — the slugs a config may name |
+| `list_forms` | `GET /api/attribution/forms` | read — a form cannot be configured by an agent that cannot find its id |
+| `get_form` | `GET /api/attribution/forms/{id}` | read — the form plus its current config snapshot |
+| `create_form` | `POST /api/attribution/forms` | write — a placement, name and origins only |
+| `configure_form` | `PUT /api/attribution/forms/{id}` | write — nodes, candidates, order, expansion policy |
+| `get_attribution` | `GET /api/attribution/rollup` | read — shares with their denominator, coverage read-outs |
+| `list_unresolved` | `GET /api/attribution/forms/{id}/unresolved` | read — free text awaiting a mapping |
+| `remap` | `POST /api/attribution/forms/{id}/remaps` | write — resolve free text to a candidate, retroactively |
 
-- Input: `{ survey_id }`
-- Output: confirmation with total response count
+- The pre-pivot tools `create_key`, `create_survey`, `get_results`, `list_surveys` and
+  `close_survey` are **removed** with the endpoints they called. `close_survey` has no successor:
+  a perpetual stream has nothing to close
+- No tool for `PATCH /api/attribution/forms/{id}` (settings), the cursor read, the identity read,
+  `POST /api/attribution/events` or `DELETE .../remaps/{id}`. Those are REST-only today
+- Every tool is a thin wrapper. Anything the tools can do, the HTTP surface above can do
+
+**On npm — still 0.6.0, the pre-pivot build.** `npx -y humansurvey-mcp` installs a server whose
+every tool calls a deleted `/api/surveys` route and fails against the current deployment.
+Publishing 1.0.0 is a separate step from building it and has not happened. Build from the repo,
+or use REST.
+
+Whether that publish has landed is **not** inferable from this file. One page is kept current on
+it, and everything else points there: the "Can I use the MCP server yet?" answer at
+https://www.humansurvey.co/faq (markdown twin: `/faq.md`).
+
+## Situations
+
+Four walkthroughs, one per channel class with no referrer. Each carries a `PUT` config verified
+against the shipping API, the follow-up question that makes the answer specific, and the
+placement. Read the matching one before writing a candidate list: option wording decides whether
+a channel gets picked at all, and a channel left off does not lose one data point — its people
+pick a neighbouring row and book a false entry there.
+
+- AI assistants (ChatGPT, Claude, Perplexity, Gemini — no referrer, usually no click):
+  https://www.humansurvey.co/use-cases/ai-assistants — markdown: `/use-cases/ai-assistants.md`
+- Communities and word of mouth (Reddit → subreddit, a named Slack group):
+  https://www.humansurvey.co/use-cases/community-feedback — markdown: `/use-cases/community-feedback.md`
+- Launch day (Product Hunt, HN, X → the account whose post was seen):
+  https://www.humansurvey.co/use-cases/product-launch — markdown: `/use-cases/product-launch.md`
+- Podcasts and events (no click, signup weeks later, ids carry the edition):
+  https://www.humansurvey.co/use-cases/events — markdown: `/use-cases/events.md`
+- Index: https://www.humansurvey.co/use-cases — markdown: `/use-cases.md`
 
 ## Discoverability
 
 - Site docs: https://www.humansurvey.co/docs
-- OpenAPI: https://www.humansurvey.co/api/openapi.json
 - llms.txt: https://www.humansurvey.co/llms.txt
+- OpenAPI: https://www.humansurvey.co/api/openapi.json (alias: `/openapi.json`)
+- FAQ: https://www.humansurvey.co/faq (markdown: `/faq.md`) — MCP publish status lives here
+- Use cases: https://www.humansurvey.co/use-cases (markdown: `/use-cases.md`)
+- Changelog: https://www.humansurvey.co/changelog — every breaking change of the 2026-07-30
+  pivot, and what has been removed since an older entry described it

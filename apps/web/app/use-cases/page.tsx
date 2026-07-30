@@ -4,7 +4,7 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'Use cases — HumanSurvey',
   description:
-    'Concrete AI-agent feedback-collection workflows: community managers collecting post-AMA input, indie makers running post-launch surveys, event organizers capturing session feedback.',
+    'Four channel classes that reach people somewhere analytics cannot see: AI assistants, communities and word of mouth, launch day, and podcasts and events. Each one lands in Direct, and each one is answerable by asking the person.',
   alternates: {
     canonical: '/use-cases',
     types: { 'text/markdown': '/use-cases.md' },
@@ -16,42 +16,48 @@ const collectionJsonLd = {
   '@type': 'CollectionPage',
   name: 'HumanSurvey use cases',
   description:
-    'Workflows where an AI agent designs a survey, a group of humans responds, and the agent reads structured results.',
+    'Channel classes with no referrer — AI assistants, communities, launch posts, podcasts and events — and how self-reported attribution measures each one down to the person and the content.',
   url: 'https://www.humansurvey.co/use-cases',
 }
 
 type Item = {
-  role: string
+  channel: string
   headline: string
   body: string
-  href: string | null
-  status: 'live' | 'soon'
+  href: string
 }
 
+// Ordered by how much of the discovery each class hides, which is also roughly how
+// often it comes up. AI assistants lead: the referrer is gone even when the click
+// happens, and most of the time the click does not happen at all.
 const items: Item[] = [
   {
-    role: 'Community / brand manager',
-    headline: 'Post-AMA, drop, and campaign feedback from Discord / Slack / Telegram members',
+    channel: 'AI assistants',
+    headline: 'ChatGPT, Claude, Perplexity and Gemini all arrive as Direct',
     body:
-      'Run a Friday AMA. Tell Claude "send attendees a feedback form — rating, topics, what to change." Tuesday, ask "how did it land?" and get a synthesis grounded in actual response JSON.',
+      'No referrer leaves an assistant, and most of the time there is no click to carry one: the person reads your name in an answer, searches it, and lands on you from Google. So the option has to say “ChatGPT” — not “AI assistant” — and sit beside Google rather than under it. The follow-up can ask what they were asking about, which gets you a real question from someone who then paid.',
+    href: '/use-cases/ai-assistants',
+  },
+  {
+    channel: 'Communities and word of mouth',
+    headline: 'Someone pasted your link in a Slack you will never see',
+    body:
+      'Discord, Slack groups, subreddits, a friend forwarding a message. The exposure happens inside somebody else’s room, and by the time the link is clicked it has been re-pasted twice and stripped of everything. Asking is the only signal, and the follow-up gets you which room — “a community” is not something you can go and do more of.',
     href: '/use-cases/community-feedback',
-    status: 'live',
   },
   {
-    role: 'Indie maker / PM',
-    headline: 'Post-launch feedback from early users and waitlist',
+    channel: 'Launch day',
+    headline: 'You posted in twelve places and the spike says Direct',
     body:
-      'A week after shipping a new product to 200 beta users, have your agent collect structured feedback: why they signed up, top paper cut, ranked next-feature priorities. Pipe results straight into roadmap issues.',
+      'Product Hunt, Hacker News, X, three newsletters, a dozen DMs. In-app browsers and forwarded links drop the referrer, so the traffic that decides whether the launch worked is exactly the traffic you cannot attribute. Ask at signup and you learn which post; ask again at payment and you learn which post sent people who pay.',
     href: '/use-cases/product-launch',
-    status: 'live',
   },
   {
-    role: 'Event organizer',
-    headline: 'Post-event feedback for conferences, meetups, webinars',
+    channel: 'Podcasts and events',
+    headline: 'A spoken mention has no link to lose',
     body:
-      'Rate sessions in a matrix, collect speaker feedback, capture next-event suggestions. Your agent writes the public retro grounded in real numbers.',
+      'A sponsored episode, a conference talk, a booth conversation. Nobody clicks anything — they hear a name in a car and type it in a week later, which is unattributable by construction rather than by accident. The follow-up asks which show or which event, because “a podcast” is not a media-buying decision.',
     href: '/use-cases/events',
-    status: 'live',
   },
 ]
 
@@ -92,48 +98,59 @@ export default function UseCasesIndex() {
             Use cases
           </p>
           <h1 className="text-4xl tracking-[-0.02em] text-slate-950 sm:text-5xl">
-            Whoever needs to hear from a crowd outside their company.
+            Four channels your analytics files under Direct.
           </h1>
           <p className="text-base leading-[1.7] text-slate-800">
-            HumanSurvey fits wherever an AI agent is already in your workflow
-            and you need structured input from more than one person — members,
-            customers, attendees, waitlist. Three full walkthroughs follow.
+            One class of problem, four faces of it: the exposure happened somewhere tracking
+            cannot reach, so nothing arrives with a referrer and every one of these people
+            lands in the same bucket as someone typing your domain from memory. Asking them
+            is the only signal that survives all four.
+          </p>
+          <p className="text-base leading-[1.7] text-slate-800">
+            What makes an answer useful is how far down it goes.{' '}
+            <strong className="font-semibold text-slate-900">
+              &ldquo;TikTok&rdquo; is not an answer
+            </strong>{' '}
+            — six ambassador accounts collapse into one string and every conclusion drawn
+            from it is noise. Each walkthrough below covers the second question that gets you
+            to which account, which room, which show, and where to place the form so the
+            answer sits next to revenue.
           </p>
         </section>
 
         <section className="space-y-4" id="walkthroughs">
           {items.map((it) => (
             <article
-              key={it.role}
+              key={it.href}
               className="rounded-2xl border border-[var(--panel-border)] bg-[var(--surface)] px-5 py-5 backdrop-blur-sm"
             >
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)]">
-                  {it.role}
-                </p>
-                {it.status === 'soon' ? (
-                  <span className="rounded-full border border-[var(--panel-border)] px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-slate-500">
-                    coming soon
-                  </span>
-                ) : null}
-              </div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)]">
+                {it.channel}
+              </p>
               <h2 className="mt-2 text-lg font-semibold leading-6 text-slate-950">
                 {it.headline}
               </h2>
               <p className="mt-2 text-[15px] leading-[1.7] text-slate-800">{it.body}</p>
-              {it.href ? (
-                <Link
-                  href={it.href}
-                  className="mt-3 inline-flex min-h-9 items-center justify-center rounded-full border border-slate-900 px-4 text-xs font-semibold text-slate-950 transition hover:bg-slate-950 hover:text-white"
-                >
-                  Read the walkthrough →
-                </Link>
-              ) : null}
+              <Link
+                href={it.href}
+                className="mt-3 inline-flex min-h-9 items-center justify-center rounded-full border border-slate-900 px-4 text-xs font-semibold text-slate-950 transition hover:bg-slate-950 hover:text-white"
+              >
+                Read the walkthrough →
+              </Link>
             </article>
           ))}
         </section>
 
         <section className="space-y-3 border-t border-[var(--panel-border)] pt-8">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
+            Not on this list
+          </p>
+          <p className="text-sm leading-6 text-slate-700">
+            Channels with their own reporting console — LinkedIn Ads, Google Ads — already
+            have ground truth, and are not what this measures. Their role here is the
+            reverse: a calibration anchor you can compare self-report against, to see how
+            much self-report under-counts.
+          </p>
           <p className="text-sm leading-6 text-slate-700">
             <a
               href="/use-cases.md"

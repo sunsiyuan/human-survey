@@ -1,150 +1,186 @@
-# Event feedback, the AI-native way
+# The booth sent them. Analytics says they found you on Google.
 
-_Use case · Event organizers_
+_Use case · Conferences and trade shows_
 
 Canonical: https://www.humansurvey.co/use-cases/events
 
-You just ran a conference, a meetup, or a webinar. Now comes the part everyone dreads: getting structured feedback from attendees while it's still fresh, writing a retro your speakers and sponsors can actually read, and deciding what to change for next time. **This page is about making your AI agent run that whole loop — session ratings, open text, speaker-specific feedback, and a grounded synthesis — before the attendees log off for the day.**
+Events are the most expensive thing on the marketing plan and the worst tracked. There is no referrer to lose here, because there was never a click: someone talked to you at a booth, took a sticker, and signed up nine days later by typing your name into a browser. **Search or Direct takes the credit, which is worse than no answer — it looks like an answer.**
 
 ---
 
-## The old way
+## Why this is the hardest channel you spend on
 
-Rebuild a post-event Typeform, one row per session in a matrix question. Export the attendee list from Eventbrite or Luma. Send them the link with a generic "we'd love your feedback" subject line. 22% respond. Export the CSV. Open Sheets. Sort by session. Paste open-text responses into a doc and try to summarize. Tell the keynote speaker "people loved it" and the workshop host "there were some comments" based on vibes. Send a retro Slack message three days later that half the org skims.
+- **There is no digital trace at all.** Not a stripped referrer, not a missing UTM — nothing. The exposure happened in a conversation. A badge scan tells you who you talked to, not who came back.
+- **A QR code only measures the people who scanned it at the booth.** The ones who scan on the spot are usually collecting the giveaway. The ones who actually buy do it later, from a laptop, after talking to their team.
+- **The gap is days or weeks.** By the time they sign up, every session-scoped attribution model has expired the event out of existence.
+- **"Events" is not a channel you can act on.** A company running eight a year signs for the next one six months in advance, and the decision is _which_ — the flagship conference, the regional one, or the dinner for twenty people that cost a twentieth as much.
 
-None of that is broken — it's just slow, and it leaves a mountain of nuance on the cutting-room floor. The synthesis step is the one that actually matters for deciding what to change next time, and it's the step a human is least good at when tired on a Sunday evening.
+So the highest cost per lead in the plan is defended, every year, with an argument rather than a number. That is what makes this the most valuable place to simply ask.
 
-## The new loop
+A sponsored podcast episode has the same shape and takes the same configuration: no link to lose, a spoken name typed in days later, and a memory of the _show_ rather than the app it was played in. Swap the event list for a show list and everything below is unchanged.
 
-HumanSurvey is a small hosted-form service fronted by an MCP server and a REST API. Your agent — Claude Code, Claude Desktop, Cursor, any MCP client — takes on three jobs:
+## The configuration
 
-1. Designs the schema from your intent: per-session matrix ratings, an overall NPS, open text, and whatever speaker-specific or sponsor-specific questions you want.
-2. Creates the survey and returns `/s/{id}`. You drop the link in the event Slack, Discord, or the day-of attendee email. Or ask your agent to post to the channel if it has that tool.
-3. Reads the results and synthesizes — by session, by track, by speaker, by sponsor — into whatever format you need (retro doc, per-speaker email drafts, sponsor-facing PDF).
-
-The whole point is that an organizer (often a volunteer or a very tired full-timer) doesn't spend Sunday night pivoting a spreadsheet. The agent does the reading. You review the output.
-
-## Worked example — post-conference retro
-
-You organized a two-day developer conference. Four tracks, 22 sessions, 380 attendees. Monday morning, you open Claude Code with HumanSurvey installed and say:
-
-> "Run our post-conference feedback survey. Matrix: for each of these 22 sessions, 1–5 rating and would-recommend yes/no. Overall NPS for the whole conference. Open text: what should we change next year? Multi-choice: which tracks do you want more of? Keep it 4 minutes max, expires Friday."
-
-You paste in the session list from the event page. Claude generates the schema — the matrix question is the one organizers always write badly by hand, and the agent gets the row/column shape right on the first try:
+One form in the payment or upgrade flow, one in the signup flow. The channel list includes the non-digital rows that no analytics tool has any equivalent of, and `event` is the one that expands.
 
 ```json
 {
-  "title": "DevConf 2026 — your feedback",
-  "description": "4 minutes. Helps us plan DevConf 2027.",
-  "sections": [{
-    "questions": [
-      { "type": "matrix",
-        "label": "Rate each session you attended (1–5; skip if you didn't go)",
-        "rows": [
-          "Keynote — What's next for open-source databases",
-          "Track A: Building an agent-native backend",
-          "Track A: Workshop — MCP server basics",
-          "Track B: From prototype to 10M requests/day",
-          "Track C: Fireside — the future of serverless"
-          /* … 17 more rows … */
-        ],
-        "columns": ["1", "2", "3", "4", "5", "N/A"]
-      },
-      { "type": "scale",
-        "label": "How likely are you to recommend DevConf to a colleague?",
-        "min": 0, "max": 10,
-        "minLabel": "Not at all", "maxLabel": "Definitely" },
-      { "type": "multi_choice",
-        "label": "Which tracks do you want more of next year?",
-        "options": [
-          { "label": "Databases & storage" },
-          { "label": "Agent infrastructure" },
-          { "label": "Scaling & performance" },
-          { "label": "Developer experience" },
-          { "label": "Security" }
-        ]
-      },
-      { "type": "text", "label": "One thing we should change next year?" }
-    ]
-  }],
-  "max_responses": 500,
-  "expires_at": "2026-04-24T23:59:00Z"
+  "nodes": [
+    {
+      "id": "channel",
+      "prompt": "Where did you first hear about us?",
+      "candidates": [
+        { "id": "event", "catalog_slug": "event", "expands": "which_event" },
+        { "id": "friend",            "catalog_slug": "friend" },
+        { "id": "coworker-internal", "catalog_slug": "coworker-internal" },
+        { "id": "linkedin",          "catalog_slug": "linkedin" },
+        { "id": "press",             "catalog_slug": "press" },
+        { "id": "email",             "catalog_slug": "email" },
+        { "id": "ad",                "catalog_slug": "ad" },
+        { "id": "google",            "catalog_slug": "google" },
+        { "id": "chatgpt",           "catalog_slug": "chatgpt" },
+        { "id": "dunno", "label": "I don't remember",
+          "pinned": "end", "dont_remember": true }
+      ]
+    },
+    {
+      "id": "which_event",
+      "prompt": "Which one?",
+      "candidates": [
+        { "id": "evt_kubecon_eu_2026", "label": "KubeCon EU 2026",
+          "aliases": ["kubecon london"] },
+        { "id": "evt_reinvent_2025", "label": "AWS re:Invent 2025",
+          "aliases": ["reinvent", "las vegas"] },
+        { "id": "evt_devopsdays_nyc_2026", "label": "DevOpsDays NYC 2026" },
+        { "id": "evt_saastr_2026", "label": "SaaStr Annual 2026" },
+        { "id": "evt_london_dinner_2026_03", "label": "Our London dinner, March 2026",
+          "aliases": ["the dinner"] },
+        { "id": "which_event_dunno", "label": "I don't remember which",
+          "pinned": "end", "dont_remember": true }
+      ]
+    }
+  ]
 }
 ```
 
-Claude calls `create_survey` and returns `https://www.humansurvey.co/s/evt445`. You drop it into the post-event attendee email and pin it in the #general Slack channel. By Thursday, 241 responses are in. You ask Claude:
+- **Event ids carry the edition, deliberately.** A creator id must survive a rename; an event id must _not_ merge two instances, because you buy the booth once per instance and the 2027 renewal is a separate decision from the 2026 one. Ids are yours and validated, never minted, so this is your call to make.
+- **Your own field events belong on the list.** A dinner for twenty is a channel. It has no platform, no console and no row in any analytics product — and it is frequently the line with the best return, which you will never discover if the only option is "a conference".
+- **Aliases are how people actually name events.** Nobody says "KubeCon EU 2026"; they say "the one in London". Aliases are matched by the search box and never displayed, so the list stays clean while the matching stays generous.
+- **Prune it as the year moves.** Once an event is two quarters behind you, its row is costing every respondent reading time. Dropping it is a config edit, and it is safe: each config is an immutable snapshot, so removing a candidate never rewrites what an older response says was on screen.
 
-> "Summarize DevConf feedback, grouped by track. Include what to change."
+## Reading it back, and the window that trips people up
 
-Claude calls `get_results` and returns:
+Window the read wide. The window filters on when the _response_ completed, not on when the event happened, so a KubeCon conversation in April shows up in whatever month that person finally signed up.
 
-```
-241 responses (63%). NPS: 56 (strong).
-
-Top-rated sessions:
-  1. Keynote — Open-source databases  (4.7 / 5, 92% recommend)
-  2. Track B workshop — 10M req/day   (4.6 / 5, 88% recommend)
-  3. Fireside — future of serverless  (4.5 / 5, 85% recommend)
-
-Bottom-rated sessions:
-  1. Track A: MCP server basics       (3.1 / 5, 41% recommend)
-     → open text theme: "too basic, expected deeper content"
-  2. Track C: Security panel          (3.3 / 5, 48% recommend)
-     → open text theme: "panelists talked past each other"
-
-Track demand for next year:
-  1. Agent infrastructure (71%)  ← clear #1, up from 52% last year
-  2. Scaling & performance (54%)
-  3. Developer experience (48%)
-  4. Databases & storage (33%)
-  5. Security (22%)
-
-Top "what to change" themes (from 188 open-text responses):
-  1. Longer breaks between sessions (47 mentions)
-  2. Food queue was too slow on Day 2 (31 mentions)
-  3. Track A needs advanced content, not intro talks (24 mentions)
-  4. More ad-hoc unconference space (18 mentions)
-
-Suggested moves for DevConf 2027:
-  1. Double the agent-infra track — demand has shifted there.
-  2. Rework Track A content design — split beginner vs advanced.
-  3. Extend between-session breaks to 20 min (currently 10).
-  4. Fix food logistics on Day 2 — separate queue or staggered lunch.
-  5. Send per-speaker feedback packets (Claude can draft these).
+```bash
+# a wide window, because the answer arrives long after the event
+curl "https://www.humansurvey.co/api/attribution/rollup\
+?form_id=abc123efgh45&by=candidate&metric=revenue&from=2026-01-01&to=2026-07-01" \
+  -H "Authorization: Bearer hs_sk_..."
 ```
 
-Then you ask Claude to draft per-speaker emails with the relevant slice of the data, which it does grounded in the raw JSON — each speaker gets their own rating, their own open-text comments, and nothing about the other 21 sessions.
+```jsonc
+{
+  "window": { "from": "2026-01-01T00:00:00.000Z", "to": "2026-07-01T00:00:00.000Z",
+              "basis": "response.completed_at", "bounds": "[from, to)" },
+  "denominator": { "completed_responses": 1146,
+                   "per_node": { "channel": 1146, "which_event": 202 } },
+  "rows": [
+    { "node_id": "channel", "candidate_id": "event",
+      "label": "At a conference or event",
+      "responses": 231, "share": 0.202,
+      "revenue_cents": 8742000, "paying_responses": 214 },
 
-## Other event scenarios that fit the same loop
+    { "node_id": "which_event", "candidate_id": "evt_kubecon_eu_2026",
+      "label": "KubeCon EU 2026", "responses": 74, "share": 0.366,
+      "revenue_cents": null },
+    { "node_id": "which_event", "candidate_id": "evt_reinvent_2025",
+      "label": "AWS re:Invent 2025", "responses": 46, "share": 0.228,
+      "revenue_cents": null },
+    { "node_id": "which_event", "candidate_id": "evt_london_dinner_2026_03",
+      "label": "Our London dinner, March 2026", "responses": 39, "share": 0.193,
+      "revenue_cents": null },
+    { "node_id": "which_event", "candidate_id": "evt_saastr_2026",
+      "label": "SaaStr Annual 2026", "responses": 21, "share": 0.104,
+      "revenue_cents": null }
+  ],
+  "followup_unresolved": [ { "node_id": "channel", "candidate_id": "event",
+                             "follow_node_id": "which_event",
+                             "picks": 231, "unresolved": 39, "rate": 0.169 } ]
+}
+```
 
-- **Pre-event expectation survey.** Two weeks before the event, ask registered attendees what they're hoping to get out of it. Your agent cross-checks against the agenda and flags mismatches so you can adjust session framing or prep speakers.
-- **Mid-event daily pulse.** For multi-day conferences, send a short end-of-Day-1 survey. If something's going wrong (food, AV, pacing), you find out in time to fix Day 2 — not in the retro three weeks later.
-- **Sponsor feedback.** Post-event, ask sponsors about booth traffic quality, lead capture, and whether they'd sponsor again. Your agent drafts a sponsor-facing retro PDF grounded in their own responses plus overall attendee metrics.
-- **Speaker self-reflection.** A private survey sent to speakers only — what worked, what they'd change about their slot, venue/AV issues. Keeps institutional knowledge in a machine-readable form for next year's program committee.
-- **Meetup / community retro.** Smaller, faster cadence. 3 questions, closes in 48 hours, your agent reads the results and updates the next month's meetup agenda proposal automatically.
-- **Webinar / online workshop feedback.** Triggered at the end of the Zoom/Meet session. Quick NPS, one ranking question on which follow-up topic people want, one open text. Your agent compiles the list and feeds it into your next-session planning.
+The London dinner beat SaaStr Annual on customers produced, at a fraction of the cost. That is the finding this whole page exists for, and it is one row of a follow-up question — collapsed into "At a conference or event", it does not exist.
 
-## How this compares
+Revenue joins for free at the payment placement: the respondent has just paid, so pushing your own `paid` events keyed on the same user id turns heads into money. **Payment date does not have to fall inside the window** — a September payment is summed against the channel the response recorded in July, which is exactly the behaviour a channel with a long lag needs.
 
-Event feedback tools fall into three rough shapes — platforms with bundled surveying, general form builders, and agent-native infrastructure. Pick based on who is going to consume the output:
+## Revenue per event needs one join
 
-| Tool              | Build                          | Read                           |
-| ----------------- | ------------------------------ | ------------------------------ |
-| Sched / Whova     | Human, in the event platform   | Human, platform dashboard      |
-| Typeform          | Human, visual builder          | Human, dashboard               |
-| Eventbrite survey | Human, bundled tool            | Human, CSV export              |
-| Google Forms      | Human, visual builder          | Human, Sheets                  |
-| HumanSurvey       | Agent, from plain language     | Agent, structured JSON         |
+Read the row above carefully: `revenue_cents` is reported on the channel node and is `null` on the event rows. That is not an oversight. A response's money belongs to the response, so booking it on every node the person answered would multiply your total by the number of questions asked — and `null` is used rather than `0`, because zero would be a claim.
 
-If your event is already running on Sched or Whova and you have time to read the responses by eye, use the bundled survey. If you're a volunteer meetup organizer who just wants structured feedback without extra tooling, HumanSurvey is probably the lowest overhead — especially if Claude is already the tool you use to draft the post-event email.
+So the rollup tells you how many customers each event produced, and revenue per event is one join away, on an id you already own:
 
-## Getting started in two steps
+```bash
+# revenue per event: take the rows and join on your own user id
+curl "https://www.humansurvey.co/api/attribution/forms/abc123efgh45/responses\
+?since_seq=0&limit=500" \
+  -H "Authorization: Bearer hs_sk_..."
+# each row carries external_id plus its answers:
+#   { "external_id": "usr_4410", "completion": "finished",
+#     "answers": [ { "node_id": "channel",     "candidate_id": "event" },
+#                  { "node_id": "which_event", "candidate_id": "evt_kubecon_eu_2026" } ] }
 
-1. Add HumanSurvey as an MCP server in Claude Code (`~/.claude.json`). Full config snippet in the docs: https://www.humansurvey.co/docs
-2. Ask Claude: _"create an API key for HumanSurvey."_ It calls `create_key`. Next time an event wraps, describe the retro you want — Claude does the rest.
+# or one person at a time, to stamp the event onto their user record
+curl "https://www.humansurvey.co/api/attribution/forms/abc123efgh45/responses\
+?external_id=usr_4410" \
+  -H "Authorization: Bearer hs_sk_..."
+```
+
+The second form is the more interesting one long-term: it makes the event a property of a user record rather than a line in a monthly report, which is what lets sales open an account and see _we met these people at KubeCon_.
+
+## People will type the event name. That is fine.
+
+There is no _Other_ option — if the event is not listed, they type it, and the text is stored verbatim rather than normalized on the way in. For events this happens more than anywhere else, because the thing people remember is a city and a month.
+
+```bash
+curl "https://www.humansurvey.co/api/attribution/forms/abc123efgh45/unresolved" \
+  -H "Authorization: Bearer hs_sk_..."
+# → { "entries": [ { "node_id": "which_event", "raw_normalized": "the london thing",
+#                    "occurrences": 6, "variants": ["the London thing", "London dinner?"] } ], … }
+
+curl -X POST https://www.humansurvey.co/api/attribution/forms/abc123efgh45/remaps \
+  -H "Authorization: Bearer hs_sk_..." \
+  -H "Content-Type: application/json" \
+  -d '{"node_id": "which_event", "raw": "the london thing",
+       "candidate_id": "evt_london_dinner_2026_03"}'
+# → 201 { "resolved_responses": 6,
+#          "candidate_label": "Our London dinner, March 2026" }
+```
+
+The mapping is retroactive and revocable: nothing about the stored responses changes, and the rollup resolves free text against the live table on every read. So one row fixes six months of history at once — which matters here more than anywhere, because an event's answers arrive over a season, not a week.
+
+## What the two placements tell you about an expensive booth
+
+Events are the inverse of a viral channel: low volume, high value. The form in the signup flow shows a small share; the form in the payment flow shows a much larger one.
+
+**That gap is the argument for the booth** — a channel's share among payers versus its share among signups is its signup-to-paid rate, and events routinely win that comparison by a distance while losing on raw volume. Run one placement only and you get the half of the picture that makes your best channel look small.
+
+Ask early in each flow. Asking at the end of onboarding means asking only the people who finished, and a channel whose leads take three weeks to activate is the one most likely to be missing from that population.
+
+## Getting started
+
+Sign in at https://www.humansurvey.co, copy a key, and hand it to your agent with your event calendar.
+
+> "Add a how-did-you-hear-about-us question to signup and to checkout. When someone says they met us at an event, ask which: KubeCon EU 2026, re:Invent 2025, DevOpsDays NYC, SaaStr, and our London dinner in March. Keep last year's events in the list until June."
+
+Your agent creates the forms, writes the candidate lists, and hands back the URLs to embed. Before the next sponsorship deadline: _"how many customers came from each event, and what did they pay?"_
+
+What this is not: a post-event feedback form. It does not rate sessions, poll attendees or collect speaker feedback — there is one question here, asked of your own users inside your own product, and it is where they first heard about you.
 
 ## More
 
-- Community feedback use case: https://www.humansurvey.co/use-cases/community-feedback
-- Product launch use case: https://www.humansurvey.co/use-cases/product-launch
-- FAQ: https://www.humansurvey.co/faq
+- Docs — form config, the embed contract, cursor reads, the rollup: https://www.humansurvey.co/docs
+- Community attribution — Reddit, Discord, Slack groups, and which community it was: https://www.humansurvey.co/use-cases/community-feedback
+- Launch attribution — Product Hunt, Hacker News, X, and the spike that lands as Direct: https://www.humansurvey.co/use-cases/product-launch
+- AI assistant attribution — ChatGPT, Claude, Perplexity and Gemini, which all arrive as Direct: https://www.humansurvey.co/use-cases/ai-assistants
+- FAQ — anonymity, what a form can and cannot ask, pricing: https://www.humansurvey.co/faq

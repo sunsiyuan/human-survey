@@ -1,11 +1,19 @@
-// Response tagging: custom URL query params on the survey page are captured as
+// Response tagging: custom URL query params on the respondent page are captured as
 // per-response metadata so a host can segment responses by source. See the Embed
 // section of /docs.
 
-// Query params the survey page (/s/[id]) consumes for its own behavior. These are
+// Query params the respondent page (/s/[id]) consumes for its own behavior. These are
 // never captured as response metadata. Keep in sync with any new param the route
 // reads off the URL.
-export const RESERVED_QUERY_PARAMS = ['embed'] as const
+/**
+ * Params the embed page consumes for its own behaviour, and which must therefore never
+ * be captured as respondent metadata.
+ *
+ * Adding a param to the page without adding it here is a silent bug: it lands in
+ * `attribution_responses.metadata` as a tag, so the host's own plumbing shows up in
+ * their segmentation as if a respondent had arrived carrying it.
+ */
+export const RESERVED_QUERY_PARAMS = ['embed', 'external_id', 'host_origin'] as const
 
 const reserved = new Set<string>(RESERVED_QUERY_PARAMS)
 
@@ -18,7 +26,7 @@ const MAX_VALUE_LENGTH = 512
 type SearchParamValue = string | string[] | undefined
 
 /**
- * Extracts custom (non-reserved) query params from the survey URL as a flat
+ * Extracts custom (non-reserved) query params from the respondent URL as a flat
  * string map — the host-facing "response tagging" input. Repeated params keep
  * their last value. The result is already sanitized.
  */
