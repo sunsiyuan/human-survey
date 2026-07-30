@@ -1,8 +1,8 @@
 {
   "name": "humansurvey-mcp",
   "mcpName": "io.github.sunsiyuan/human-survey",
-  "version": "1.0.0",
-  "description": "MCP server for HumanSurvey — the agent interface to self-reported attribution: which channel, and which creator, your users first heard about you from",
+  "version": "1.0.1",
+  "description": "MCP server for HumanSurvey \u2014 the agent interface to self-reported attribution: which channel, and which creator, your users first heard about you from",
   "keywords": [
     "mcp",
     "mcp-server",
@@ -19,20 +19,28 @@
   "homepage": "https://www.humansurvey.co",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sunsiyuan/human-survey"
+    "url": "git+https://github.com/sunsiyuan/human-survey.git",
+    "directory": "packages/mcp-server"
   },
-  "type": "module",
+  "bugs": {
+    "url": "https://github.com/sunsiyuan/human-survey/issues"
+  },
   "license": "MIT",
+  "type": "module",
   "bin": "dist/index.js",
   "files": [
     "dist"
   ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts",
-    "dev": "tsup src/index.ts --format esm --watch"
+    "build": "tsup src/index.ts --format esm",
+    "dev": "tsup src/index.ts --format esm --watch",
+    "prepublishOnly": "pnpm build"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "zod": "^4"
   },
   "devDependencies": {

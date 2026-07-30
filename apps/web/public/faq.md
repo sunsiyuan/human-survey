@@ -64,7 +64,7 @@ Two halves to that, and this answer is where the site keeps them so every other 
 
 **In the repo:** `packages/mcp-server` is 1.0.0 and speaks attribution — nine tools, verified end to end against the live API: `login`, `get_catalog`, `list_forms`, `get_form`, `create_form`, `configure_form`, `get_attribution`, `list_unresolved`, `remap`. The pre-pivot five (`create_key`, `create_survey`, `get_results`, `list_surveys`, `close_survey`) are gone along with the endpoints they called.
 
-**On npm:** `humansurvey-mcp` is still 0.6.0, the build from before the pivot, whose tools call the deleted `/api/surveys` routes and fail against the current deployment. Publishing 1.0.0 is a separate step from building it and has not happened, so an `npx -y humansurvey-mcp` today fetches the old one.
+**On npm:** `humansurvey-mcp` is published at 1.x, so `npx -y humansurvey-mcp` fetches a server whose nine tools match the current API. Versions below 1.0.0 are the pre-pivot build and call the deleted `/api/surveys` routes; they are deprecated on npm, but a pinned version or a stale lockfile will still resolve one, so pin `^1` if you pin at all.
 
 Until it is published, build the server from the repo or drive the REST endpoints directly — every tool is a thin wrapper over them, so nothing is out of reach either way.
 

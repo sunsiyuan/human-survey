@@ -976,8 +976,8 @@ export default function DocsPage() {
                 The five survey-era tools were deleted rather than shimmed.
               </p>
               <p>
-                <strong>Publishing is a separate, manual step and has not happened yet</strong>, so{' '}
-                <code>npx -y humansurvey-mcp</code> may still fetch 0.6.0 — which calls the removed{' '}
+                <strong>1.x is published</strong>, so{' '}
+                <code>npx -y humansurvey-mcp</code> fetches a server whose nine tools match this page. Versions below 1.0.0 are the pre-pivot build and call the removed{' '}
                 <code>/api/surveys</code> endpoints and will fail. Until it is published, drive the
                 HTTP surface directly. <Link href="/faq">/faq</Link> carries the current publish
                 state; this page will not be updated the moment it changes.

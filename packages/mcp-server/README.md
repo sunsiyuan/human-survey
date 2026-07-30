@@ -26,9 +26,11 @@ in a flow you own and your agent reads the answers back as structured data.
 Get a key by signing in at [humansurvey.co/signin](https://www.humansurvey.co/signin) and
 copying one from `/account`.
 
-> **Publish state:** this is `1.0.0`. Publishing to npm is manual and separate from deploying
-> the API, so `npx -y humansurvey-mcp` may still fetch `0.6.0` for a while — and `0.6.0` calls
-> endpoints that no longer exist. Check <https://www.humansurvey.co/faq> before assuming.
+> **Version note:** the `1.x` line is what matches the current API. Anything below `1.0.0` is
+> the pre-pivot build, whose tools call `/api/surveys` routes that no longer exist; those
+> versions are deprecated on npm, but a pinned version or a stale lockfile still resolves one.
+> Pin `^1` if you pin at all.
+
 That is the whole human part — paste it here, and everything after is your agent's job.
 
 If you would rather not open a browser, ask your agent to use the `login` tool. It mails a

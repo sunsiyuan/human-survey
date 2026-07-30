@@ -182,14 +182,17 @@ end against it — `login`, `get_catalog`, `list_forms`, `get_form`, `create_for
 (`create_key`, `create_survey`, `get_results`, `list_surveys`, `close_survey`) are gone with the
 endpoints they called.
 
-**On npm:** still 0.6.0, the pre-pivot build. `npx -y humansurvey-mcp` today installs a server
-whose every tool calls a deleted `/api/surveys` route and fails. Publishing 1.0.0 is a separate
-step and has not happened.
+**On npm:** `humansurvey-mcp` is published at 1.x, so `npx -y humansurvey-mcp` installs a
+server whose nine tools match the endpoints above.
+Versions below 1.0.0 are the pre-pivot build: every one of their tools calls a deleted
+`/api/surveys` route and fails against the current deployment. Those versions are deprecated
+on npm, but a pinned version or a stale lockfile still resolves one — pin `^1` if you pin.
 
-So: build from the repo, or drive the HTTP endpoints above directly. Every tool is a thin
-wrapper over them, so REST loses nothing. The single place kept current on whether the publish
-has landed — do not infer it from anywhere else, including this file's timestamp — is the
-"Can I use the MCP server yet?" answer at https://www.humansurvey.co/faq
+The MCP registry is a separate publish from npm and can lag; check what it serves rather than
+assuming it matches. Driving the HTTP endpoints above directly also loses nothing: every tool
+is a thin wrapper over them. The one page kept current on all of this — do not infer it from
+anywhere else, including this file's timestamp — is the "Can I use the MCP server yet?" answer
+at https://www.humansurvey.co/faq
 
 ## Every page on this site
 

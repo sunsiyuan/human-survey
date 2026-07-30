@@ -44,7 +44,7 @@ Nine tools; the five survey-era ones deleted outright rather than shimmed, since
 pre-reset export showed no third-party users to shim for. Tool descriptions and formatted
 output are treated as the product surface: no description names another tool, and a share is
 never printed without its denominator, because a model handed a bare percentage quotes a bare
-percentage. Publishing to npm is manual and has not happened yet.
+percentage. Published to npm as 1.0.0 on 2026-07-31; 1.x is the current line.
 
 ### Accounts on the web — ✅ 2026-07-30
 
@@ -72,7 +72,7 @@ ingests conversion events, single or batched.
 4. **Billing.** Metered on responses collected, volume tiers rather than feature tiers.
    Deliberately last: nobody has hit a limit.
 5. **Publish `humansurvey-mcp` 1.0.0.** Built and verified; publishing is a manual step that
-   has not been taken, so npm still serves 0.6.0 against endpoints that no longer exist.
+   has been taken: npm serves 1.0.0. The MCP registry, which is a separate publish, still serves 0.6.0.
 
 ---
 

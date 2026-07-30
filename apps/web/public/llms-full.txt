@@ -894,14 +894,17 @@ to end against the endpoints above:
   `POST /api/attribution/events` or `DELETE .../remaps/{id}`. Those are REST-only today
 - Every tool is a thin wrapper. Anything the tools can do, the HTTP surface above can do
 
-**On npm — still 0.6.0, the pre-pivot build.** `npx -y humansurvey-mcp` installs a server whose
-every tool calls a deleted `/api/surveys` route and fails against the current deployment.
-Publishing 1.0.0 is a separate step from building it and has not happened. Build from the repo,
-or use REST.
+**On npm — `humansurvey-mcp` is published at 1.x.** `npx -y humansurvey-mcp` installs a server
+whose nine tools match the endpoints documented here. Versions below 1.0.0 are
+the pre-pivot build: every one of their tools calls a deleted `/api/surveys` route and fails
+against the current deployment. Those versions are deprecated on npm, but a pinned version or a
+stale lockfile still resolves one — pin `^1` if you pin at all. Driving the REST endpoints
+directly remains equivalent; every tool is a thin wrapper over them.
 
-Whether that publish has landed is **not** inferable from this file. One page is kept current on
-it, and everything else points there: the "Can I use the MCP server yet?" answer at
-https://www.humansurvey.co/faq (markdown twin: `/faq.md`).
+The MCP registry is a **separate** publish from npm and can lag behind it. Neither state is
+inferable from this file. One page is kept current on both, and everything else points there:
+the "Can I use the MCP server yet?" answer at https://www.humansurvey.co/faq (markdown twin:
+`/faq.md`).
 
 ## Situations
 

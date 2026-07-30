@@ -45,7 +45,7 @@ const API_BASE_URL = process.env.HUMANSURVEY_API_URL ?? 'https://www.humansurvey
 
 const server = new McpServer({
   name: 'humansurvey-mcp',
-  version: '1.0.0',
+  version: '1.0.1',
 })
 
 function agentClient(): string {

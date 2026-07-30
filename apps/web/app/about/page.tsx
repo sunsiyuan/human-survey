@@ -143,7 +143,7 @@ const facts: [string, React.ReactNode][] = [
       >
         humansurvey-mcp
       </a>{' '}
-      — published 0.6.0, pre-pivot. See the limitations above.
+      — 1.x on npm, matching the current API.
     </>,
   ],
   ['MCP server name', <><C>io.github.sunsiyuan/human-survey</C></>],
@@ -516,7 +516,7 @@ export default function AboutPage() {
                 <strong className="font-semibold text-slate-900">
                   The published MCP package is stale.
                 </strong>{' '}
-                <C>humansurvey-mcp</C> on npm is still 0.6.0, a pre-pivot build whose tools
+                <C>humansurvey-mcp</C> on npm is 1.x, matching the current API. Versions below 1.0.0 are a pre-pivot build whose tools
                 call deleted <C>/api/surveys</C> routes. The package in the repository is
                 1.0.0 with nine attribution tools; publishing it is a separate step that has
                 not happened. Build from the repository or drive the REST endpoints directly —
