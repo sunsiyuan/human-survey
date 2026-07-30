@@ -77,6 +77,15 @@ export default function Home() {
             >
               GitHub
             </a>
+            {/* Filled rather than outlined, unlike everything beside it. This is the only
+                thing in the header a visitor can do rather than read, and it was missing
+                entirely — /signin existed and worked, and nothing on the site pointed at it. */}
+            <Link
+              href="/signin"
+              className="inline-flex min-h-9 items-center justify-center rounded-full bg-[var(--accent-strong)] px-4 text-sm font-medium text-[var(--accent-fg)] transition hover:bg-slate-900"
+            >
+              Sign in
+            </Link>
           </div>
         </header>
 
@@ -107,10 +116,10 @@ export default function Home() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <a
-                href="#setup"
+                href="/signin"
                 className="inline-flex min-h-11 items-center justify-center rounded-full bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-800"
               >
-                Set it up
+                Get a key
               </a>
               <Link
                 href="/docs"

@@ -6,9 +6,10 @@ import { InstallPanel } from './InstallPanel'
  * measures something they cannot currently measure, and installing an MCP server is not
  * that decision.
  *
- * The one thing this section must not do is imply a dashboard. There is no page to log
- * into: the key arrives over email, the config arrives over the API, and the monthly
- * read is a sentence to an agent.
+ * The one thing this section must not do is imply a dashboard. /signin and /account exist
+ * and are exactly two pages wide — you sign in to be handed a key, and that is the whole of
+ * the signed-in area. The config arrives over the API and the monthly read is a sentence to
+ * an agent; there is no results screen to browse, and there is not going to be one.
  */
 
 export function Setup() {
@@ -42,12 +43,20 @@ export function Setup() {
             and writes the key to a file on your machine instead of printing it into the
             conversation. Transcripts end, which is how keys get lost.
           </p>
-          <a
-            href="/docs#authentication"
-            className="mt-3 inline-flex text-[13px] text-[var(--accent-strong)] underline decoration-dotted underline-offset-4 hover:text-slate-900"
-          >
-            The two calls, in full
-          </a>
+          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+            <a
+              href="/signin"
+              className="inline-flex min-h-9 items-center justify-center rounded-full bg-[var(--accent-strong)] px-4 text-[13px] font-medium text-[var(--accent-fg)] transition hover:bg-slate-900"
+            >
+              Get a key
+            </a>
+            <a
+              href="/docs#authentication"
+              className="text-[13px] text-[var(--accent-strong)] underline decoration-dotted underline-offset-4 hover:text-slate-900"
+            >
+              The two calls, in full
+            </a>
+          </div>
         </li>
 
         <li className="rounded-2xl border border-[var(--panel-border)] bg-[var(--surface)] px-5 py-5 backdrop-blur-sm">
