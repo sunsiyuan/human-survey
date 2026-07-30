@@ -109,14 +109,24 @@ export const PLATFORMS: readonly CatalogPlatform[] = [
   { slug: 'line', label: 'LINE', class: 'messaging', brandColor: '#00C300', hasMark: true },
 
   // --- No brand behind them ---------------------------------------------------
-  // §3.2's fallback: only when there is no brand to name. Labelled the way a person
-  // would describe what happened, not as a category.
-  { slug: 'friend', label: 'A friend or colleague told me', class: 'word_of_mouth', brandColor: '#64748B', hasMark: false, aliases: ['word of mouth', 'referral', 'recommendation'] },
-  { slug: 'coworker-internal', label: 'Someone at my company was already using it', class: 'word_of_mouth', brandColor: '#64748B', hasMark: false, aliases: ['team', 'internal'] },
-  { slug: 'event', label: 'At a conference or event', class: 'offline', brandColor: '#64748B', hasMark: false, expandsByDefault: true, aliases: ['trade show', 'meetup', 'booth'] },
-  { slug: 'press', label: 'An article or review', class: 'other', brandColor: '#64748B', hasMark: false, aliases: ['blog', 'news', 'press'] },
-  { slug: 'email', label: 'An email from you', class: 'other', brandColor: '#64748B', hasMark: false, aliases: ['newsletter'] },
-  { slug: 'ad', label: 'An ad', class: 'other', brandColor: '#64748B', hasMark: false, aliases: ['advertisement', 'sponsored'] },
+  // §3.2's fallback: only when there is no brand to name. Labelled the way a person would
+  // describe what happened, not as a category.
+  //
+  // These carry a mark too — a plain line icon, drawn here rather than fetched, since there is
+  // no trademark to source. They started with no icon at all, which broke the scan: an eye
+  // running down a column of logos hits a blank and has to switch from recognising to reading.
+  // That is not only untidy, it biases the answer. Word of mouth is routinely a top-three
+  // channel, and a row that is harder to spot gets picked less — the same class of error as
+  // the ordering bias §6 spends its guards on, arriving through the artwork instead.
+  //
+  // Deliberately a tier quieter than the brand marks: monochrome, stroked, lower contrast.
+  // They are a different kind of thing and should not compete for the same glance.
+  { slug: 'friend', label: 'A friend or colleague told me', class: 'word_of_mouth', brandColor: '#64748B', hasMark: true, aliases: ['word of mouth', 'referral', 'recommendation'] },
+  { slug: 'coworker-internal', label: 'Someone at my company was already using it', class: 'word_of_mouth', brandColor: '#64748B', hasMark: true, aliases: ['team', 'internal'] },
+  { slug: 'event', label: 'At a conference or event', class: 'offline', brandColor: '#64748B', hasMark: true, expandsByDefault: true, aliases: ['trade show', 'meetup', 'booth'] },
+  { slug: 'press', label: 'An article or review', class: 'other', brandColor: '#64748B', hasMark: true, aliases: ['blog', 'news', 'press'] },
+  { slug: 'email', label: 'An email from you', class: 'other', brandColor: '#64748B', hasMark: true, aliases: ['newsletter'] },
+  { slug: 'ad', label: 'An ad', class: 'other', brandColor: '#64748B', hasMark: true, aliases: ['advertisement', 'sponsored'] },
 ] as const
 
 const BY_SLUG = new Map(PLATFORMS.map((p) => [p.slug, p]))

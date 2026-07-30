@@ -140,5 +140,29 @@ export const LOGO_METRICS: Record<string, LogoMetric> = {
   "line": {
     "scale": 1,
     "invert": false
+  },
+  "ad": {
+    "scale": 1,
+    "invert": true
+  },
+  "coworker-internal": {
+    "scale": 1,
+    "invert": true
+  },
+  "email": {
+    "scale": 1,
+    "invert": true
+  },
+  "event": {
+    "scale": 1,
+    "invert": true
+  },
+  "friend": {
+    "scale": 1,
+    "invert": true
+  },
+  "press": {
+    "scale": 1,
+    "invert": true
   }
 }

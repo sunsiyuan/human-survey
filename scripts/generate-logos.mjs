@@ -23,7 +23,7 @@
 // basis every "sign in with X" button and every competitor's channel list stands on. The marks
 // remain the trademarks of their owners; nothing here licenses them for any other purpose.
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -242,8 +242,27 @@ function handPlaced(slug) {
   return existsSync(path) && !readFileSync(path, 'utf8').includes(GENERATED)
 }
 
+/**
+ * Measure a file this script did not write, without rewriting it.
+ *
+ * A hand-placed mark still needs its optical scale and its invert flag, and those are read
+ * from the file rather than declared anywhere — so skipping the measurement is how a
+ * hand-placed mark ends up silently rendering at the wrong size and invisible in dark mode,
+ * with nothing in the code to point at.
+ */
+function measureOnly(slug) {
+  const svg = readFileSync(join(OUT, `${slug}.svg`), 'utf8')
+  const box = readViewBox(svg)
+
+  metrics[slug] = {
+    scale: Number(opticalScale(box?.width, box?.height).toFixed(3)),
+    invert: invertOnDark(svg),
+  }
+}
+
 for (const [slug, title] of Object.entries(SVGL)) {
   if (handPlaced(slug)) {
+    measureOnly(slug)
     kept += 1
     continue
   }
@@ -276,6 +295,7 @@ for (const [slug, title] of Object.entries(SVGL)) {
 
 for (const [slug, exportName] of Object.entries(FALLBACK)) {
   if (handPlaced(slug)) {
+    measureOnly(slug)
     kept += 1
     continue
   }
@@ -297,6 +317,17 @@ for (const [slug, exportName] of Object.entries(FALLBACK)) {
       `<path d="${icon.path}"/></svg>`,
   )
   fallback += 1
+}
+
+// Anything hand-placed that neither table names: the generic line icons drawn for the options
+// that have no brand behind them (a friend told me, a conference, an ad). They are ours, not a
+// trademark, so they are authored rather than fetched — but they need the same two numbers.
+for (const file of readdirSync(OUT)) {
+  const slug = file.replace(/\.svg$/, '')
+
+  if (file.endsWith('.svg') && !(slug in metrics)) {
+    measureOnly(slug)
+  }
 }
 
 // A generated module rather than a hand-kept table: the scale is a pure function of the

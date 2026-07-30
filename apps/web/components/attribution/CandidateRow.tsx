@@ -4,6 +4,13 @@ import { useState } from 'react'
 
 import { LOGO_METRICS } from '@/lib/catalog/logo-metrics'
 
+/**
+ * The options with no brand behind them, whose marks we drew rather than sourced. Named here
+ * rather than inferred, because the only signal that would distinguish them automatically —
+ * "is it stroked" — is a property of how they happen to be drawn today.
+ */
+const GENERIC_ICONS = new Set(['friend', 'coworker-internal', 'event', 'press', 'email', 'ad'])
+
 import { Monogram } from './Monogram'
 
 /**
@@ -76,6 +83,7 @@ export function CandidateRow({
   // gets the defaults, which is the correct answer for a photograph.
   const slug = iconUrl?.startsWith('/logos/') ? iconUrl.slice(7, -4) : undefined
   const metric = (slug ? LOGO_METRICS[slug] : undefined) ?? { scale: 1, invert: false }
+  const generic = slug !== undefined && GENERIC_ICONS.has(slug)
 
   return (
     <li
@@ -133,7 +141,11 @@ export function CandidateRow({
           className={
             handle
               ? 'h-8 w-8 shrink-0 rounded-lg object-cover'
-              : `h-5 w-5 shrink-0${metric.invert ? ' dark:invert' : ''}`
+              : // The generic line icons — the options with no brand behind them — sit a tier
+                // quieter than the brand marks. They belong in the column so the eye keeps
+                // scanning rather than dropping into reading, but they are a different kind of
+                // thing and should not compete for the same glance.
+                `h-5 w-5 shrink-0${generic ? ' opacity-70' : ''}${metric.invert ? ' dark:invert' : ''}`
           }
         />
       ) : showTile ? (
