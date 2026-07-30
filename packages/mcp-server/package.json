@@ -1,14 +1,16 @@
 {
   "name": "humansurvey-mcp",
   "mcpName": "io.github.sunsiyuan/human-survey",
-  "version": "0.6.0",
-  "description": "MCP server for HumanSurvey — let AI agents collect structured feedback from groups of people",
+  "version": "1.0.0",
+  "description": "MCP server for HumanSurvey — the agent interface to self-reported attribution: which channel, and which creator, your users first heard about you from",
   "keywords": [
     "mcp",
     "mcp-server",
     "model-context-protocol",
-    "survey",
-    "feedback",
+    "attribution",
+    "marketing-attribution",
+    "channel-attribution",
+    "self-reported-attribution",
     "human-in-the-loop",
     "claude",
     "claude-code",
@@ -34,6 +36,7 @@
     "zod": "^4"
   },
   "devDependencies": {
+    "@types/node": "^20.19.39",
     "tsup": "^8",
     "typescript": "^5"
   }

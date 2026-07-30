@@ -1,96 +1,141 @@
 # Roadmap
 
-Public roadmap for HumanSurvey. Organized by **distribution form** (how a human reaches the form) on one axis, and **agent-side primitives** (how an agent runs the loop) as an orthogonal axis.
+Public roadmap for HumanSurvey.
 
-For per-feature design rationale, see [`docs/design/`](./design/). For the user-facing API reference, see [`/docs`](https://www.humansurvey.co/docs).
+Rewritten 2026-07-30 for the attribution pivot. The previous version organized everything
+by **distribution form** (L0 share URL → L1 iframe → L2 headless SDK), an axis that stopped
+carrying weight once the product narrowed to one question asked at one moment: the form is
+embedded in a flow the host owns, and the share URL is a fallback rather than a tier.
 
----
+Design rationale for every decision here: [`design/attribution-pivot.md`](./design/attribution-pivot.md).
+API reference: [`/docs`](https://www.humansurvey.co/docs).
 
-## Distribution form
-
-### L0 — Public share URL ✅ shipped
-
-Hosted `/s/{id}` page anyone can fill out. Free, always free.
-
-**Pain it solves:** "I want a link I can send to people."
-**Customer:** community manager, indie maker testing an idea, event organizer.
-
-### L1 — Iframe embed ✅ shipped (2026-04-27)
-
-Customer drops an `<iframe>` into their own page (landing page, onboarding step, in-app form). Per-response webhook delivers lead data to the host's CRM endpoint.
-
-**Pain it solves:** "I want my onboarding flow to collect a structured lead, and the data needs to land in my CRM."
-**Customer:** indie maker, SaaS PM, growth-engineer-at-startup.
-**Pricing:** free.
-
-Capabilities:
-- `?embed=1` strips page chrome.
-- `postMessage` events from iframe to parent: `loaded`, `submitted`, `resize`.
-- Per-response webhook → host's CRM.
-- `respondent_metadata` JSONB (UTM, host's user_id, plan, etc.).
-- `respondent_external_id` for host-side dedup.
-- Prefill via URL params.
-
-Detailed design: [`docs/design/l1-embed-plan.md`](./design/l1-embed-plan.md).
-
-### L2 — Headless SDK 💵 future paid tier
-
-`npm i @humansurvey/react` (or vue / vanilla / react-native). Host fetches schema from public `GET /api/surveys/{id}`, renders with their own components, submits via the same `POST /api/surveys/{id}/responses` endpoint as iframe.
-
-**Why a paid tier (in brief):** SDK customers (strict-brand-guideline companies, native mobile apps, deeply embedded onboarding) self-select as higher willingness-to-pay and don't overlap with the free-iframe pool, so gating SDK doesn't cannibalize free.
-
-**When to start building:** L1 has multiple active hosts AND at least one is asking for headless. Don't pre-build.
-
-Tier shape and pricing decisions are tracked privately and will be announced when L2 is closer to ship.
+> **A warning about this file's predecessor, kept because it cost real work.** The old
+> version marked L1 "✅ shipped" with six capabilities, three of which had never been built
+> — `respondent_external_id`, prefill, and the per-response webhook had zero occurrences
+> anywhere in the codebase. A design doc was then written on top of those claims and had to
+> be corrected. **Treat "shipped" here as meaning "verified against the code", and if you
+> cannot verify it, do not write it.**
 
 ---
 
-## Agent-side primitives (orthogonal axis)
+## Shipped
 
-Independent of distribution form (L0/L1/L2). About making the agent loop ergonomic when surveys return over hours/days.
+### The form — ✅ 2026-07-30
 
-### Async results loop ✅ shipped (2026-04-30)
+`/s/{id}`, embeddable with `?embed=1`. One single-select question, expanding a follow-up in
+place when the answer warrants one. Search always present, free text always allowed, the
+"I don't remember" escape hatch pinned last and never filtered out. Candidate order is
+per-respondent randomized by default. Four theme tokens (accent, radius, font, dark mode).
+`postMessage`: `mounting` / `loaded` / `resize` / `submitted` / `completed`.
 
-Three primitives shipped together:
+Verified in a browser end to end, not only in tests.
 
-- **Cursor reads** — `GET /api/surveys/{id}/responses?since_response_id=…` plus `is_final`, `completion_reason`, `next_check_hint_seconds`, `next_cursor` in the payload. Agents fetch only deltas, know when to stop checking, and get a server-side advisory cadence.
-- **Expired webhook + atomic fire-once** — completion webhook now fires on all three terminal events (manual / max / expired) with `event_id` for idempotency. Fire-once is enforced by atomic UPDATE on a dedicated column.
-- **Threshold notification** — optional `notify_at_responses` field; same `webhook_url` receives an `event: 'threshold_reached'` payload (status stays open) so the agent wakes on "enough signal" without waiting for closure.
+### Accounts and keys — ✅ 2026-07-30
 
-Detailed design: [`docs/design/async-results-loop.md`](./design/async-results-loop.md). Per-phase plans: [`async-results-loop-phase{1,2,3}.md`](./design/).
+Six-digit email codes as the only sign-in, serving both the browser and the MCP server —
+the second is the point, since it puts a key on disk instead of in an agent transcript.
+Accounts own the data and keys are credentials, so rotation no longer orphans anything.
+Anonymous key creation is gone.
 
-**Why this mattered:** L1 embed shipped, but the next thing that distinguishes "feedback infra for agents" from "form builder with API" is whether the agent can sleep through the response window and be cleanly woken. Pre-Phase-2 the webhook didn't fire on expired; pre-Phase-1 the results endpoint dumped everything every time. Both fixed.
+### MCP 1.0.0 — ✅ 2026-07-30
+
+Nine tools; the five survey-era ones deleted outright rather than shimmed, since the
+pre-reset export showed no third-party users to shim for. Tool descriptions and formatted
+output are treated as the product surface: no description names another tool, and a share is
+never printed without its denominator, because a model handed a bare percentage quotes a bare
+percentage. Publishing to npm is manual and has not happened yet.
+
+### Accounts on the web — ✅ 2026-07-30
+
+`/signin` (six-digit email code) and `/account` (list, issue, revoke keys, and the MCP config
+snippet with the key already in it). Deliberately nothing else: keys and later billing. The
+moment it grows a results tab it has become the dashboard this product is not.
+
+### The read surface — ✅ 2026-07-30
+
+`GET /api/attribution/rollup` (aggregated in SQL, with the window in the query and the share
+denominator shipped beside the shares), cursor reads over `completed_seq`, `?external_id=`
+identity lookup, the unresolved list, and the remap loop. `POST /api/attribution/events`
+ingests conversion events, single or batched.
 
 ---
 
-## API stability for L2
+## Next
 
-Decisions that are right at L1 ship-time so L2 doesn't require breaking changes:
+1. **Position-effect estimation.** The data capture shipped because it is not backfillable;
+   the estimator did not, because it needs volume to return anything but null and the
+   default randomized order does not need it. Only `fixed`-mode callers do.
+2. **Per-response webhook.** Accepted, validated and stored today; nothing delivers to it.
+3. **Calibration anchors.** The table exists. Needs a customer with a channel console and
+   real volume.
+4. **Billing.** Metered on responses collected, volume tiers rather than feature tiers.
+   Deliberately last: nobody has hit a limit.
+5. **Publish `humansurvey-mcp` 1.0.0.** Built and verified; publishing is a manual step that
+   has not been taken, so npm still serves 0.6.0 against endpoints that no longer exist.
 
-1. `GET /api/surveys/{id}` is public, returns minimal schema for rendering: `{id, title, schema, status, ended_reason?}`. No `api_key_id`, no `webhook_url`, no `response_count`. Both iframe and future SDK consume this.
-2. `POST /api/surveys/{id}/responses` body shape: `{answers, metadata?, external_id?}`. Same shape for iframe and SDK.
-3. `response_id` is server-generated (`nanoid(12)`), client never supplies one.
+---
 
-If L1 ships with these three locked in, L2 is "thin npm wrapper around two endpoints" — ~200 LOC, no rewrite.
+## Open questions that want data, not argument
+
+- **The abandonment threshold.** 30 minutes is a placeholder, biased long: too short
+  misrecords a slow respondent as an abandoner, and the two are indistinguishable
+  afterwards.
+- **Whether "I don't remember" should get a second chance** ("roughly which app was it
+  in?"). It could recover sample; it could also push genuine non-rememberers into guessing.
+  Leaning no. Cheap to A/B.
+- **Candidate coverage.** `followup_unresolved` is the read-out. If it runs high, entity
+  extraction from free text becomes worth building; if it runs low, it never does.
 
 ---
 
 ## Out of scope, permanently
 
-Not "later" — explicitly not on the roadmap:
-
-- Visual theme editor / brand-customization GUI
-- A/B testing
-- Conversion-funnel analytics
 - WYSIWYG form designer
-- Result-analytics dashboard for survey owners (read via API/MCP)
-- Email / SMS / Slack outbound to respondents — distribution is the host/user's job, never the service's
-- `/vs/{competitor}` marketing pages
+- A/B testing as a product surface
+- Multi-select answers — "select all that apply" means "select everything", which is no
+  attribution signal
+- Last-touch questioning — near-constantly "searched your brand name", and carries no
+  media-buying decision
+- Email / SMS / Slack outbound to respondents. Distribution is the host's job, never the
+  service's. This is the one line that has survived every rewrite of this file.
+- Resolving free text to a creator on the caller's behalf. The product renders candidates
+  and returns the chosen id; identity resolution is upstream work.
+- `/vs/{competitor}` pages — comparison content lives in `/faq`.
 
-## Out of scope, for now (might come back)
+### Two entries that used to be here and are not
 
-- Webhook retry / DLQ / signing secret — only when a real "we lost a webhook" incident demands it
-- Custom domain / white-label — Pro feature candidate, build only when paying customer asks
-- Multi-language UI — niche, defer
-- `embed.js` standalone bundle (modal/popover JS widget) — only if iframe-only proves insufficient for a real host
-- Captcha / rate limit / embed token — only after observed abuse, not on roadmap
+**"Conversion-funnel analytics"** and **"result-analytics dashboard"** were listed as
+permanently out of scope, and the rollup is squarely the first of them. The reconciliation:
+what stays out is a *human-facing analytics dashboard*. Aggregates ship as an API/MCP
+resource and the agent writes the report. A **response log** — "did anything arrive, and
+what did it say" — is debugging rather than analysis and is in scope; without it, a first
+integration is a black box.
+
+**"Visual theme editor / brand-customization GUI"** stays out, but four theme tokens ship.
+A bounded parameter set is a requirement of the embed form factor; a GUI for authoring them
+is not. Stated explicitly because the old wording would otherwise read as a broken promise.
+
+## Out of scope, for now
+
+- Custom domain / white-label — build when a paying customer asks
+- Multi-language respondent UI
+- `embed.js` standalone bundle — only if iframe-only proves insufficient for a real host
+- Direct Stripe / AppsFlyer integrations. The pushed event schema is shaped the way one
+  would want, so adding one later is additive.
+- Signed `external_id`. Today it is a join key asserted by the host, not an authentication
+  of who answered — the honest limitation, with the rollup's first-response-per-identity
+  rule as the one mitigation that already exists.
+- A project layer between accounts and keys. An agency running three clients holds three
+  accounts, which is the better arrangement anyway: the customer owns their history and the
+  agency holds a key.
+
+### Promoted out of "for now", because shipping changed the argument
+
+**Origin allowlisting** was "only after observed abuse". Under per-response pricing an
+unlisted origin embedding your form spends your quota, which makes it billing integrity
+rather than abuse prevention. It ships.
+
+**A headless SDK as a paid tier** is cancelled. Volume tiers, not feature tiers: feature
+gating forces a customer to make an upgrade decision, while volume gating upgrades them
+automatically as they grow.

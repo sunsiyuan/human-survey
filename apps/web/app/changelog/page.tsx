@@ -4,7 +4,7 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'Changelog — HumanSurvey',
   description:
-    'What has shipped in HumanSurvey, dated by release. Agent-first feedback collection infrastructure for AI agents.',
+    'What has shipped in HumanSurvey, dated by release — the 2026-07-30 attribution pivot, the MCP rebuild, and every breaking change before them.',
   alternates: { canonical: '/changelog' },
 }
 
@@ -15,7 +15,46 @@ type Entry = {
   items: string[]
 }
 
+/**
+ * Entries are a record of what shipped on a date, so they are not edited when the thing
+ * they describe is later removed — a changelog that rewrites itself cannot be used to work
+ * out what a six-month-old integration was built against.
+ *
+ * What that leaves is the reader who follows an old entry to a URL or a tool that has since
+ * been deleted and lands on a 404 with no explanation. So a removal gets its own trailing
+ * item, prefixed "Since removed", naming what is gone and where the replacement is. Added,
+ * never substituted: the original bullets above it stay verbatim.
+ */
 const entries: Entry[] = [
+  {
+    date: '2026-07-30',
+    version: 'mcp 1.0.0',
+    title: 'MCP server rebuilt for attribution — nine tools, and the pre-pivot five are gone',
+    items: [
+      'packages/mcp-server is 1.0.0 and speaks /api/attribution/*. Nine tools, verified end to end against the live API: login, get_catalog, list_forms, get_form, create_form, configure_form, get_attribution, list_unresolved, remap. That is the read-write loop the configuration actually needs — which channels expand, and which creators are on the list, are monthly decisions about where the money went, not a thing anyone fills in once.',
+      'Removed — create_key, create_survey, get_results, list_surveys and close_survey, along with the /api/surveys endpoints they called. close_survey has no successor by design: an attribution form is a perpetual stream, so there is nothing to close.',
+      'login replaces create_key and is a different shape on purpose. Called with an email it triggers the six-digit code and returns nothing usable, because the code has to come out of the person’s inbox. Called with the email and the code it stores the key at ~/.humansurvey/credentials and prints only the path. The version this replaces printed the key and asked the human to keep it safe, so the only copy lived in a transcript — and transcripts end, which is how keys got lost.',
+      'Not published yet. npm still serves humansurvey-mcp 0.6.0, the pre-pivot build, so npx -y humansurvey-mcp fetches a server whose every tool fails against the current deployment. Publishing is a separate step from building. This supersedes the "no MCP tools ship against the attribution API yet" line in the entry below, which was written earlier the same day; /faq carries the current state of the publish and is the one place kept up to date, so nothing else has to guess.',
+    ],
+  },
+  {
+    date: '2026-07-30',
+    title: 'Attribution pivot — the survey API is removed and replaced by /api/attribution/* (breaking)',
+    items: [
+      'The product narrows to one question — how did you hear about us — asked at a granularity that is actually actionable, down to the creator or the piece of content. Everything below follows from that, and most of it is breaking.',
+      'Breaking — POST/GET /api/surveys, GET/PATCH /api/surveys/{id}, POST/GET /api/surveys/{id}/responses and POST /api/demo/parse are deleted, not deprecated. The replacement surface is POST/GET /api/attribution/forms, GET/PUT/PATCH /api/attribution/forms/{id}, POST/PATCH /api/attribution/forms/{id}/responses (public, respondent-facing), GET /api/attribution/forms/{id}/responses (cursor reads, plus ?external_id= for one identity), GET /api/attribution/forms/{id}/unresolved, GET/POST /api/attribution/forms/{id}/remaps, DELETE .../remaps/{id}, GET /api/attribution/rollup, POST /api/attribution/events, and GET /api/attribution/catalog (public). The survey noun is gone from the creator API; the respondent URL is still /s/{id}.',
+      'Breaking — the Markdown survey syntax, the LLM endpoint that parsed it, and the five question types (single_choice, multi_choice, text, scale, matrix) are gone, as is showIf as a general conditional-logic engine. A form is one single-select question with an optional follow-up; the only conditional behavior left is a candidate declaring expands, which reveals a second candidate set in place. Multi-select is not coming back — "select all that apply" means "select everything", which is no attribution signal at all. The /docs#markdown-syntax and /docs#conditional-logic anchors still resolve, but now to a one-line note saying the capability was removed and what replaced it — fragments are client-side, so no redirect could have protected an inbound link to them.',
+      'Breaking — the open / closed / expired / full lifecycle is gone. An attribution form is a perpetual stream: no max_responses, no expires_at, no close_survey, and no survey_closed or threshold_reached webhook, since there is no terminal event left to fire on. What remains is status "active" | "paused" via PATCH /api/attribution/forms/{id}, and bounded windows moved to the read side (from / to on the rollup). Cursor reads survive, now gated on completion — a response becomes visible once the follow-up lands or an abandonment sweep closes it, so every row is emitted exactly once and is final when emitted.',
+      'Breaking — the optionId::text fill-in encoding is replaced by a first-class raw answer. Free text is stored verbatim and never normalized at write time, which is what makes it retroactively remappable: POST /api/attribution/forms/{id}/remaps points a raw string at a candidate id, and the rollup recomputes every past window that contained it. Answers are now one of candidate_id, raw, dont_remember, or skipped.',
+      'Breaking — the embed submitted postMessage payload changed shape and its id field is renamed: { source: "humansurvey", type: "submitted", formId, responseId, answers }, where formId replaces surveyId. A fifth event joins the contract — mounting, loaded, resize, submitted, completed — because the first answer is now durable before the form is finished. A host that hides the iframe on submitted cuts the respondent off mid-follow-up; route on completed instead.',
+      'Breaking — POST /api/keys requires authentication. Anonymous key creation is gone: a key is issued only against a verified six-digit email code (POST /api/auth/code, then POST /api/auth/verify) or an existing key. The frictionless first run it bought was never the real bottleneck — time-to-first-successful-call was — and every key it minted was ownerless from birth, which is why a lost key had no recovery path.',
+      'Accounts own data; keys are credentials. Previously the API key was the identity, so losing one lost the data and rotating one lost access to everything the old key had created. Key rotation now orphans nothing: GET /api/keys lists every key on the account with the calling one flagged current, and DELETE /api/keys/{id} revokes a key without touching what it created. Account, keys and billing are the only things behind the login — configuration and results stay API-only.',
+      'The database was reset rather than migrated. Old rows were structurally unconvertible in any case: product-minted positional question ids where the new schema needs caller-defined stable ones, and no recorded render order to reconstruct positions from. Nothing was lost — the export taken beforehand showed thirteen API keys, every one a smoke test or a demo run by the owner, and no third-party user at all. Migrations also stop being applied by hand: scripts/migrate.sh runs them through a ledger, and the pre-pivot 001–009 are kept under supabase/migrations/_archive/.',
+      'humansurvey-mcp 1.0.0 replaces the whole tool surface. The five old tools — create_key, create_survey, get_results, list_surveys, close_survey — are gone with the API they called; nine attribution tools take their place: login, get_catalog, list_forms, get_form, create_form, configure_form, get_attribution, list_unresolved, remap. npm and the MCP registry publish separately from this deploy, so 0.6.0 may still be what you install for a while; it calls the removed endpoints and will fail. /faq carries the current publish state.',
+      'New — theme tokens on a form: accent, radius, font, and dark_mode ("light" | "dark" | "auto"), set at create time or with PATCH. Embedded in a payment flow that belongs to someone else, a form that looks foreign costs completion rate directly. This is a bounded parameter set, not the theme editor that stays out of scope — the FAQ answer that said "Not today" is amended in this release.',
+      'New — every response carries external_id, whatever id the host already uses for that person, so POST /api/attribution/events can join revenue to channel and the rollup can report channel × revenue instead of channel × heads. Candidate order is per-respondent randomized by default, which makes the raw share unbiased by construction; where a caller pins the order instead, the correction is not computed yet: share_corrected, position_effect and calibration all ship as explicit nulls with a note, because the estimator needs volume to return anything else and the default randomized order does not need it.',
+    ],
+  },
   {
     date: '2026-05-22',
     title: 'Embed hardening — response tagging, early mount signal, working key revocation',
@@ -72,6 +111,7 @@ const entries: Entry[] = [
       'New create_key MCP tool lets agents provision their own HumanSurvey API key with optional owner email and CAIP-10 wallet address.',
       'No human setup required — an agent can bootstrap the full create_survey → get_results loop from a single Claude Code install.',
       'Wallet address captured up front for future x402-style agent-native billing.',
+      'Since removed — create_key no longer exists and anonymous key creation with it. A key is issued only against a verified six-digit email code or an existing key, and the MCP tool that does that round trip is now login (2026-07-30, above). The owner-email and wallet_address fields are gone from POST /api/keys.',
     ],
   },
   {
@@ -105,6 +145,7 @@ const entries: Entry[] = [
       'Public respondent page at /s/{id} with localStorage draft recovery.',
       'Results page at /r/{result_id} with live Supabase Realtime updates.',
       'MCP server shipped with create_survey and get_results tools.',
+      'Since removed — /r/{result_id} and the realtime results dashboard behind it are gone and that URL is now a 404, not a redirect: there is no human-facing dashboard by design, and aggregates are read from GET /api/attribution/rollup instead (see the 2026-07-30 entries above). The markdown parser, the five question types and both tools named here went with the same release. /s/{id} is the one thing on this list still live.',
     ],
   },
 ]

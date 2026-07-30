@@ -11,6 +11,10 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    // Tests run on node --test with native type stripping, which resolves imports
+    // literally and therefore requires the .ts extension. Safe here because noEmit is
+    // on and nothing in the app imports a test file.
+    "allowImportingTsExtensions": true,
     "jsx": "react-jsx",
     "incremental": true,
     "plugins": [

@@ -3,16 +3,15 @@ import Link from 'next/link'
 
 import {
   CodeBlock,
-  Ordered,
   Quote,
   Section,
   Unordered,
 } from '@/components/use-cases/primitives'
 
 export const metadata: Metadata = {
-  title: 'Product launch feedback with AI — HumanSurvey use case',
+  title: 'Launch attribution — HumanSurvey use case',
   description:
-    'How indie makers and PMs collect structured feedback from the first users of a newly launched product — NPS, positioning validation, pricing signals, top paper cuts — by telling Claude (or any agent) what to learn.',
+    'A launch spike lands in analytics as Direct, because most of it arrives from apps, DMs and group chats that send no referrer. Ask the person which of the places you posted it was — and which account on X — inside your own signup and payment flow.',
   alternates: {
     canonical: '/use-cases/product-launch',
     types: { 'text/markdown': '/use-cases/product-launch.md' },
@@ -22,15 +21,119 @@ export const metadata: Metadata = {
 const articleJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Article',
-  headline: 'Product launch feedback with AI: the schema-in, JSON-out loop',
+  headline: 'Launch attribution: which of the six places you posted actually worked',
   description:
-    'A worked walkthrough of using HumanSurvey and Claude to collect and synthesize feedback from the first users after a product launch.',
+    'Configuring a how-did-you-hear-about-us question for a launch, so Product Hunt, Hacker News and X separate, and X resolves to the specific account whose post was seen.',
   datePublished: '2026-04-20',
-  dateModified: '2026-04-20',
+  dateModified: '2026-07-30',
   author: { '@type': 'Organization', name: 'HumanSurvey' },
   publisher: { '@type': 'Organization', name: 'HumanSurvey' },
   mainEntityOfPage: 'https://www.humansurvey.co/use-cases/product-launch',
 }
+
+// Verified against the shipping API on 2026-07-30 as the body of
+// PUT /api/attribution/forms/{id}. Two candidates expand, seven do not — that split is
+// the expansion policy, and it is the thing worth re-deciding after the launch.
+const configSnippet = `{
+  "nodes": [
+    {
+      "id": "channel",
+      "prompt": "Where did you first hear about us?",
+      "candidates": [
+        { "id": "producthunt", "catalog_slug": "producthunt" },
+        { "id": "hackernews",  "catalog_slug": "hackernews" },
+        { "id": "x",           "catalog_slug": "x",        "expands": "x_account" },
+        { "id": "substack",    "catalog_slug": "substack", "expands": "newsletter" },
+        { "id": "reddit",      "catalog_slug": "reddit" },
+        { "id": "linkedin",    "catalog_slug": "linkedin" },
+        { "id": "press",       "catalog_slug": "press" },
+        { "id": "google",      "catalog_slug": "google" },
+        { "id": "friend",      "catalog_slug": "friend" },
+        { "id": "dunno", "label": "I don't remember",
+          "pinned": "end", "dont_remember": true }
+      ]
+    },
+    {
+      "id": "x_account",
+      "prompt": "Whose post was it?",
+      "candidates": [
+        { "id": "x_own", "label": "Our own account", "handle": "@yourco" },
+        { "id": "x_1799210044", "label": "Renna", "handle": "@rennacodes",
+          "icon_url": "https://cdn.example.com/avatars/renna.jpg",
+          "aliases": ["the person who does the teardown threads"] },
+        { "id": "x_1662008317", "label": "Soft Launch Weekly",
+          "handle": "@softlaunchwk" },
+        { "id": "x_account_dunno", "label": "I don't remember whose",
+          "pinned": "end", "dont_remember": true }
+      ]
+    },
+    {
+      "id": "newsletter",
+      "prompt": "Which newsletter?",
+      "candidates": [
+        { "id": "sub_devtools_digest",  "label": "Devtools Digest" },
+        { "id": "sub_pricing_for_saas", "label": "Pricing for SaaS" },
+        { "id": "newsletter_dunno", "label": "I don't remember which",
+          "pinned": "end", "dont_remember": true }
+      ]
+    }
+  ]
+}`
+
+const cursorSnippet = `curl "https://www.humansurvey.co/api/attribution/forms/abc123efgh45/responses\\
+?since_seq=8412&limit=100" \\
+  -H "Authorization: Bearer hs_sk_..."`
+
+const cursorShapeSnippet = `{
+  "responses": [
+    { "id": "gpW1wRLbWBXl", "external_id": "usr_2201", "completion": "finished",
+      "awaiting_node_id": null, "metadata": { "placement": "signup" },
+      "answers": [
+        { "node_id": "channel",   "kind": "candidate", "candidate_id": "x",
+          "resolved_label": "X", "position": 4, "selected_via_search": false },
+        { "node_id": "x_account", "kind": "candidate", "candidate_id": "x_1799210044",
+          "resolved_label": "Renna", "position": 0, "selected_via_search": false }
+      ] },
+    { "id": "zslBPunuJrDj", "external_id": "usr_2202", "completion": "finished",
+      "answers": [
+        { "node_id": "channel", "kind": "raw",
+          "raw": "saw it in the Rands Leadership slack",
+          "candidate_id": null, "resolved_candidate_id": null, "position": null }
+      ] }
+  ],
+  "next_cursor": "8489",
+  "has_more": false,
+  "open_responses": true,      // someone is mid-answer right now
+  "next_check_hint_seconds": 120
+}`
+
+const windowsSnippet = `# launch week
+GET /api/attribution/rollup?form_id=…&from=2026-05-12&to=2026-05-19
+  producthunt   0.28    x   0.20    hackernews   0.16    google   0.05
+
+# the month after it
+GET /api/attribution/rollup?form_id=…&from=2026-05-19&to=2026-06-19
+  producthunt   0.09    x   0.11    hackernews   0.21    google   0.18
+
+# Product Hunt was the day. Hacker News and search were the month.
+# Close the window on launch day and you conclude the opposite.`
+
+const rollupShapeSnippet = `{
+  "denominator": { "completed_responses": 604,
+                   "per_node": { "channel": 604, "x_account": 96, "newsletter": 41 } },
+  "rows": [
+    { "node_id": "channel",   "candidate_id": "x", "label": "X",
+      "responses": 121, "share": 0.200 },
+    { "node_id": "x_account", "candidate_id": "x_1799210044", "label": "Renna",
+      "responses": 51, "share": 0.531 },
+    { "node_id": "x_account", "candidate_id": "x_own", "label": "Our own account",
+      "responses": 24, "share": 0.250 }
+  ],
+  "unresolved": { "raw": 22, "dont_remember": 17, "skipped": 4, "per_node": { … } },
+  "followup_unresolved": [ { "node_id": "channel", "candidate_id": "x",
+                             "follow_node_id": "x_account",
+                             "picks": 121, "unresolved": 33, "rate": 0.273 } ]
+}`
 
 export default function ProductLaunchPage() {
   return (
@@ -72,300 +175,208 @@ export default function ProductLaunchPage() {
 
         <section className="space-y-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
-            Use case · Indie makers / PMs
+            Use case · Launch day
           </p>
           <h1 className="text-4xl tracking-[-0.02em] text-slate-950 sm:text-5xl">
-            Post-launch feedback, the AI-native way.
+            You posted in six places. The spike came back labelled Direct.
           </h1>
           <p className="text-base leading-[1.7] text-slate-800">
-            You shipped something. Maybe it went well on Product Hunt — 600
-            upvotes, 240 sign-ups. Maybe it was a quiet beta drop to your
-            waitlist of 400. Either way, the next question is the same:{' '}
-            <em>what do these early users actually think?</em>{' '}
+            A launch is the one traffic event you most want to decompose, and the one your
+            analytics is least able to. The posts you wrote do send referrers. The traffic that
+            converts mostly does not: it arrives after the post was screenshotted into a group
+            chat, quoted by someone with an audience, read in a mail client, or opened in an
+            app.{' '}
             <strong className="font-semibold text-slate-900">
-              This page is about running that feedback loop through an AI
-              agent, end to end — schema in, synthesis out, no Typeform and no
-              spreadsheet.
+              The only signal that survives all of that is asking, and the only version worth
+              asking gets down to which account&apos;s post it was.
             </strong>
           </p>
         </section>
 
-        <Section tag="The old way">
+        <Section tag="Why launch traffic is the worst-attributed traffic you will ever get">
           <p>
-            Open Typeform or Google Forms. Rebuild a post-launch survey from
-            scratch — NPS, some open text, maybe a feature ranking grid.
-            Duplicate in Canny or Intercom Surveys if you want product-managed
-            voting. Drop the link in the welcome email. Follow up three days
-            later with a reminder. Export the CSV. Skim 140 rows of feedback.
-            Open a doc. Try to write a coherent synthesis. Triage feature
-            requests by hand. Manually update the top five into your Linear or
-            GitHub roadmap.
+            Every mechanism that makes a launch work also strips the evidence that it worked.
+            The reshare is the point — you posted once, and the useful volume came from other
+            people repeating you, in places you cannot instrument. Concretely:
           </p>
-          <p>
-            Every step of that pipeline assumes a human is doing the reading.
-            But if you already have Claude or Cursor open while you&apos;re
-            building your product — and you almost certainly do — the shape of
-            the right tool changes. The agent can design the schema, own the
-            loop, and hand you a grounded synthesis. The hosted form becomes an
-            implementation detail.
-          </p>
-        </Section>
-
-        <Section tag="The new loop">
-          <p>
-            HumanSurvey is a thin, opinionated survey API plus an MCP server.
-            Your agent already has context — it knows your product, your
-            positioning, and the questions that are actually open for you right
-            now. You tell it what you want to learn. It does the rest:
-          </p>
-          <Ordered
+          <Unordered
             items={[
-              'Designs the schema from your intent — NPS, choice questions with options from your positioning hypotheses, scales for pricing signal, open text for qualitative.',
-              'Creates the survey, returns /s/{id}. You paste into the welcome email, Discord, or Slack. Or ask your agent to post if it has an email/channel tool.',
-              'On demand, retrieves results and summarizes. "What did our first users say?" becomes a structured answer with percentages, themes, and suggested moves — all grounded in actual response JSON.',
+              <>
+                <strong className="font-semibold text-slate-900">The apps send nothing.</strong>{' '}
+                An in-app browser on X, LinkedIn or Reddit, and every DM and group chat the link
+                passed through, arrive with no referrer at all.
+              </>,
+              <>
+                <strong className="font-semibold text-slate-900">
+                  A UTM link only covers the link you placed.
+                </strong>{' '}
+                It cannot follow the copy-paste, which on launch day is most of the distribution.
+              </>,
+              <>
+                <strong className="font-semibold text-slate-900">
+                  The referrers that do arrive name a domain.
+                </strong>{' '}
+                <code>x.com</code> tells you a launch is happening on X. It cannot tell you that
+                one quote-post did four times the work of your own announcement.
+              </>,
+              <>
+                <strong className="font-semibold text-slate-900">
+                  Last-click buries the whole thing.
+                </strong>{' '}
+                Somebody sees the post on Tuesday and searches your name on Thursday. Analytics
+                credits search. You conclude that SEO launched your product.
+              </>,
             ]}
           />
           <p>
-            Nothing in this loop requires you to leave your agent conversation.
-            No tab-switching, no export-to-CSV, no &ldquo;I&apos;ll read the
-            responses this weekend&rdquo; that turns into never.
+            So the post-launch question — <em>which of the six places we posted actually
+            worked</em> — is not a hard analytics query. It is unanswerable from analytics, and it
+            is the only question that changes what you do for the next launch.
           </p>
         </Section>
 
-        <Section tag="Worked example — post-launch survey for your first 200 sign-ups">
+        <Section tag="The configuration">
           <p>
-            You launched a new analytics tool for e-commerce stores. 240 people
-            signed up in the first 48 hours. You want to learn: is the
-            positioning landing, what&apos;s the biggest friction, are people
-            willing to pay at your intended price? You open Claude Code with
-            HumanSurvey installed and say:
+            One form in the signup flow, which is where launch traffic actually lands, and one in
+            the payment flow, which is what settles the argument a month later. Both take the
+            same config.
           </p>
-
-          <Quote>
-            &ldquo;Survey our first 200 sign-ups. I want: NPS 0–10; why they
-            signed up (the positioning options: replacing their current
-            analytics / integrating with Shopify / because of our pricing / the
-            AI-summary feature); biggest paper cut so far as open text; would
-            they pay at $29/month (yes / maybe / no). Keep it 2 minutes.&rdquo;
-          </Quote>
-
-          <p>Claude generates a schema roughly like:</p>
-
-          <CodeBlock>{`{
-  "title": "How's it going so far?",
-  "description": "Two minutes. Helps us prioritize what to build next.",
-  "sections": [{
-    "questions": [
-      { "type": "scale", "label": "How likely are you to recommend us to a friend?",
-        "min": 0, "max": 10,
-        "minLabel": "Not at all", "maxLabel": "Definitely" },
-      { "type": "multi_choice", "label": "Why did you sign up?",
-        "options": [
-          { "label": "Replacing my current analytics tool" },
-          { "label": "Native Shopify integration" },
-          { "label": "The pricing is better than alternatives" },
-          { "label": "The AI summary feature" },
-          { "label": "Other" }
-        ]
-      },
-      { "type": "text", "label": "Biggest paper cut so far?" },
-      { "type": "single_choice", "label": "Would you pay $29 / month for this?",
-        "options": [
-          { "label": "Yes" }, { "label": "Maybe" }, { "label": "No" }
-        ]
-      }
-    ]
-  }],
-  "max_responses": 240,
-  "expires_at": "2026-04-27T23:59:00Z"
-}`}</CodeBlock>
-
-          <p>
-            Claude calls{' '}
-            <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">
-              create_survey
-            </code>
-            , returns <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">https://www.humansurvey.co/s/lnc789</code>.
-            You drop it in the welcome email Resend automation. A week later,
-            you ask:
-          </p>
-
-          <Quote>&ldquo;What did our first users say?&rdquo;</Quote>
-
-          <p>
-            Claude calls{' '}
-            <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">
-              get_results
-            </code>{' '}
-            and returns:
-          </p>
-
-          <CodeBlock>{`112 responses (56%). NPS: 42.
-  — 38% promoters, 44% passives, 18% detractors.
-  — Detractor theme (open text): slow initial data sync.
-
-Why they signed up:
-  1. Native Shopify integration (63%) — clear lead.
-  2. AI summary feature (51%).
-  3. Replacing current analytics (28%) ← the positioning we lead with.
-  4. Pricing (22%).
-
-Biggest paper cut (top themes from 94 open-text responses):
-  1. Google SSO missing (41 mentions) — by far the loudest.
-  2. Initial data sync is slow (18 mentions) — matches detractor NPS cluster.
-  3. No way to invite teammates yet (12 mentions).
-
-Pricing at $29/month: 67% yes, 24% maybe, 9% no.
-At $39/month (follow-up segment): 48% yes. Demand curve
-  suggests $29 is close to the right anchor.
-
-Suggested moves:
-  1. Rewrite the hero: lead with Shopify integration, not
-     "replacing your analytics tool".
-  2. Ship Google SSO this week — it's the #1 loudest complaint.
-  3. Diagnose the initial sync latency — it's hitting both the
-     paper-cut list and the detractor segment.
-  4. Anchor pricing at $29; test $35 in a later cohort.`}</CodeBlock>
-
-          <p>
-            Every number and theme in that synthesis is traceable back to the
-            raw JSON. You didn&apos;t read 112 responses by hand. You
-            didn&apos;t triage by gut feel. And you got a concrete list of four
-            actions you can execute before lunch.
-          </p>
-        </Section>
-
-        <Section tag="Other launch scenarios that fit the same loop">
+          <CodeBlock>{configSnippet}</CodeBlock>
           <Unordered
             items={[
               <>
                 <strong className="font-semibold text-slate-900">
-                  Waitlist warm-up survey.
+                  X expands, Product Hunt does not.
                 </strong>{' '}
-                Before you ship, ask your waitlist which features they&apos;d
-                use first, what they&apos;re currently paying elsewhere, and
-                what would unlock them switching. Free, early positioning data.
+                A launch on X is six accounts amplifying each other; a launch on Product Hunt is
+                one page. Spend the respondent&apos;s one extra click where the answers differ.
               </>,
               <>
                 <strong className="font-semibold text-slate-900">
-                  Private-beta weekly pulse.
+                  Ids survive renames; handles do not.
                 </strong>{' '}
-                Every Friday during beta, send beta users a 3-question check —
-                what they tried this week, what broke, what would they ship
-                next. Your agent stitches the weekly results into a running
-                changelog-driven narrative.
+                <code>x_1799210044</code> is the numeric account id, so the day{' '}
+                <code>@rennacodes</code> becomes something else, that account&apos;s history stays
+                in one piece. <code>handle</code> and <code>icon_url</code> are what the
+                respondent sees, and they are the fields you expect to edit.
               </>,
               <>
                 <strong className="font-semibold text-slate-900">
-                  Pricing validation (van Westendorp style).
+                  Aliases catch the people who remember a description.
                 </strong>{' '}
-                Four scale questions on price sensitivity. Your agent computes
-                the optimal price range and tells you where to anchor.
+                &ldquo;the person who does the teardown threads&rdquo; is matched by the search
+                box and never displayed, because that is genuinely how the memory is stored.
               </>,
               <>
                 <strong className="font-semibold text-slate-900">
-                  Churn / cancellation exit survey.
+                  Nothing here can be closed or capped.
                 </strong>{' '}
-                Triggered when a user downgrades. Structured reasons + free
-                text. Agent surfaces the top-three recurring reasons monthly
-                and flags individual responses worth replying to.
-              </>,
-              <>
-                <strong className="font-semibold text-slate-900">
-                  Rolling NPS on a cohort basis.
-                </strong>{' '}
-                One survey per monthly sign-up cohort with an{' '}
-                <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-[12px]">
-                  expires_at
-                </code>{' '}
-                of +30 days. Your agent graphs NPS by cohort and tells you if
-                recent product changes moved the number.
+                There is no expiry and no response limit — the form sits in the flow after the
+                launch is over, which is the only way to see the tail. Status is{' '}
+                <code>active</code> or <code>paused</code>, and pausing is reversible.
               </>,
             ]}
           />
         </Section>
 
-        <Section tag="How this compares">
+        <Section tag="Launch day: read the rows, not the aggregate">
           <p>
-            Post-launch feedback tools fall into three rough buckets. Pick the
-            one that matches how your feedback will be consumed:
+            Aggregates are the wrong shape while a launch is still happening. Pass the previous
+            cursor back and you get only what has completed since — every row emitted exactly
+            once and final when emitted.
           </p>
-
-          <div className="overflow-x-auto rounded-2xl border border-[var(--panel-border)] bg-[var(--surface)]">
-            <table className="w-full text-[13px]">
-              <thead>
-                <tr className="border-b border-[var(--panel-border)] text-left text-[11px] uppercase tracking-[0.14em] text-slate-500">
-                  <th className="px-4 py-3 font-semibold">Tool</th>
-                  <th className="px-4 py-3 font-semibold">Build</th>
-                  <th className="px-4 py-3 font-semibold">Read</th>
-                </tr>
-              </thead>
-              <tbody className="text-slate-700">
-                <tr className="border-b border-[var(--panel-border)]">
-                  <td className="px-4 py-3 font-medium text-slate-900">Typeform</td>
-                  <td className="px-4 py-3">Human, visual builder</td>
-                  <td className="px-4 py-3">Human, dashboard</td>
-                </tr>
-                <tr className="border-b border-[var(--panel-border)]">
-                  <td className="px-4 py-3 font-medium text-slate-900">Canny</td>
-                  <td className="px-4 py-3">Users post feature requests</td>
-                  <td className="px-4 py-3">Human, vote dashboard</td>
-                </tr>
-                <tr className="border-b border-[var(--panel-border)]">
-                  <td className="px-4 py-3 font-medium text-slate-900">Intercom Surveys</td>
-                  <td className="px-4 py-3">Human, in-platform</td>
-                  <td className="px-4 py-3">Human, Intercom dashboard</td>
-                </tr>
-                <tr className="border-b border-[var(--panel-border)]">
-                  <td className="px-4 py-3 font-medium text-slate-900">Google Forms</td>
-                  <td className="px-4 py-3">Human, visual builder</td>
-                  <td className="px-4 py-3">Human, Sheets</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 font-medium text-slate-900">HumanSurvey</td>
-                  <td className="px-4 py-3">Agent, from plain language</td>
-                  <td className="px-4 py-3">Agent, structured JSON</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
+          <CodeBlock>{cursorSnippet}</CodeBlock>
+          <CodeBlock>{cursorShapeSnippet}</CodeBlock>
           <p>
-            If you&apos;re going to read every response yourself, Typeform has
-            a nicer reading experience. If you want users to post and vote on
-            feature requests as a running list, Canny is a different shape of
-            product. HumanSurvey is the right pick when your agent is already
-            in the loop and you want the synthesis to flow back into its
-            context — not a dashboard you&apos;ll open once a week.
+            That second row is the reason this read exists.{' '}
+            <strong className="font-semibold text-slate-900">
+              Somebody typed a Slack group you had not listed
+            </strong>{' '}
+            — a channel that would otherwise have arrived as Direct forever, found on the one day
+            you were watching. Free text is stored verbatim and stays mappable, so once you know
+            the group exists you can resolve every past answer that named it and add it to the
+            list for tomorrow.
+          </p>
+          <p>
+            <code>next_check_hint_seconds</code> paces the polling for you:{' '}
+            <code>0</code> while a page is waiting, <code>120</code> while somebody is mid-answer,{' '}
+            <code>3600</code> once it has gone quiet. Nothing in this API ever reports that
+            collection has finished, because a form in a signup flow never does.
           </p>
         </Section>
 
-        <Section tag="Getting started in two steps">
-          <Ordered
-            items={[
-              <>
-                Add HumanSurvey as an MCP server in Claude Code (
-                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">
-                  ~/.claude.json
-                </code>
-                ). Full config snippet in the{' '}
-                <Link href="/docs" className="underline underline-offset-2">
-                  docs
-                </Link>
-                .
-              </>,
-              <>
-                Ask Claude:{' '}
-                <em>&quot;create an API key for HumanSurvey.&quot;</em> It
-                calls{' '}
-                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">
-                  create_key
-                </code>
-                . Next time you want to survey your users, just describe what
-                you want to learn.
-              </>,
-            ]}
-          />
+        <Section tag="A week later: the tail is the finding">
+          <p>
+            The single most common mistake in launch attribution is measuring the launch over the
+            window of the launch. Responses are windowed on when they completed, so you can ask
+            the same question of two windows and watch the answer invert.
+          </p>
+          <CodeBlock>{windowsSnippet}</CodeBlock>
+          <p>
+            Product Hunt is a day-shaped channel and Hacker News is a month-shaped one. Both
+            numbers are real; only the pair is useful. Then the follow-up node answers the
+            question your own launch retro cannot:
+          </p>
+          <CodeBlock>{rollupShapeSnippet}</CodeBlock>
+          <p>
+            Two thirds of the X traffic came from one account that is not yours. That is a
+            concrete decision — who to send the next launch to before you post it — and it is
+            invisible in a report where all of it reads <code>x.com</code>.
+          </p>
+          <p>
+            <code>followup_unresolved</code> at <code>0.273</code> is doing its job too: a
+            quarter of the people who said X could not name the account. On launch day that is
+            expected, and it is why the number ships next to the share instead of being folded
+            into it.
+          </p>
+        </Section>
+
+        <Section tag="Then the payment form settles it">
+          <p>
+            A launch produces a signup spike, and a signup spike is not a result. The form in the
+            payment flow answers the same question against people who paid, so the response joins
+            to revenue with no conversion tracking to build.
+          </p>
+          <p>
+            Comparing the two placements is the whole point:{' '}
+            <strong className="font-semibold text-slate-900">
+              a channel&apos;s share among payers versus its share among signups is that
+              channel&apos;s conversion rate
+            </strong>
+            . Launch channels are exactly where those two diverge hardest — the platform that
+            sent the most signups on launch day is very often the one that sent the fewest
+            customers, and no incumbent produces this number because none of them ask twice.
+          </p>
+          <p>
+            Both placements are ideally early in their flow. Asking at the end means asking only
+            the people who got to the end, which under-counts every channel whose users bounce —
+            and a launch channel is the most likely one to be sending exactly those people.
+          </p>
+        </Section>
+
+        <Section tag="Getting started">
+          <p>
+            Sign in at{' '}
+            <Link href="/" className="underline underline-offset-2">
+              humansurvey.co
+            </Link>
+            , copy a key, hand it to your agent, and describe the launch.
+          </p>
+          <Quote>
+            &ldquo;We launch Tuesday on Product Hunt, Hacker News, X, LinkedIn and two
+            newsletters. Put a how-did-you-hear-about-us question in signup and in checkout, and
+            when someone picks X ask whether it was us, @rennacodes or @softlaunchwk.&rdquo;
+          </Quote>
+          <p>
+            Your agent creates both forms, writes the candidate lists and hands back the URLs to
+            embed. On Wednesday: <em>&ldquo;what has come in since last night?&rdquo;</em> A month
+            later: <em>&ldquo;which of them produced customers rather than signups?&rdquo;</em>
+          </p>
+          <p>
+            What this is not: a post-launch feedback form. It does not ask what people think of
+            the product, what to build next, or whether they would pay $29 — there is one
+            question here, and it is where they came from.
+          </p>
         </Section>
 
         <section className="space-y-3 border-t border-[var(--panel-border)] pt-8">
@@ -375,13 +386,20 @@ Suggested moves:
           <ul className="space-y-2 text-sm text-slate-700">
             <li>
               ·{' '}
+              <Link href="/docs" className="underline underline-offset-2 hover:text-slate-950">
+                Docs
+              </Link>{' '}
+              — form config, the embed contract, cursor reads, the rollup
+            </li>
+            <li>
+              ·{' '}
               <Link
                 href="/use-cases/community-feedback"
                 className="underline underline-offset-2 hover:text-slate-950"
               >
-                Community feedback
+                Community attribution
               </Link>{' '}
-              — for Discord / Slack / Telegram members
+              — Reddit, Discord, Slack groups, and which community it was
             </li>
             <li>
               ·{' '}
@@ -389,16 +407,26 @@ Suggested moves:
                 href="/use-cases/events"
                 className="underline underline-offset-2 hover:text-slate-950"
               >
-                Event feedback
+                Event attribution
               </Link>{' '}
-              — conferences, meetups, webinars
+              — conferences and trade shows, and which of the eight it was
+            </li>
+            <li>
+              ·{' '}
+              <Link
+                href="/use-cases/ai-assistants"
+                className="underline underline-offset-2 hover:text-slate-950"
+              >
+                AI assistant attribution
+              </Link>{' '}
+              — ChatGPT, Claude, Perplexity and Gemini, which all arrive as Direct
             </li>
             <li>
               ·{' '}
               <Link href="/faq" className="underline underline-offset-2 hover:text-slate-950">
                 FAQ
               </Link>{' '}
-              — anonymity, distribution, pricing, agent compatibility
+              — anonymity, what a form can and cannot ask, pricing
             </li>
             <li>
               ·{' '}

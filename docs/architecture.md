@@ -1,203 +1,156 @@
 # Architecture
 
-HumanSurvey is feedback collection infrastructure for AI agents. Agents doing long-horizon work — event management, product launches, community operations — create surveys from JSON schema, collect responses from groups of people, and retrieve structured results.
+HumanSurvey measures the channels that have no referrer — down to the person and the piece
+of content. A host embeds a two-question form at the moment that matters (payment, then
+signup), respondents recognize a logo and then a face, and the host's agent reads the
+aggregate back as structured data.
 
-## System Overview
+Design contract and the reasoning behind every decision below:
+[`design/attribution-pivot.md`](./design/attribution-pivot.md).
+
+## System overview
 
 ```
 ┌──────────────┐      ┌───────────────────┐      ┌─────────────────────┐
-│ AI agent     │─MCP─▶│  MCP Server       │─API─▶│  Next.js on Vercel  │
-│ or app code  │      │  (local process)  │      │                     │
-└──────────────┘      └───────────────────┘      │  ┌─── API Routes    │
-                                                  │  ├─── Survey Page   │
-                                                  │  └─── Docs / llms   │
-                                                  └────────┬────────────┘
-                                                           │
-                                                    ┌──────▼──────┐
-                                                    │    Neon     │
-                                                    │  Postgres   │
-                                                    └─────────────┘
+│ the host's   │─MCP─▶│  MCP server       │─API─▶│  Next.js on Vercel  │
+│ agent        │      │  (local process)  │      │                     │
+└──────────────┘      └───────────────────┘      │  ┌─── API routes    │
+                                                  │  ├─── /s/{id} form │
+       ┌──────────────┐                            │  └─── docs / llms  │
+       │ respondent   │──────── /s/{id} ──────────▶│                    │
+       │ (in an       │◀── postMessage ───────────│                    │
+       │  iframe)     │                            └────────┬───────────┘
+       └──────────────┘                                     │
+                                                     ┌──────▼──────┐
+                                                     │    Neon     │
+                                                     │  Postgres   │
+                                                     └─────────────┘
 ```
 
-The flow is intentionally small:
+1. An agent creates a form and configures its candidate sets.
+2. The host embeds `/s/{id}` in a flow they own. The form asks one question, and expands a
+   follow-up in place when the answer warrants one.
+3. Respondents answer over months. The form is perpetual; there is no terminal state.
+4. The agent reads the rollup, resolves free text to candidates, and retunes the config on
+   a monthly cadence.
 
-1. An agent creates a survey from JSON schema.
-2. HumanSurvey stores the normalized survey schema and returns a respondent URL.
-3. A group of humans submits responses through the hosted survey page over hours or days.
-4. The agent retrieves structured results through the authenticated API or MCP and acts on them.
+## Architecture principles
 
-## Architecture Principles
+- **Recognition, not reading.** Platform logos, then creator avatars. The whole design
+  rests on a respondent scanning rather than comprehending, because completion rate
+  multiplies every number the product produces.
+- **The product renders candidates; it does not resolve identities.** Who is on the list,
+  and on what basis, is the caller's business.
+- **One source of truth per fact.** The most expensive bugs in this codebase were all two
+  computations of the same thing that could disagree — the rendered position map, the
+  escape-hatch semantics, the pinned-row rule. Each was fixed by deleting one side, not by
+  aligning them.
+- **Compute at read time.** Nothing is pre-aggregated and `raw` is never discarded, which
+  is what lets one retroactive mapping correct two months of history.
+- **Every number ships with what it needs to be trusted.** A share ships its denominator; a
+  correction that cannot be computed ships as an explicit null rather than a smoothed
+  guess.
+- **The agent is the dashboard for analysis; the site is the dashboard for debugging.**
+  Aggregates are an API resource. A response log is not — see [Read surface](#read-surface).
 
-- Semantic over visual: the protocol exposes 5 schema variants but only 4 semantic classes: `single_choice`, `multi_choice`, `text`, `matrix`, `scale`. UI variants do not become protocol types.
-- API first: anything available in the web UI must also exist as an authenticated API or MCP operation.
-- Structured outputs: results are returned as machine-usable JSON with per-question aggregation, not only presentation text.
-- Explicit lifecycle: surveys can be open, closed, expired, or full. Submission logic and rendering both enforce the same lifecycle rules.
+## Main components
 
-## Main Components
+### Web app (`apps/web`)
 
-### 1. Web App (`apps/web`)
+**Creator API** — `Authorization: Bearer hs_sk_…`, except the three key routes, which also
+accept the browser session cookie (`requireAccount` in `lib/auth.ts`). That exception exists
+because the page whose job is to hand out a visitor's first key cannot require a key:
 
-The Next.js app serves both the machine-facing API and the human-facing survey form.
+| Route | Purpose |
+|---|---|
+| `POST /api/auth/code`, `POST /api/auth/verify` | six-digit email code → a session or an API key |
+| `GET/POST /api/keys`, `DELETE /api/keys/{id}` | key management, scoped to the account |
+| `POST/GET /api/attribution/forms` | create and list forms |
+| `GET/PUT/PATCH /api/attribution/forms/{id}` | read, configure (`PUT`), settings (`PATCH`) |
+| `GET /api/attribution/forms/{id}/responses` | cursor reads, and `?external_id=` identity lookup |
+| `GET /api/attribution/forms/{id}/unresolved` | free text awaiting a mapping |
+| `GET/POST /api/attribution/forms/{id}/remaps`, `DELETE .../{remapId}` | the remap loop |
+| `GET /api/attribution/rollup` | the aggregate |
+| `POST /api/attribution/events` | conversion events, single or batch |
 
-API responsibilities:
+**Public routes** — no key, because a respondent has none:
 
-- `POST /api/keys` creates API keys
-- `GET /api/keys` and `DELETE /api/keys/[id]` manage keys
-- `POST /api/surveys` creates surveys from JSON schema
-- `GET /api/surveys` lists surveys for the authenticated creator
-- `GET /api/surveys/[id]` returns public survey metadata/schema for respondents
-- `PATCH /api/surveys/[id]` updates lifecycle state
-- `POST /api/surveys/[id]/responses` stores respondent answers
-- `GET /api/surveys/[id]/responses` returns raw responses plus aggregated question data
+| Route | Purpose |
+|---|---|
+| `POST/PATCH /api/attribution/forms/{id}/responses` | the respondent write path |
+| `GET /api/attribution/catalog` | the platform catalog, for discovery |
+| `/s/{id}` | the form itself |
+| `/openapi.json`, `/llms.txt`, `/llms-full.txt` | discoverability for developers and agents |
 
-Page responsibilities:
+`PATCH` on the respondent path requires the one-time `patch_token` that `POST` returned.
+`404` conflates "no such form" with "not your form" on every authenticated route, so a key
+cannot be used to walk the id space.
 
-- `/s/[id]` renders the survey form, enforces closed/expired/full state, and submits responses
-- `/docs`, `/llms.txt`, and `/api/openapi.json` make the product discoverable to developers and agents
+### MCP server (`packages/mcp-server`)
 
-Demo route (`/api/demo/parse`): accepts plain text or Markdown and uses an LLM to translate it into JSON schema. This is a web demo convenience, not part of the agent API surface — agents generate JSON schema directly.
+A thin authenticated client over the API, at 1.0.0 with nine tools: `login`, `get_catalog`,
+`list_forms`, `get_form`, `create_form`, `configure_form`, `get_attribution`,
+`list_unresolved`, `remap`. The five survey-era tools are gone with the API they called.
 
-There is intentionally no browser results dashboard. Results access is defined by the authenticated API and MCP tools.
+Publishing is manual and separate from deploying, so the version on npm can lag this repo.
 
-### 2. MCP Server (`packages/mcp-server`)
+The tool descriptions are the product's primary interface, not documentation of it: what a
+description says is what the model believes about the world. A description that names a
+downstream tool teaches the model that the two always go together.
 
-The MCP server is a thin authenticated client over the hosted API.
+### Read surface
 
-Responsibilities:
+Two different jobs, deliberately not one:
 
-- Accept survey definitions from agents
-- Call the API with `Authorization: Bearer ${HUMANSURVEY_API_KEY}`
-- Format creator-friendly text output for MCP tools
-- Preserve access to structured results through the underlying API response shapes
+- **Analysis** is an API/MCP resource. There is no charts page, and the agent is expected to
+  write the monthly note.
+- **Debugging** is a response log — "did anything arrive, and what did it say". Without it
+  the first-run experience is to embed a form, wait, and have no idea whether it works.
+  This is the one place the "no dashboard" principle was wrong and had to be narrowed.
 
-Core tools:
+## Data model
 
-- `create_survey`
-- `get_results`
-- `list_surveys`
-- `close_survey`
-
-## Access Model
-
-Results access is based on API key auth, not a second public URL. The access model is:
-
-- Respondents use the public survey URL: `/s/{survey_id}`
-- Creators use API key auth for creation, listing, lifecycle changes, and results retrieval
-- MCP tools use the same API key auth model as direct HTTP clients
-
-This keeps the creator surface consistent across web API, MCP, and future SDKs.
-
-## Data Model
-
-The database keeps a normalized ownership model plus denormalized counters for fast reads.
+Live schema: [`../apps/web/supabase/migrations/001_init.sql`](../apps/web/supabase/migrations/001_init.sql),
+which is the authority — it carries the reasoning for each load-bearing column inline.
+Migrations are applied by `scripts/migrate.sh` against a `schema_migrations` ledger with
+checksum drift detection.
 
 ```
-api_keys
-├── id (TEXT PK)
-├── key_hash (TEXT UNIQUE NOT NULL)
-├── name (TEXT)
-├── created_at (TIMESTAMPTZ)
-└── last_used_at (TIMESTAMPTZ)
-
-surveys
-├── id (TEXT PK)
-├── api_key_id (TEXT FK → api_keys.id)
-├── title (TEXT NOT NULL)
-├── description (TEXT)
-├── schema (JSONB NOT NULL)
-├── markdown (TEXT)
-├── response_count (INT DEFAULT 0)
-├── status (TEXT NOT NULL DEFAULT 'open')
-├── max_responses (INT)
-├── expires_at (TIMESTAMPTZ)
-└── created_at (TIMESTAMPTZ)
-
-responses
-├── id (TEXT PK)
-├── survey_id (TEXT FK → surveys.id)
-├── answers (JSONB NOT NULL)
-└── created_at (TIMESTAMPTZ)
+accounts ──┬── api_keys                 keys are credentials; accounts own the data
+           ├── sessions
+           └── attribution_forms ──┬── attribution_configs   IMMUTABLE snapshots
+                                    │        └── attribution_responses
+                                    │                 └── attribution_answers
+                                    ├── attribution_remaps    retroactive, revocable
+                                    ├── attribution_events    conversion ingest
+                                    └── attribution_anchors   calibration ground truth
+login_codes                          six-digit codes, attempt-limited
 ```
 
-Notes:
+Four things here look like bookkeeping and are not:
 
-- `schema` stores the canonical survey definition used by the form renderer and results aggregation.
-- `response_count` is denormalized and maintained server-side for quick lifecycle checks.
-- Lifecycle fields live on the survey itself so both API and UI can make the same availability decision.
+- **`attribution_configs` rows are immutable**, enforced by a trigger. A config version is
+  a snapshot of what a respondent was shown; label and icon are copied in rather than
+  joined live, so nothing later can rewrite what an old rollup claims was rendered.
+- **`attribution_forms.response_count` exists for its row lock.** The completion trigger
+  updates it *before* calling `nextval`, and that ordering is the only thing making commit
+  order match `completed_seq` order. Reverse the two statements and cursor reads silently
+  strand rows.
+- **`completed_seq` is the cursor token, not `seq`.** `seq` is insert order on a table whose
+  rows become final later, so a cursor over it delivers the first answer and never the
+  follow-up.
+- **`attribution_answers.raw` is verbatim**, with `raw_normalized` generated in the
+  database so the write path and the remap lookup cannot drift apart.
 
-## Survey Schema Shape
+Every child FK cascades from `accounts`, so an erasure request is one `DELETE`. The
+pre-pivot schema could not do this, which is why key revocation had to be a soft delete.
 
-```typescript
-interface Survey {
-  title: string
-  description?: string
-  sections: Section[]
-}
+## Testing
 
-interface Section {
-  id: string
-  title?: string
-  description?: string
-  questions: Question[]
-}
+`pnpm test` — `node --test`, no framework. Coverage is deliberately narrow and aimed at the
+invariants that fail *silently*: the config content hash (a change switches off the position
+correction with no error), the ordering permutation and its positional uniformity, and
+candidate ids that collide with `Object.prototype`.
 
-type QuestionType =
-  | 'single_choice'
-  | 'multi_choice'
-  | 'text'
-  | 'matrix'
-  | 'scale'
-
-interface Question {
-  id: string
-  type: QuestionType
-  label: string
-  description?: string
-  required: boolean
-  options?: Option[]
-  rows?: MatrixRow[]
-  columns?: MatrixColumn[]
-  min?: number
-  max?: number
-  minLabel?: string
-  maxLabel?: string
-  showIf?: Condition
-}
-```
-
-The schema is shared across parser, API handlers, renderer, and MCP formatting. The system should not have multiple incompatible interpretations of the same survey.
-
-## Results Pipeline
-
-`GET /api/surveys/[id]/responses` is the canonical results endpoint.
-
-It returns:
-
-- `count`: total response count
-- `questions`: per-question aggregates ready for UI or agent reasoning
-- `raw`: complete individual responses for export or custom analysis
-
-Aggregation is computed once on the server so every consumer sees the same statistics:
-
-- choice questions expose tallies
-- scale questions expose count, mean, median, and distribution
-- text questions expose recent responses
-- matrix questions expose row and option breakdowns
-
-This aggregated shape is intended for agents and API clients first, not a browser analytics UI.
-
-## Security Model
-
-- API keys are stored hashed, never plaintext after creation
-- Creator endpoints require `Authorization: Bearer hs_sk_...`
-- Respondent endpoints remain public by design
-- Markdown is parsed into structured schema, not rendered as raw HTML
-- Ownership checks happen at the survey API boundary using `api_key_id`
-
-## Planned Extension Points
-
-The current architecture deliberately leaves room for:
-
-- OpenAPI publication and generated SDKs
-- future webhooks without changing the survey schema contract
-- additional SDKs layered on the same HTTP contract
+`scripts/schema-smoke.sql` checks fourteen schema invariants inside a transaction it rolls
+back, so it is safe to run against production.

@@ -1,0 +1,19 @@
+{
+  // The package had no tsconfig, so `npx tsc` here silently picked up the repo root's and
+  // tried to typecheck the web app without its path aliases — hundreds of errors that were
+  // pure tooling artifact. tsup's own DTS build resolved fine, which is how the gap went
+  // unnoticed: the build passing did not mean the package was checkable.
+  "compilerOptions": {
+    "target": "es2022",
+    "lib": ["es2023"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "types": ["node"],
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true
+  },
+  "include": ["src/**/*.ts"]
+}

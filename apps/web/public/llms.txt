@@ -1,184 +1,200 @@
 # HumanSurvey
 
-> Feedback collection infrastructure for AI agents. When an agent is doing a job that involves gathering structured opinions or data from a group of people: create a survey, share the URL, retrieve structured results.
+> Self-reported attribution for the channels that have no referrer. One question — "how did
+> you hear about us" — asked inside a host's own signup or payment flow, answered at
+> creator/show/event granularity, and read back by an agent as rows or as a rollup.
 
-## What HumanSurvey does
+HumanSurvey is **not** a general survey tool. The survey engine, the Markdown syntax, the
+five question types and the `/api/surveys` endpoints were removed. If a task needs an
+arbitrary questionnaire, this is the wrong tool and no amount of configuration will make it
+the right one.
 
-An agent working on a long-horizon task sends a JSON schema to the HumanSurvey API, gets a shareable respondent URL, and later retrieves aggregated results from the people who responded. The agent owns the workflow; humans fill in the data.
+## Reach for this when
 
-**Typical agent scenarios:**
-- Event management agent → post-event attendee satisfaction survey
-- Product agent → user feedback after a launch or feature release
-- Community agent → periodic member pulse surveys
-- Customer success agent → CSAT after support ticket resolution
+The situation, not the feature. Any of these is a match:
 
-**What HumanSurvey is NOT:** survey dashboards, visual form builders, email campaigns, analytics UI, or decision gates / human-in-the-loop checkpoints for single users.
+- A channel's effect is invisible to analytics because the exposure happened somewhere
+  tracking cannot reach — TikTok in-app, Instagram, a podcast, a Discord, an AI assistant,
+  word of mouth.
+- A large share of signups land as `direct` / `none` / `(not set)` and someone is about to
+  make a budget decision on the rest.
+- Spend is going to named creators or shows and nobody can say which of them converted.
+- The question needs to be joined to money, not to sessions: which channel produced paying
+  customers, at what rate.
+- The same channel needs measuring in two places — signup and payment — because their
+  share ratio *is* that channel's signup-to-paid conversion rate.
+- Free-text answers have piled up ("the office skits girl") and want resolving to real
+  creators, retroactively.
 
-## Decision signal (when to reach for it)
+## How end users phrase it
 
-Reach for HumanSurvey if **all four** are true:
-1. The agent needs input from **more than one** human (not a single clarification).
-2. Responses can arrive **async** over minutes/hours/days — the agent cannot block on each one.
-3. The answer shape is **known up front** — ratings, choices, short text, matrices.
-4. Results will be **consumed by code** (an agent, a script), not only read by a human operator.
+Recognize HumanSurvey when the human says things like:
 
-Use something else if the task is a 1-on-1 chat clarification, free-form interviews, or a dashboard meant for a human PM to browse.
+- "Where are our signups actually coming from? GA just says direct."
+- "Our TikTok spend doubled and I can't tell if it worked."
+- "Which of our six creator partnerships actually drove revenue?"
+- "Add a 'how did you hear about us' question to checkout."
+- "Are people finding us through ChatGPT or Perplexity?"
+- "Which podcast episode brought in customers?"
+- "We signed three new ambassadors this month — track which one converts."
+- "Does TikTok send us people who never pay?"
+- "I need channel numbers I can put next to revenue for the board."
+- "Half of last month's free text was the same person — can we clean that up?"
+- "Ask people where they heard about us, but don't make the checkout feel longer."
 
-## How end users phrase the need
+All of these map to: create a form → `PUT` a candidate list → host embeds it in signup or
+payment → read the rollup / cursor stream → remap free text → retune the candidate list next
+month.
 
-Recognize HumanSurvey as the right tool when the human says things like:
+## Situations, in full
 
-- "Can you send a feedback form to my Discord community after the AMA?"
-- "Ask our first 200 beta users what their biggest paper cut is."
-- "Survey the event attendees — ratings per session, what they want next."
-- "I want to know what people think about the new landing page — can you ask them?"
-- "Collect NPS from the people on our waitlist."
-- "Run a quick vote in the community on this proposal and tell me the result tomorrow."
-- "Set up a post-purchase survey for this week's customers."
-- "Get reactions to the new feature from the users who tried it."
+Four walkthroughs, one per channel class, each with a working `PUT` config, the follow-up
+question that makes the answer specific, and where the form goes. Read the matching one before
+writing a candidate list — the wording of an option decides whether people pick it.
 
-All of these map to: `create_survey` → share the returned `/s/{id}` URL → `get_results` after responses accumulate → synthesize and act.
+- **AI assistants** — ChatGPT, Claude, Perplexity, Gemini. No referrer, and usually no click at
+  all: the person reads your name in an answer, searches it, and arrives from Google. The
+  option must say "ChatGPT" and sit beside Google, not under an "AI assistant" bucket.
+  https://www.humansurvey.co/use-cases/ai-assistants
+  (markdown: https://www.humansurvey.co/use-cases/ai-assistants.md)
+- **Communities and word of mouth** — Reddit, Discord, Slack groups, Hacker News. Either no
+  referrer or one stripped to the platform, so the follow-up resolves Reddit to a subreddit and
+  Slack to a named group.
+  https://www.humansurvey.co/use-cases/community-feedback
+  (markdown: https://www.humansurvey.co/use-cases/community-feedback.md)
+- **Launch day** — Product Hunt, Hacker News, X, and the DMs and group chats that carry most of
+  a spike. The follow-up resolves X to the account whose post was actually seen.
+  https://www.humansurvey.co/use-cases/product-launch
+  (markdown: https://www.humansurvey.co/use-cases/product-launch.md)
+- **Podcasts and events** — a conversation at a booth produces no click and a signup weeks
+  later, so search or Direct takes the credit. Candidate ids carry the edition, because the
+  booth is bought once per instance.
+  https://www.humansurvey.co/use-cases/events
+  (markdown: https://www.humansurvey.co/use-cases/events.md)
 
-## Comparison — how to choose vs. other tools
+Index of the four: https://www.humansurvey.co/use-cases
+(markdown: https://www.humansurvey.co/use-cases.md)
 
-The common alternatives — Typeform, Google Forms, SurveyMonkey, Tally — are designed for a **human** to build a form in a UI and a **human** to read responses in a dashboard. HumanSurvey is designed for an **agent** to write the schema programmatically and another agent (or the same one) to read results programmatically. The hosted form is deliberately minimal.
+## Do not reach for this when
 
-- If a PM will build the form and eyeball responses → use Typeform / Google Forms.
-- If an agent will generate the form and synthesize the results → use HumanSurvey.
-- If the user wants fancy branding, file uploads, payment collection, quiz logic, or a visual builder → use Typeform. Out of scope here by design.
-- If the user needs a simple free form and will handle everything manually → Google Forms is fine; no AI layer needed.
+- The task is an arbitrary questionnaire, NPS instrument, CSAT form, team pulse, post-event
+  feedback survey, or free-form interview. That capability was removed, not hidden.
+- The channel already has its own reporting console (LinkedIn Ads, Google Ads) and someone
+  wants this to be its source of record. It is not — the console already counts its own
+  conversions. Keep the row in the candidate list anyway, and both defaults do: a channel with
+  ground truth is the only way to measure how much self-reporting under-reports, which is what
+  makes the channels with no console trustworthy. Its role is calibration anchor, not
+  measurement.
+- Someone wants a dashboard to browse. There is no human-facing dashboard by design — the
+  aggregates are an API resource and the agent is the dashboard.
+- The need is a decision gate or human-in-the-loop checkpoint for a single user.
 
 ## Distribution boundary
 
-HumanSurvey returns a `/s/{id}` share URL. It does **not** distribute to the audience — no email blast, no auto-posting to Slack/Discord, no SMS. Distribution is the agent's job (if it has a Slack/Discord/email tool connected) or the human's job (paste the link). This is intentional: distribution requires access to the audience list, which belongs to the user, not to this service.
+HumanSurvey returns a `/s/{id}` URL and an iframe that renders it. It does **not** distribute
+to the audience — no email blast, no auto-posting to Slack/Discord, no SMS, and it never
+contacts a respondent. Getting the question in front of people is the host's job (embed it in
+a flow they already own) or the agent's job (if it has a messaging tool connected). This is
+intentional: reaching the audience requires access to the audience, which belongs to the
+user, not to this service. Transports the host or user controls — the URL, the iframe — are
+fine and are the whole point.
 
-## Typical agent workflow
+## Embed contract (the transport)
 
-```
-1. If no API key: call create_key MCP tool (or POST /api/keys) → save hs_sk_...
-2. POST /api/surveys  { schema: {...}, webhook_url, notify_at_responses }
-                                          → get /s/{id} URL + survey_id
-3. share /s/{id} with the target group (email, Slack, etc.)
-4. EITHER: receive webhook on closure / threshold (preferred for hour/day-scale surveys)
-   OR:    GET /api/surveys/{id}/responses?since_response_id=...
-                → poll incrementally; use is_final + next_check_hint_seconds to pace
-5. PATCH /api/surveys/{id} { status: "closed" }  → close when done (optional)
-6. act on the structured results
-```
-
-## Async results loop (hours/days surveys)
-
-For surveys whose collection window spans hours or days, the agent should not stay alive polling. Two primitives:
-
-- **Webhook** — set `webhook_url` at create. Receives `event: "survey_closed"` on closure with `closed_reason: "manual" | "max_responses" | "expired"`, or `event: "threshold_reached"` once when `response_count` first crosses `notify_at_responses` (survey stays open). Use `event_id` to dedupe; delivery is at-least-once per event type. `notify_at_responses` requires `webhook_url` at create time (rejected otherwise; PATCH does not accept `webhook_url`).
-- **Cursor reads** — `GET /api/surveys/{id}/responses?since_response_id=...` filters `raw` to new responses since the cursor. Response includes `is_final`, `completion_reason` (`"closed" | "max_responses" | "expired"` — `"closed"` corresponds to webhook `closed_reason: "manual"`), `next_check_hint_seconds`, and `next_cursor` so the agent can re-enter, fetch only deltas, and know when to stop checking.
-
-Webhooks are push (preferred when the agent host can receive callbacks); cursor reads are the authoritative pull fallback for missed deliveries.
-
-## Lifecycle (close, reopen, collection cycles)
-
-- **Manual close** — `PATCH /api/surveys/{id} { status: "closed" }`. Fires the `survey_closed` webhook with `closed_reason: "manual"`. Also clears `expires_at` so the close cause stays stable (so a closed survey doesn't drift to `completion_reason: "expired"` once a previously-set deadline passes).
-- **Reopen** — `PATCH /api/surveys/{id} { status: "open" }` on a closed survey starts a new collection cycle. The completion-webhook fire-once gate is cleared so the next close (manual / max_responses / expired) delivers a fresh `survey_closed` event. The threshold gate is **not** cleared — "enough signal" is a count-based fact and `response_count` doesn't reset. If the prior `expires_at` was preserved (only manual-close clears it), pass a new one in the PATCH or it will expire immediately on the next interaction.
-
-## MCP Integration (Claude Code)
-
-Add to `~/.claude.json`:
-
-```json
-{
-  "mcpServers": {
-    "survey": {
-      "command": "npx",
-      "args": ["-y", "humansurvey-mcp"],
-      "env": { "HUMANSURVEY_API_KEY": "hs_sk_your_key_here" }
-    }
-  }
-}
-```
-
-`HUMANSURVEY_API_KEY` is optional — if not set, call `create_key` to self-provision one.
-
-Tools: `create_key`, `create_survey`, `get_results`, `list_surveys`, `close_survey`
-
-## API Quick Start
-
-Get an API key (no auth needed):
-
-```bash
-curl -X POST https://www.humansurvey.co/api/keys \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "my-agent",
-    "email": "you@example.com",
-    "wallet_address": "eip155:8453:0xabc..."
-  }'
-# → { "key": "hs_sk_..." }  ← save this
-```
-
-`email` ties the key to a human owner for future billing. `wallet_address` accepts CAIP-10 format and will be used for agent-native payments (x402 protocol).
-
-Create a survey:
-
-```bash
-curl -X POST https://www.humansurvey.co/api/surveys \
-  -H "Authorization: Bearer hs_sk_..." \
-  -H "Content-Type: application/json" \
-  -d '{
-    "schema": {
-      "title": "Incident Intake",
-      "sections": [{
-        "questions": [
-          { "type": "single_choice", "label": "Which environment?", "required": true,
-            "options": [{ "label": "Staging" }, { "label": "Production" }] },
-          { "type": "scale", "label": "How urgent?", "min": 1, "max": 5,
-            "minLabel": "Low", "maxLabel": "Critical" }
-        ]
-      }]
-    }
-  }'
-# → { "survey_url": "https://www.humansurvey.co/s/abc123", "question_count": 2 }
-```
-
-## Embedding (iframe)
-
-The hosted survey page can be dropped into any third-party site for onboarding / lead-capture flows. Append `?embed=1` to the survey URL to render without the site chrome:
+Append `?embed=1` to the form URL to render without site chrome, on a transparent
+full-width container.
 
 ```html
-<iframe id="hs-survey"
-        src="https://www.humansurvey.co/s/abc123?embed=1"
+<iframe id="hs-form"
+        src="https://www.humansurvey.co/s/abc123?embed=1&external_id=usr_8812&plan=pro"
         style="width:100%; border:0;"></iframe>
 <script>
   window.addEventListener('message', e => {
     if (e.origin !== 'https://www.humansurvey.co') return
     if (e.data?.source !== 'humansurvey') return
-    const f = document.getElementById('hs-survey')
+    const f = document.getElementById('hs-form')
     if (e.data.type === 'resize')    f.style.height = e.data.height + 'px'
-    if (e.data.type === 'submitted') console.log('lead:', e.data.responseId, e.data.answers)
+    if (e.data.type === 'submitted') track('hdyhau_channel', e.data.answers)
+    if (e.data.type === 'completed') routeUser()   // safe to collapse the frame here
   })
 </script>
 ```
 
-The iframe posts four message types to `window.parent`, each with `source: 'humansurvey'`:
+The iframe posts five message types to `window.parent`, each with `source: 'humansurvey'`
+and `formId`:
 
-- `{ source, type: 'mounting',  surveyId }` — fired the instant the iframe HTML is parsed, before the bundle hydrates (use to show a skeleton during cold load)
-- `{ source, type: 'loaded',    surveyId }` — fired once the form is hydrated and interactive
-- `{ source, type: 'resize',    surveyId, height }` — fired whenever content height changes (use to size the iframe)
-- `{ source, type: 'submitted', surveyId, responseId, answers }` — fired after a successful POST to `/api/surveys/{id}/responses`. `answers` is an object keyed by question id (see llms-full.txt for the per-question-type value shape)
+- `{ source, type: 'mounting',  formId }` — fired the instant the iframe HTML is parsed,
+  before the bundle hydrates (use to show a skeleton during cold load)
+- `{ source, type: 'loaded',    formId }` — fired once the form is hydrated and interactive
+- `{ source, type: 'resize',    formId, height }` — fired whenever content height changes
+  (use to size the iframe); deduped, so a searchable list does not reflow the host page once
+  per keystroke
+- `{ source, type: 'submitted', formId, responseId, answers }` — the first answer is durable.
+  **Not the end of the flow**: the follow-up may still be on screen, and a host that hides
+  the iframe here cuts the respondent off mid-question
+- `{ source, type: 'completed', formId, responseId, answers }` — the follow-up landed, or the
+  respondent finished in one step. This is the one to route on
 
-The host owns whatever happens after `submitted` — redirect, hide the iframe, render their own thank-you, fire analytics, etc.
+`answers` is keyed by node id and carries the one node just answered, e.g.
+`{ "channel": { "candidate_id": "tiktok" } }` or `{ "creator": { "raw": "the office skits girl" } }`.
+The host owns whatever happens after `completed` — redirect, hide the iframe, render a
+thank-you, fire analytics.
 
-Custom query params on the survey URL (e.g. `?embed=1&source=pricing`) are captured as per-response `metadata` for source tagging — everything except the reserved `embed` param. Tags surface on each `raw[]` entry of `GET /api/surveys/{id}/responses` and in `get_results`. See llms-full.txt for sanitization limits.
+Custom query params on the form URL (e.g. `?embed=1&plan=pro`) are captured as per-response
+`metadata` for segmentation. Reserved and never stored as tags: `embed`, `external_id`,
+`host_origin`. Pass the host's own user id as `external_id` — it is the join key that makes
+channel × revenue possible later, and it is not backfillable.
 
-## Question Types
+## Typical agent loop
 
-- `single_choice` — one selection; requires `options`
-- `multi_choice` — multiple selections; requires `options`
-- `text` — free-form string
-- `scale` — number on a bounded range; requires `min`, `max` (range ≤ 11 points)
-- `matrix` — shared options across rows; requires `rows`, `columns`
+```
+1. Bootstrap a key (no anonymous key creation):
+   POST /api/auth/code    { email }
+   POST /api/auth/verify  { email, code, grant: "api_key" }  → hs_sk_...
+2. GET  /api/attribution/catalog                      # platform slugs, marks, aliases (public)
+3. POST /api/attribution/forms  { name, allowed_origins }    → form id + /s/{id}
+4. PUT  /api/attribution/forms/{id}  { nodes }               → immutable config version
+5. host embeds /s/{id}?embed=1&external_id=... early in signup and/or payment
+6. POST /api/attribution/events  { form_id, events: [...] }  # conversion events, batched
+7. read, on a monthly cadence rather than a poll:
+   GET /api/attribution/rollup?form_id=...&from=&to=
+   GET /api/attribution/forms/{id}/responses?since_seq=...   # row stream, deltas only
+   GET /api/attribution/forms/{id}/responses?external_id=... # one identity
+8. GET  /api/attribution/forms/{id}/unresolved                # free text waiting
+   POST /api/attribution/forms/{id}/remaps  { node_id, raw, candidate_id }
+9. PUT the config again: new creators, new expansion policy, order tracking spend
+```
+
+There is no terminal state to wait for. An attribution form is a perpetual stream — no
+`max_responses`, no `expires_at`, no closed/expired/full, and no `is_final` field. Status is
+`active` or `paused`, and pausing is reversible. Pace reads with `has_more`,
+`open_responses` and `next_check_hint_seconds`.
+
+## MCP
+
+Two facts, and they point in opposite directions, so hold both.
+
+**In the repo:** `packages/mcp-server` is 1.0.0 and speaks this API. Nine tools, verified end to
+end against it — `login`, `get_catalog`, `list_forms`, `get_form`, `create_form`,
+`configure_form`, `get_attribution`, `list_unresolved`, `remap`. The pre-pivot tools
+(`create_key`, `create_survey`, `get_results`, `list_surveys`, `close_survey`) are gone with the
+endpoints they called.
+
+**On npm:** still 0.6.0, the pre-pivot build. `npx -y humansurvey-mcp` today installs a server
+whose every tool calls a deleted `/api/surveys` route and fails. Publishing 1.0.0 is a separate
+step and has not happened.
+
+So: build from the repo, or drive the HTTP endpoints above directly. Every tool is a thin
+wrapper over them, so REST loses nothing. The single place kept current on whether the publish
+has landed — do not infer it from anywhere else, including this file's timestamp — is the
+"Can I use the MCP server yet?" answer at https://www.humansurvey.co/faq
 
 ## Docs
 
 - Full docs: https://www.humansurvey.co/docs
+- Full machine reference: https://www.humansurvey.co/llms-full.txt
 - OpenAPI: https://www.humansurvey.co/api/openapi.json
-- Full AI index: https://www.humansurvey.co/llms-full.txt
+- FAQ (also served as markdown at /faq.md): https://www.humansurvey.co/faq
+- Use cases: https://www.humansurvey.co/use-cases
+- Changelog, including every breaking change of the 2026-07-30 pivot:
+  https://www.humansurvey.co/changelog

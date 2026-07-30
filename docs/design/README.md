@@ -12,6 +12,7 @@ Conventions:
 
 | Doc | Status | Topic |
 |---|---|---|
+| [attribution-pivot.md](./attribution-pivot.md) | proposed 2026-07-30 | Narrowing the product to HDYHAU attribution: brand-name + logo channel picker, creator-granularity follow-up, catalog/candidates boundary, position-effect correction, retroactive remapping of free text. |
 | [async-results-loop.md](./async-results-loop.md) (+ phase 1 / 2 / 3) | shipped 2026-04-30 | Cursor reads, completion webhook on all terminal events, threshold notification — primitives that let agents exit and be woken instead of polling for hours. |
 | [l1-embed-plan.md](./l1-embed-plan.md) | shipped 2026-04-27 | Iframe embed (`?embed=1`) for hosting `/s/{id}` inside third-party onboarding / lead-capture flows. postMessage protocol for `loaded` / `resize` / `submitted`. |
 

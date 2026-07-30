@@ -719,13 +719,13 @@
         if (e.origin !== location.origin) return
         if (e.data?.source !== 'humansurvey') return
         const iframe = document.getElementById('hs')
-        const { type, surveyId } = e.data
+        const { type, formId } = e.data
         if (type === 'mounting') {
           // Earliest signal — iframe HTML parsed, bundle not yet interactive.
           // A real host would reveal a skeleton here instead of a blank spinner.
-          appendLog('[' + ts() + '] mounting surveyId=' + surveyId, 'log-mounting')
+          appendLog('[' + ts() + '] mounting formId=' + formId, 'log-mounting')
         } else if (type === 'loaded') {
-          appendLog('[' + ts() + '] loaded surveyId=' + surveyId, 'log-loaded')
+          appendLog('[' + ts() + '] loaded formId=' + formId, 'log-loaded')
         } else if (type === 'resize') {
           if (iframe) iframe.style.height = e.data.height + 'px'
           appendLog(
