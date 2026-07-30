@@ -189,7 +189,7 @@ other route takes a bearer key only.
   "handle": "@jade.work0",
   "icon_url": "https://cdn.example.com/avatars/jade.jpg",
   "aliases": ["the one who does the office skits"],
-  "monogram_color": "#0A66C2",
+  "tile_color": "#0A66C2",
   "pinned": "end",
   "dont_remember": true,
   "expands": "creator",
@@ -200,7 +200,7 @@ other route takes a bearer key only.
 - `id` required, ≤ 128 chars, unique within the node, **caller-defined**. The product
   validates ids rather than minting them. Use a key that survives a rename; a handle used as
   an id splits that creator's history the day they rename
-- `label` required, ≤ 120 chars. `handle`, `icon_url`, `monogram_color` optional and held to
+- `label` required, ≤ 120 chars. `handle`, `icon_url`, `tile_color` optional and held to
   the same 120-char cap — **an avatar URL longer than 120 characters is rejected**, so shorten
   it or proxy it. `expands` and `catalog_slug` share that cap too, which means an id longer
   than 120 characters cannot be referenced even though ids themselves allow 128
@@ -216,7 +216,7 @@ other route takes a bearer key only.
   `{ "candidate_id": "dunno" }` gets `kind: "dont_remember"`, same as the browser picker
 - `expands` — the id of the node this pick reveals, in place. Must resolve, must not be the
   node's own id, must not create a cycle
-- `catalog_slug` — copies `label`, `icon_url`, `monogram_color` and `aliases` from the
+- `catalog_slug` — copies `label`, `icon_url`, `tile_color` and `aliases` from the
   platform catalog at configure time. Anything you send yourself wins; a blank string means
   "use the catalog's". An unknown slug is a 400. Copied, never joined at read time, so a
   product-side logo swap cannot rewrite what an old rollup says was rendered

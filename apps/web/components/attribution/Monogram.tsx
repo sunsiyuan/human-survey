@@ -17,7 +17,7 @@ import { monogram } from '@/lib/catalog/platforms'
 type MonogramProps = {
   label: string
   /**
-   * `monogram_color` off the candidate, copied into the config snapshot at configure
+   * `tile_color` off the candidate, copied into the config snapshot at configure
    * time. Absent for a caller-defined candidate (a creator, a show, an event), which
    * falls through to the fixed palette below.
    *

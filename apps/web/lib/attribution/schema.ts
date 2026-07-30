@@ -20,7 +20,7 @@ export type CandidateInput = {
   handle?: unknown
   icon_url?: unknown
   aliases?: unknown
-  monogram_color?: unknown
+  tile_color?: unknown
   pinned?: unknown
   dont_remember?: unknown
   expands?: unknown
@@ -49,16 +49,20 @@ export type Candidate = {
   /**
    * Brand color for the monogram tile shown when no mark or avatar is available.
    *
-   * Its PRESENCE is also the signal that a tile should be drawn at all. A tile earns
-   * its place when the thing has an identity to recognize — a brand whose mark we
-   * cannot ship (ChatGPT, LinkedIn), or a person. It is noise on a descriptive option
-   * like "A friend or colleague told me", where a two-letter badge competes for
-   * attention with the real logos beside it and inverts §3.2's whole point.
+   * The colour goes BEHIND the mark rather than into it, the way an app icon works,
+   * because colouring the silhouette itself cannot serve both ends of the range: TikTok
+   * and X are #000000 and vanish on a dark surface, Snapchat is #FFFC00 and vanishes on a
+   * light one. Behind the mark, the colour is independent of the viewer's theme.
+   *
+   * Its PRESENCE is also the signal that a tile should be drawn at all. A tile earns its
+   * place when the thing has an identity to recognize — a brand, or a person. It is noise
+   * on a descriptive option like "A friend or colleague told me", where a badge competes
+   * for attention with the real logos beside it and inverts §3.2's whole point.
    *
    * Copied into the config snapshot at configure time, like label and icon_url, so a
    * palette change in the catalog cannot repaint an old render.
    */
-  monogram_color?: string
+  tile_color?: string
   /** Layout only: excluded from ordering, rendered last. */
   pinned?: 'end'
   /**
@@ -266,7 +270,7 @@ function readCandidates(raw: unknown, where: string, errors: string[]): Candidat
       handle: readText(input.handle, `${at}.handle`, errors) || undefined,
       icon_url: readText(input.icon_url, `${at}.icon_url`, errors) || undefined,
       aliases: aliases.length > 0 ? aliases : undefined,
-      monogram_color: readText(input.monogram_color, `${at}.monogram_color`, errors) || undefined,
+      tile_color: readText(input.tile_color, `${at}.tile_color`, errors) || undefined,
       pinned,
       dont_remember: dontRemember,
       expands: readText(input.expands, `${at}.expands`, errors) || undefined,

@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 
+import { LOGO_METRICS } from '@/lib/catalog/logo-metrics'
+
 import { Monogram } from './Monogram'
 
 /**
@@ -30,7 +32,7 @@ type CandidateRowProps = {
    * only for a catalog entry that names a brand but ships no mark; absent for anything
    * the catalog classifies as a description of an experience.
    */
-  monogramColor?: string
+  tileColor?: string
   /** Muted trailing text where a handle would go. Used by the free-text row. */
   hint?: string
   /** Keyboard/pointer highlight. At most one row at a time. */
@@ -46,7 +48,7 @@ export function CandidateRow({
   label,
   handle,
   iconUrl,
-  monogramColor,
+  tileColor,
   hint,
   active,
   selected,
@@ -58,14 +60,22 @@ export function CandidateRow({
   // argument depends on. Fall back to the tile the moment the load fails.
   const [iconFailed, setIconFailed] = useState(false)
 
-  // A tile is earned by having an identity to recognize — a brand whose mark we cannot
-  // ship (its color arrives as monogramColor), or a person (a handle is what makes one).
+  // A tile is earned by having an identity to recognize — a brand (its colour arrives as
+  // tileColor) or a person (a handle is what makes one).
   //
-  // The obvious rule, "no catalog entry means it is caller-defined and therefore a
-  // person", is wrong: the "I don't remember" row is caller-defined too, and it was
-  // getting a purple ID badge that made a non-answer read as a brand sitting among the
-  // real ones. A description carries itself with its label.
-  const showTile = monogramColor !== undefined || handle !== undefined
+  // The obvious rule, "no catalog entry means it is caller-defined and therefore a person",
+  // is wrong: the "I don't remember" row is caller-defined too, and it was getting a purple
+  // ID badge that made a non-answer read as a brand sitting among the real ones. A
+  // description carries itself with its label.
+  const showTile = tileColor !== undefined || handle !== undefined
+
+  // Keyed by our own /logos/ slug. Deliberately read here rather than copied into the config
+  // snapshot: unlike a label or a colour, these two numbers describe the ASSET FILE and are
+  // regenerated with it, so a stored copy would be the thing that goes stale the day a brand
+  // reissues its mark on a different canvas. A caller-supplied avatar URL matches nothing and
+  // gets the defaults, which is the correct answer for a photograph.
+  const slug = iconUrl?.startsWith('/logos/') ? iconUrl.slice(7, -4) : undefined
+  const metric = (slug ? LOGO_METRICS[slug] : undefined) ?? { scale: 1, invert: false }
 
   return (
     <li
@@ -92,9 +102,25 @@ export function CandidateRow({
       }`}
     >
       {iconUrl && !iconFailed ? (
-        // next/image is not usable here: candidate icons are caller-supplied and can
-        // point at any avatar CDN, and next.config's remotePatterns is a fixed
-        // allowlist — an unlisted host 400s at request time rather than degrading.
+        // NO TILE behind a platform mark.
+        //
+        // A tile was tried and it is wrong for most of these: roughly two thirds of the marks
+        // are containers carrying their own coloured square or circle — Instagram, LinkedIn,
+        // YouTube, Telegram, Reddit — and a container inside a white tile is a square inside a
+        // square. Without one, containers read as native app icons and a bare glyph sits on the
+        // row as the glyph it is.
+        //
+        // What the tile was solving was the four monochrome near-black marks vanishing on a
+        // dark surface. `invert` solves that precisely instead, and it is the only thing that
+        // can: an SVG loaded through <img> is a separate document whose fills page CSS cannot
+        // touch, but a filter applies to the rendered result. The flag is measured from the
+        // file, never guessed — inverting a multi-colour mark would render a negative of
+        // somebody's logo.
+        //
+        // A caller-supplied avatar is a photograph: it fills a rounded square, takes no optical
+        // correction, and is never inverted. It matches no entry in the metrics table because
+        // the table is keyed by our own /logos/ slugs, so it falls through to the defaults.
+        //
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={iconUrl}
@@ -103,10 +129,15 @@ export function CandidateRow({
           height={32}
           loading="lazy"
           onError={() => setIconFailed(true)}
-          className="h-8 w-8 shrink-0 rounded-lg object-cover"
+          style={metric.scale === 1 ? undefined : { transform: `scale(${metric.scale})` }}
+          className={
+            handle
+              ? 'h-8 w-8 shrink-0 rounded-lg object-cover'
+              : `h-5 w-5 shrink-0${metric.invert ? ' dark:invert' : ''}`
+          }
         />
       ) : showTile ? (
-        <Monogram label={label} color={monogramColor} />
+        <Monogram label={label} color={tileColor} />
       ) : (
         // Deliberately nothing — not an empty box. A descriptive option ("A friend or
         // colleague told me") has no identity to recognize, so a two-letter badge there

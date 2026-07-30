@@ -9,7 +9,7 @@ import {
   DEFAULT_CHANNEL_SLUGS,
   getPlatform,
   markUrl,
-  monogramColor,
+  tileColor,
 } from '@/lib/catalog/platforms'
 
 /**
@@ -72,7 +72,7 @@ const CHANNELS: Candidate[] = DEFAULT_CHANNEL_SLUGS.flatMap((slug) => {
       catalog_slug: slug,
       label: platform.label,
       icon_url: markUrl(platform) ?? undefined,
-      monogram_color: monogramColor(platform) ?? undefined,
+      tile_color: tileColor(platform) ?? undefined,
       aliases: platform.aliases ? [...platform.aliases] : undefined,
       // Only TikTok, deliberately. §10.4: the follow-up is the respondent's one extra
       // click and only spend-heavy channels earn it, so a visitor who picks Google

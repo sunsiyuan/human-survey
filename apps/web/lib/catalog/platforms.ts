@@ -15,7 +15,7 @@
  * Marks are generated from simple-icons (CC0) by scripts/generate-logos.mjs into
  * public/logos/{slug}.svg. Several major brands — LinkedIn, ChatGPT and Slack among
  * them — are absent from that set following trademark requests, so entries carry
- * `hasMark: false` and render as a monogram tile instead. That path is not an edge
+ * `hasMark: true` and render as a monogram tile instead. That path is not an edge
  * case: ChatGPT is the headline channel of the whole positioning.
  */
 
@@ -63,7 +63,7 @@ export const PLATFORMS: readonly CatalogPlatform[] = [
   { slug: 'instagram', label: 'Instagram', class: 'creator', brandColor: '#FF0069', hasMark: true, expandsByDefault: true, aliases: ['ig', 'insta', 'reels'] },
   { slug: 'youtube', label: 'YouTube', class: 'creator', brandColor: '#FF0000', hasMark: true, expandsByDefault: true, aliases: ['yt', 'shorts'] },
   { slug: 'x', label: 'X', class: 'creator', brandColor: '#000000', hasMark: true, expandsByDefault: true, aliases: ['twitter', 'tweet'] },
-  { slug: 'linkedin', label: 'LinkedIn', class: 'creator', brandColor: '#0A66C2', hasMark: false, expandsByDefault: true, aliases: ['li'] },
+  { slug: 'linkedin', label: 'LinkedIn', class: 'creator', brandColor: '#0A66C2', hasMark: true, expandsByDefault: true, aliases: ['li'] },
   { slug: 'facebook', label: 'Facebook', class: 'creator', brandColor: '#0866FF', hasMark: true, aliases: ['fb', 'meta'] },
   { slug: 'xiaohongshu', label: 'Xiaohongshu', class: 'creator', brandColor: '#FF2442', hasMark: true, expandsByDefault: true, aliases: ['rednote', 'red', 'xhs', '小红书'] },
   { slug: 'twitch', label: 'Twitch', class: 'creator', brandColor: '#9146FF', hasMark: true, expandsByDefault: true },
@@ -74,14 +74,14 @@ export const PLATFORMS: readonly CatalogPlatform[] = [
   // Named individually rather than folded into one "AI assistant" row, for the same
   // reason platforms beat "social media": people remember the product they used.
   // These channels strip referrers, so this is the only place they can be counted.
-  { slug: 'chatgpt', label: 'ChatGPT', class: 'ai_assistant', brandColor: '#10A37F', hasMark: false, aliases: ['openai', 'gpt', 'chat gpt'] },
+  { slug: 'chatgpt', label: 'ChatGPT', class: 'ai_assistant', brandColor: '#10A37F', hasMark: true, aliases: ['openai', 'gpt', 'chat gpt'] },
   { slug: 'claude', label: 'Claude', class: 'ai_assistant', brandColor: '#D97757', hasMark: true, aliases: ['anthropic'] },
   { slug: 'perplexity', label: 'Perplexity', class: 'ai_assistant', brandColor: '#1FB8CD', hasMark: true },
   { slug: 'gemini', label: 'Gemini', class: 'ai_assistant', brandColor: '#8E75B2', hasMark: true, aliases: ['bard', 'google ai'] },
 
   // --- Search -----------------------------------------------------------------
   { slug: 'google', label: 'Google', class: 'search', brandColor: '#4285F4', hasMark: true, aliases: ['search', 'googled'] },
-  { slug: 'bing', label: 'Bing', class: 'search', brandColor: '#174AE4', hasMark: false, aliases: ['microsoft'] },
+  { slug: 'bing', label: 'Bing', class: 'search', brandColor: '#174AE4', hasMark: true, aliases: ['microsoft'] },
   { slug: 'duckduckgo', label: 'DuckDuckGo', class: 'search', brandColor: '#DE5833', hasMark: true, aliases: ['ddg'] },
 
   // --- Podcasts ---------------------------------------------------------------
@@ -94,7 +94,7 @@ export const PLATFORMS: readonly CatalogPlatform[] = [
   { slug: 'hackernews', label: 'Hacker News', class: 'community', brandColor: '#F0652F', hasMark: true, aliases: ['hn', 'ycombinator'] },
   { slug: 'producthunt', label: 'Product Hunt', class: 'community', brandColor: '#DA552F', hasMark: true, aliases: ['ph'] },
   { slug: 'discord', label: 'Discord', class: 'community', brandColor: '#5865F2', hasMark: true, expandsByDefault: true },
-  { slug: 'slack', label: 'A Slack community', class: 'community', brandColor: '#4A154B', hasMark: false, expandsByDefault: true },
+  { slug: 'slack', label: 'A Slack community', class: 'community', brandColor: '#4A154B', hasMark: true, expandsByDefault: true },
   { slug: 'github', label: 'GitHub', class: 'community', brandColor: '#181717', hasMark: true },
   { slug: 'substack', label: 'A newsletter on Substack', class: 'community', brandColor: '#FF6719', hasMark: true, expandsByDefault: true },
   { slug: 'medium', label: 'Medium', class: 'community', brandColor: '#000000', hasMark: true },
@@ -144,15 +144,28 @@ const BRANDED_CLASSES = new Set<PlatformClass>([
 ])
 
 /**
- * The monogram color for a platform, or null when it should render with no tile at all.
+ * The tile colour for a platform, or null when it should render with no tile at all.
  *
- * A tile is worth its space when there is a brand to recognize but no mark to show it
- * with — ChatGPT and LinkedIn, whose marks were withdrawn from the icon set, are the
- * reason the fallback exists. It is actively harmful on "A friend or colleague told me":
- * a two-letter badge there reads as a brand, competes with the real logos for the eye,
- * and makes a scan of the list slower rather than faster (§3.2).
+ * Every branded entry gets one, whether or not a mark exists for it. The brand colour goes
+ * on the tile and the mark (or the monogram) sits on top in whatever contrasts — the way an
+ * app icon works. Colouring the mark itself instead cannot serve both ends of the range:
+ * TikTok and X are #000000 and disappear on a dark surface, Snapchat is #FFFC00 and
+ * disappears on a light one. Behind the mark, the colour is independent of the theme.
+ *
+ * Null for the descriptive entries. A tile is worth its space when there is an identity to
+ * recognise; on "A friend or colleague told me" it reads as a brand, competes with the real
+ * logos for the eye, and makes scanning the list slower rather than faster (§3.2).
  */
-export function monogramColor(platform: CatalogPlatform): string | null {
+export function tileColor(platform: CatalogPlatform): string | null {
+  // A mark carries its own colour, so putting the brand colour behind it is wrong twice: a
+  // four-colour Google G on a blue square is not Google's logo, and Instagram's gradient on a
+  // pink square is the same colour said twice. Official marks sit on a neutral surface, which
+  // is what they are designed for.
+  //
+  // Now that every platform in the catalog has an official mark, this returns null for all of
+  // them. It stays because the monogram path is still real — a caller-defined creator with no
+  // avatar gets initials on a tile — and because an entry added later without a mark should
+  // fall back rather than render blank.
   if (platform.hasMark || !BRANDED_CLASSES.has(platform.class)) {
     return null
   }

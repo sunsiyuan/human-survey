@@ -2,7 +2,7 @@ import { nanoid } from 'nanoid'
 import { NextResponse } from 'next/server'
 
 import { requireOwnedForm } from '@/lib/auth'
-import { getPlatform, markUrl, monogramColor } from '@/lib/catalog/platforms'
+import { getPlatform, markUrl, tileColor } from '@/lib/catalog/platforms'
 import { parseJsonValue, sql, tx } from '@/lib/db'
 
 import { configHash } from './hash'
@@ -697,11 +697,12 @@ function hydrateFromCatalog(raw: unknown): { input: unknown; errors: string[] } 
         catalog_slug: slug,
         label: preferCaller(candidate.label, platform.label),
         icon_url: preferCaller(candidate.icon_url, markUrl(platform)),
-        // Null for descriptive entries ("A friend or colleague told me"), which is how
-        // the renderer knows to draw no tile for them. Copied in rather than looked up
-        // live for the same reason label and icon are: a palette change must not be able
-        // to repaint what an old render looked like.
-        monogram_color: preferCaller(candidate.monogram_color, monogramColor(platform)),
+        // Set for every branded entry, marked or not: the brand colour goes on the tile
+        // behind the mark. Null for descriptive entries ("A friend or colleague told me"),
+        // which is how the renderer knows to draw no tile for them at all. Copied in rather
+        // than looked up live for the same reason label and icon are — a palette change must
+        // not be able to repaint what an old render looked like.
+        tile_color: preferCaller(candidate.tile_color, tileColor(platform)),
         aliases: mergeAliases(candidate.aliases, platform.aliases),
       }
     })

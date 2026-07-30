@@ -72,7 +72,7 @@ const openApiDocument = {
             maxItems: 24,
             description: 'Matched by the search box, never displayed. People remember descriptions, not handles.',
           },
-          monogram_color: {
+          tile_color: {
             type: 'string',
             description:
               'Brand color for the two-letter tile drawn when no mark or avatar exists. Its presence is also the signal to draw a tile at all, so leave it off descriptive options like "A friend or colleague".',

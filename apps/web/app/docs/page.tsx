@@ -483,7 +483,7 @@ export default function DocsPage() {
                 </li>
                 <li>
                   <code>catalog_slug</code> copies <code>label</code>, <code>icon_url</code>,{' '}
-                  <code>monogram_color</code> and <code>aliases</code> out of the platform catalog
+                  <code>tile_color</code> and <code>aliases</code> out of the platform catalog
                   at configure time. Anything you send yourself wins. Read the vocabulary from{' '}
                   <code>GET /api/attribution/catalog</code>, which needs no key.
                 </li>

@@ -359,7 +359,7 @@ export function CandidatePicker({
               label={row.candidate.label}
               handle={row.candidate.handle}
               iconUrl={row.candidate.icon_url}
-              monogramColor={row.candidate.monogram_color}
+              tileColor={row.candidate.tile_color}
               active={index === active}
               selected={committed?.kind === 'candidate' && committed.id === row.candidate.id}
               onPick={() => pick(row)}
