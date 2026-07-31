@@ -3,6 +3,8 @@ import { parseJsonValue, sql } from '@/lib/db'
 
 import { FormNotFoundError } from './config'
 
+import { readInstant } from './window'
+
 /**
  * The attribution rollup: channel × heads and channel × revenue, computed at read time.
  *
@@ -286,50 +288,6 @@ export function parseRollupQuery(url: URL): RollupQuery {
   }
 
   return { formId, by: by as RollupGrain, metric: metric as RollupMetric, from, to }
-}
-
-// A date-time carrying no zone offset: "2026-07-01T00:00:00", "2026-07-01 09:30",
-// "2026-07-01T00:00:00.500". Anything with a trailing Z or ±hh:mm fails this and is left
-// exactly as the caller wrote it.
-const ZONELESS_DATE_TIME = /^\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/
-
-/**
- * A timestamp bound, normalized to an instant.
- *
- * Zoneless values are read as UTC, and that has to be done explicitly. The ES spec parses
- * the date-only form ("2026-07-01") as UTC but a date-TIME form with no offset
- * ("2026-07-01T00:00:00") in the RUNTIME's local zone, so leaving it to `new Date` meant
- * the same `?from=` returned a different window depending on which region the function
- * happened to run in — different numbers from one query, with nothing in the payload
- * saying so. Only the date-only case was ever documented.
- *
- * Rejecting the zoneless form instead would also have been defensible, but a month
- * boundary is the overwhelmingly common bound here and "2026-07-01T00:00:00" plainly
- * means the same thing as "2026-07-01" to whoever typed it.
- */
-function readInstant(value: string | null, where: string, errors: string[]): string | null {
-  if (value === null) {
-    return null
-  }
-
-  const text = value.trim()
-
-  if (text.length === 0) {
-    return null
-  }
-
-  // The separator is normalized to "T" along with the zone: a space separator is
-  // implementation-defined under the spec, so appending "Z" to it would be trading one
-  // host-dependent parse for another.
-  const normalized = ZONELESS_DATE_TIME.test(text) ? `${text.replace(/[Tt ]/, 'T')}Z` : text
-  const parsed = new Date(normalized)
-
-  if (Number.isNaN(parsed.getTime())) {
-    errors.push(`${where} must be an ISO 8601 date or timestamp, e.g. "2026-07-01" or "2026-07-01T00:00:00Z"`)
-    return null
-  }
-
-  return parsed.toISOString()
 }
 
 type GroupedRow = {

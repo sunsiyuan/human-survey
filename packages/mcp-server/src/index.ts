@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { readFileSync } from 'node:fs'
+
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod'
@@ -39,13 +41,64 @@ import {
  *   - The conversion-events ingest. Events come from a payment webhook, not from an agent.
  *   - Anything that deletes a form or a response. An agent should not be able to destroy
  *     months of attribution history because one sentence was ambiguous.
+ *
+ * revoke_remap is not an exception to that last rule. It destroys nothing — the mapping row
+ * is kept and marked revoked — and it exists because the product already promised it: the
+ * remap tool tells the model "revoke it with that id", and for two releases there was no
+ * tool that could. A capability the output describes and the tool list does not offer is a
+ * worse failure than an absent one, because the model spends its turn looking.
  */
 
 const API_BASE_URL = process.env.HUMANSURVEY_API_URL ?? 'https://www.humansurvey.co'
 
+/**
+ * Every outbound call is bounded. Without this a stalled connection hangs the tool call
+ * forever: the agent gets no result and no error, so it cannot retry, report, or move on —
+ * strictly worse than a failure, because a failure is information. The value is generous
+ * because a rollup over a large form is genuinely slow, and a timeout that fires on healthy
+ * work would be its own bug.
+ */
+const REQUEST_TIMEOUT_MS = 30_000
+
+function timeoutSignal(): AbortSignal {
+  return AbortSignal.timeout(REQUEST_TIMEOUT_MS)
+}
+
+function unreachable(error: unknown): string {
+  // AbortSignal.timeout rejects with TimeoutError; a dead host rejects with something else.
+  // Distinguishing them is the difference between "wait and retry" and "check the URL".
+  if (error instanceof Error && error.name === 'TimeoutError') {
+    return (
+      `${API_BASE_URL} did not respond within ${REQUEST_TIMEOUT_MS / 1000}s. The request may ` +
+      'still have been processed — for anything that writes, read the current state back ' +
+      'before retrying rather than sending it twice.'
+    )
+  }
+
+  return `Could not reach ${API_BASE_URL}: ${error instanceof Error ? error.message : 'network error'}`
+}
+
+/**
+ * Read from package.json rather than repeating the number here. The literal that used to
+ * live in this call site was already wrong once — bumping the manifest is the act everyone
+ * remembers, and a second copy of the version is a copy that only gets fixed after somebody
+ * notices the server announcing a release it is not.
+ */
+function packageVersion(): string {
+  try {
+    return (
+      JSON.parse(
+        readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
+      ) as { version?: string }
+    ).version ?? '0.0.0-unknown'
+  } catch {
+    return '0.0.0-unknown'
+  }
+}
+
 const server = new McpServer({
   name: 'humansurvey-mcp',
-  version: '1.0.1',
+  version: packageVersion(),
 })
 
 function agentClient(): string {
@@ -92,12 +145,10 @@ async function api(
         ...(init.body === undefined ? {} : { 'Content-Type': 'application/json' }),
       },
       body: init.body === undefined ? undefined : JSON.stringify(init.body),
+      signal: timeoutSignal(),
     })
   } catch (error) {
-    return {
-      ok: false,
-      message: `Could not reach ${API_BASE_URL}: ${error instanceof Error ? error.message : 'network error'}`,
-    }
+    return { ok: false, message: unreachable(error) }
   }
 
   const data = (await response.json().catch(() => null)) as { error?: string; errors?: string[] } | null
@@ -148,11 +199,18 @@ server.registerTool(
   },
   async ({ email, code, name }): Promise<ToolResult> => {
     if (!code) {
-      const response = await fetch(`${API_BASE_URL}/api/auth/code`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      })
+      let response: Response
+
+      try {
+        response = await fetch(`${API_BASE_URL}/api/auth/code`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+          signal: timeoutSignal(),
+        })
+      } catch (error) {
+        return text(unreachable(error), true)
+      }
 
       const payload = (await response.json().catch(() => null)) as { error?: string } | null
 
@@ -166,17 +224,30 @@ server.registerTool(
       )
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/auth/verify`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email,
-        code,
-        grant: 'api_key',
-        name: name ?? 'mcp',
-        agent_client: agentClient(),
-      }),
-    })
+    let response: Response
+
+    try {
+      response = await fetch(`${API_BASE_URL}/api/auth/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          code,
+          grant: 'api_key',
+          name: name ?? 'mcp',
+          agent_client: agentClient(),
+        }),
+        signal: timeoutSignal(),
+      })
+    } catch (error) {
+      // A code is single-use and expires in ten minutes, so say plainly that the code may
+      // already be spent. Silently suggesting a retry burns the person's second attempt.
+      return text(
+        `${unreachable(error)}\n\nThe six-digit code works once. If this call did reach the ` +
+          'server, that code is now spent — ask for a fresh one rather than retrying this one.',
+        true,
+      )
+    }
 
     const payload = (await response.json().catch(() => null)) as
       | { key?: string; id?: string; error?: string }
@@ -213,7 +284,14 @@ server.registerTool(
     inputSchema: {},
   },
   async (): Promise<ToolResult> => {
-    const response = await fetch(`${API_BASE_URL}/api/attribution/catalog`)
+    let response: Response
+
+    try {
+      response = await fetch(`${API_BASE_URL}/api/attribution/catalog`, { signal: timeoutSignal() })
+    } catch (error) {
+      return text(unreachable(error), true)
+    }
+
     const payload = (await response.json().catch(() => null)) as
       | {
           platforms?: Parameters<typeof formatCatalog>[0]
@@ -469,7 +547,11 @@ server.registerTool(
       metric: z
         .enum(['responses', 'revenue'])
         .optional()
-        .describe('Sort order only. Counts and revenue are both always reported.'),
+        .describe(
+          'Sort order only; counts and revenue are both reported either way. Revenue appears ' +
+            'on the rows of the first question and nowhere else, because a respondent’s money ' +
+            'belongs to the respondent rather than to each question they answered.',
+        ),
     },
   },
   async ({ form_id, from, to, by, metric }): Promise<ToolResult> => {
@@ -592,6 +674,66 @@ server.registerTool(
         `${candidate_id}.${moved}\nMapping id ${data.remap?.id} — revoke it with that id if it ` +
         `turns out to be wrong.${warnings}`,
     )
+  },
+)
+
+server.registerTool(
+  'revoke_remap',
+  {
+    title: 'Undo a mapping',
+    description:
+      'Stop a mapping from applying. The typed answers it covered return to the unresolved ' +
+      'list — in past windows as well as future ones, because rollups join mappings when they ' +
+      'are read rather than when they are made. Numbers already reported for those windows ' +
+      'will therefore change.\n\n' +
+      'Nothing is deleted: the mapping is marked revoked and kept, so a report produced while ' +
+      'it was live can still be explained. Revoking an already-revoked mapping is not an ' +
+      'error and does not move the time it stopped applying.\n\n' +
+      'Mapping ids appear beside any text that is already mapped in the free-text listing, ' +
+      'and in the confirmation given when a mapping is created.',
+    inputSchema: {
+      form_id: z.string().describe('The form the mapping belongs to.'),
+      remap_id: z
+        .string()
+        .describe(
+          'The mapping to revoke. A mapping id alone is never enough — it is checked against ' +
+            'this form and this account.',
+        ),
+    },
+  },
+  async ({ form_id, remap_id }): Promise<ToolResult> => {
+    const result = await api(
+      `/api/attribution/forms/${encodeURIComponent(form_id)}/remaps/${encodeURIComponent(remap_id)}`,
+      { method: 'DELETE' },
+    )
+
+    if (!result.ok) {
+      return text(result.message, true)
+    }
+
+    // Field names read straight off lib/attribution/remap.ts rather than guessed. Guessing
+    // them is how an earlier version of this file reported "0 responses moved" forever: it
+    // read `moved_responses` from a payload whose field was `resolved_responses`.
+    const data = result.data as {
+      remap?: { id?: string; raw_normalized?: string; node_id?: string; candidate_id?: string }
+      revoked?: boolean
+      resolved_responses?: number
+      notes?: string[]
+    }
+
+    const what = `"${data.remap?.raw_normalized ?? ''}" in question "${data.remap?.node_id ?? ''}" → ${data.remap?.candidate_id ?? ''}`
+    const head = data.revoked
+      ? `Mapping ${data.remap?.id ?? remap_id} revoked: ${what}.`
+      : `Mapping ${data.remap?.id ?? remap_id} was already revoked; nothing changed. It was: ${what}.`
+
+    const moved =
+      typeof data.resolved_responses === 'number'
+        ? `\n${data.resolved_responses} response(s) returned to the unresolved list.`
+        : ''
+
+    const notes = data.notes?.length ? `\n\n${data.notes.map((note) => `  - ${note}`).join('\n')}` : ''
+
+    return text(`${head}${moved}${notes}`)
   },
 )
 

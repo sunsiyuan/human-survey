@@ -6,6 +6,8 @@ import { parseJsonValue, sql } from '@/lib/db'
 
 import { FormNotFoundError } from './config'
 
+import { readInstant } from './window'
+
 /**
  * The remap loop: free text in, a candidate mapping out, retroactively.
  *
@@ -875,8 +877,8 @@ function readUnresolvedQuery(params: URLSearchParams): UnresolvedQuery {
   const errors: string[] = []
   const query: UnresolvedQuery = {
     nodeId: readString(params.get('node_id'), 'node_id', { max: MAX_ID }, errors),
-    from: readTimestamp(params.get('from'), 'from', errors),
-    to: readTimestamp(params.get('to'), 'to', errors),
+    from: readInstant(params.get('from'), 'from', errors),
+    to: readInstant(params.get('to'), 'to', errors),
     includeMapped: readBoolean(params.get('include_mapped'), 'include_mapped', errors),
     limit: readLimit(params.get('limit'), errors),
     offset: readOffset(params.get('offset'), errors),
@@ -930,26 +932,6 @@ function readBoolean(value: string | null, where: string, errors: string[]): boo
 
   errors.push(`${where} must be 1, 0, true or false`)
   return false
-}
-
-/**
- * Parsed in JavaScript and re-emitted as an ISO instant, so the interpretation is not
- * split between two engines: `from=2026-07-01` means UTC midnight here, while Postgres
- * would read a bare date in the server's timezone and quietly shift the window.
- */
-function readTimestamp(value: string | null, where: string, errors: string[]): string | null {
-  if (value === null || value.trim().length === 0) {
-    return null
-  }
-
-  const parsed = Date.parse(value.trim())
-
-  if (Number.isNaN(parsed)) {
-    errors.push(`${where} must be an ISO 8601 timestamp or date`)
-    return null
-  }
-
-  return new Date(parsed).toISOString()
 }
 
 function readLimit(value: string | null, errors: string[]): number {

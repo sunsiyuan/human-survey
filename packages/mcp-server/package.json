@@ -1,7 +1,7 @@
 {
   "name": "humansurvey-mcp",
   "mcpName": "io.github.sunsiyuan/human-survey",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "MCP server for HumanSurvey \u2014 the agent interface to self-reported attribution: which channel, and which creator, your users first heard about you from",
   "keywords": [
     "mcp",
