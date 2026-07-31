@@ -71,8 +71,12 @@ ingests conversion events, single or batched.
    real volume.
 4. **Billing.** Metered on responses collected, volume tiers rather than feature tiers.
    Deliberately last: nobody has hit a limit.
-5. **Publish `humansurvey-mcp` 1.0.0.** Built and verified; publishing is a manual step that
-   has been taken: npm serves 1.0.0. The MCP registry, which is a separate publish, still serves 0.6.0.
+5. ~~**Publish `humansurvey-mcp`.**~~ Done on 2026-07-31. Both publishes are manual and
+   independent of each other and of the deploy: npm and the MCP registry each serve the 1.x
+   line. Do not restate a version number here — this line has now been stale twice, and the
+   thing worth writing down is that npm and the registry can disagree, not what either says
+   today. `npm view humansurvey-mcp version` and the registry's `/v0/servers?search=` answer
+   that in a second.
 
 ---
 

@@ -8,6 +8,25 @@ Entries are a record of what shipped on a date, so they are not edited when the 
 
 ---
 
+## 2026-07-31 — mcp 1.1.0 — a revoke tool, and a window bug that produced wrong numbers
+
+- Fixed — the rollup and the free-text listing each had their own timestamp parser, and they disagreed. A `from` or `to` written as a zoneless date-time ("2026-07-01T00:00:00") was read as UTC by the rollup and as the server host's local time by the listing, so the same pair of parameters selected different responses depending on which endpoint received them. Under a UTC+8 host that moved a month boundary onto the previous calendar day. Plain dates ("2026-07-01") always agreed, which is why this went unnoticed: only a caller who wrote the midnight out in full was affected. One parser now, in lib/attribution/window.ts, with tests that assert absolute instants and pass under four timezones.
+- Added — a `revoke_remap` tool. The `remap` tool had been telling agents to "revoke it with that id" since 1.0.0 while no tool could do it; the HTTP route existed the whole time. Nothing is deleted: the mapping is marked revoked and kept, so a report produced while it was live can still be explained.
+- Fixed — the free-text listing showed that a text was already mapped without showing the mapping id, which is the id `revoke_remap` needs. It was always on the wire and the formatter dropped it.
+- Fixed — the MCP formatters now print the API's `notes` verbatim rather than two hand-copied paraphrases of them, including on an empty result, where they matter most: the likeliest reason a window is empty is that it is not the window you meant.
+- Fixed — per-candidate revenue is shown. It was returned by the API, discarded by the formatter, and still used to order rows when you asked for revenue, so the order could not be explained from the numbers on screen.
+- Fixed — a rollup grouped by question labelled every row "(unlabelled)", the same string used for a mapping target that no configuration gives a name to. It now reads "all resolved answers", and only at that grouping.
+- Fixed — no outbound request had a timeout, so an unresponsive API hung the tool call instead of failing it. Thirty seconds, and a timeout during sign-in says the six-digit code may already be spent rather than implying a free retry.
+- Published to npm and to the MCP registry. Those are two separate manual publishes; the registry entry had been serving 0.6.0 since May and is current again.
+
+## 2026-07-31 — A published number was wrong, and is corrected
+
+- Corrected — four public surfaces said that a channel's share of the paying population against its share of the signup population IS that channel's signup-to-paid conversion rate. It is not. The ratio is conversion(channel) divided by conversion(overall): an index against your own average, not a rate. Multiply it by your overall signup-to-paid rate to get the channel's own. Fixed on /faq, llms.txt, llms-full.txt, the README, three use-case pages and the homepage.
+- Corrected — the AI-assistants page opened with an unsourced figure for how much assistant traffic lands in Direct. Cut rather than sourced: a hedge does not travel with a quoted sentence, and the argument does not need the number.
+- Corrected — a worked example narrated one account as two thirds of a channel while the payload printed 0.531 directly above it. The larger figure came from dropping the respondents who could not name an account, which is the precise error this product exists to prevent.
+- Every fabricated example payload on the site now carries an ILLUSTRATIVE label inside the code block rather than in surrounding prose, because a quoted block leaves the prose behind.
+- Recorded here rather than fixed quietly. A product whose argument is that most attribution numbers are confidently wrong cannot publish one and then act as though it never did.
+
 ## 2026-07-30 — mcp 1.0.0 — MCP server rebuilt for attribution: nine tools, and the pre-pivot five are gone
 
 - packages/mcp-server is 1.0.0 and speaks /api/attribution/*. Nine tools, verified end to end against the live API: login, get_catalog, list_forms, get_form, create_form, configure_form, get_attribution, list_unresolved, remap. That is the read-write loop the configuration actually needs — which channels expand, and which creators are on the list, are monthly decisions about where the money went, not a thing anyone fills in once.

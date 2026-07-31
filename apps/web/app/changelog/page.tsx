@@ -34,6 +34,20 @@ type Entry = {
 const entries: Entry[] = [
   {
     date: '2026-07-31',
+    title: 'humansurvey-mcp 1.1.0, and a window bug that produced wrong numbers',
+    items: [
+      'Fixed — the rollup and the free-text listing each had their own timestamp parser, and they disagreed. A `from` or `to` written as a zoneless date-time ("2026-07-01T00:00:00") was read as UTC by the rollup and as the server host\u2019s local time by the listing, so the same pair of parameters selected different responses on either endpoint. Under a UTC+8 host that moved a month boundary onto the previous calendar day. Plain dates ("2026-07-01") always agreed, which is why this went unnoticed: only a caller who wrote the midnight out in full was affected. One parser now, with tests that assert absolute instants under four timezones.',
+      'Added — a revoke_remap tool. The remap tool has been telling agents to "revoke it with that id" since 1.0.0 while no tool could; the HTTP route existed the whole time. Nothing is deleted when you revoke: the mapping is marked revoked and kept, so a report produced while it was live can still be explained.',
+      'Fixed — the free-text listing printed that a text was already mapped without printing the mapping id, which is the id revoke_remap needs. It was always on the wire.',
+      'Fixed — the MCP formatters now print the API\u2019s notes verbatim instead of two hand-copied paraphrases of them. They print on an empty result too, where they matter most: the likeliest reason a window is empty is that it is not the window you meant.',
+      'Fixed — per-candidate revenue is shown. It was returned by the API, discarded by the formatter, and still used to order the rows when you asked for revenue, so the ordering could not be explained from the numbers on screen.',
+      'Fixed — a rollup grouped by question labelled each row "(unlabelled)", the same string used for a mapping target no configuration has a name for. It now says "all resolved answers", and only at that grouping.',
+      'Fixed — no outbound request had a timeout, so an unresponsive API hung the tool call rather than failing it. Thirty seconds, and a timeout during sign-in says the six-digit code may already be spent instead of implying a free retry.',
+      'The MCP registry entry, which is a separate publish from npm, is current again for the first time since May.',
+    ],
+  },
+  {
+    date: '2026-07-31',
     title: 'A published number was wrong, and is corrected',
     items: [
       'Corrected — four public surfaces said that a channel\u2019s share of the paying population against its share of the signup population IS that channel\u2019s signup-to-paid conversion rate. It is not. The ratio is conversion(channel) divided by conversion(overall): an index against your own average, not a rate. Multiply it by your overall signup-to-paid rate to get the channel\u2019s own. Fixed on /faq, llms.txt, llms-full.txt, the README, three use-case pages and the homepage.',
