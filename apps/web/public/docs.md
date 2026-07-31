@@ -444,7 +444,7 @@ curl "https://www.humansurvey.co/api/attribution/rollup\
 
 ## MCP tools
 
-`humansurvey-mcp` 1.0.0 speaks this API. Nine tools: `login`, `get_catalog`, `list_forms`, `get_form`, `create_form`, `configure_form`, `get_attribution`, `list_unresolved` and `remap`. The five survey-era tools were deleted rather than shimmed.
+`humansurvey-mcp` on the 1.x line speaks this API. Nine tools: `login`, `get_catalog`, `list_forms`, `get_form`, `create_form`, `configure_form`, `get_attribution`, `list_unresolved` and `remap`. The five survey-era tools were deleted rather than shimmed.
 
 **1.x is published**, so `npx -y humansurvey-mcp` fetches a server whose nine tools match this document. Versions below 1.0.0 are the pre-pivot build, call the removed `/api/surveys` endpoints, and are deprecated on npm — a pinned version or a stale lockfile can still resolve one. The HTTP surface below remains the source of truth either way.
 

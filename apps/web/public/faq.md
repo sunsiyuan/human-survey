@@ -66,7 +66,7 @@ Two halves to that, and this answer is where the site keeps them so every other 
 
 **On npm:** `humansurvey-mcp` is published at 1.x, so `npx -y humansurvey-mcp` fetches a server whose nine tools match the current API. Versions below 1.0.0 are the pre-pivot build and call the deleted `/api/surveys` routes; they are deprecated on npm, but a pinned version or a stale lockfile will still resolve one, so pin `^1` if you pin at all.
 
-Until it is published, build the server from the repo or drive the REST endpoints directly — every tool is a thin wrapper over them, so nothing is out of reach either way.
+Driving the REST endpoints directly stays equivalent — every tool is a thin wrapper over them, so nothing is out of reach either way.
 
 ## How do the results come back to my agent?
 

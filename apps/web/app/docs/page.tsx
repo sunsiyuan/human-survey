@@ -978,9 +978,11 @@ export default function DocsPage() {
               <p>
                 <strong>1.x is published</strong>, so{' '}
                 <code>npx -y humansurvey-mcp</code> fetches a server whose nine tools match this page. Versions below 1.0.0 are the pre-pivot build and call the removed{' '}
-                <code>/api/surveys</code> endpoints and will fail. Until it is published, drive the
-                HTTP surface directly. <Link href="/faq">/faq</Link> carries the current publish
-                state; this page will not be updated the moment it changes.
+                <code>/api/surveys</code> endpoints and will fail — they are deprecated on npm, but a
+                pinned version or a stale lockfile still resolves one. Driving the HTTP surface
+                directly stays equivalent. <Link href="/faq">/faq</Link> is the one page kept current
+                on which version line matches this API; this page will not be updated the moment it
+                changes.
               </p>
               <p>
                 The tool set is shaped as a read-write loop on a monthly cadence rather than
