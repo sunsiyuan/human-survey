@@ -100,20 +100,20 @@ export default function UseCasesIndex() {
         <header className="flex items-center justify-between">
           <Link
             href="/"
-            className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)] hover:text-slate-900"
+            className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)] hover:text-stone-900"
           >
             ← HumanSurvey
           </Link>
           <div className="flex gap-2">
             <Link
               href="/faq"
-              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-900 hover:text-stone-900"
             >
               FAQ
             </Link>
             <Link
               href="/docs"
-              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-900 hover:text-stone-900"
             >
               Docs
             </Link>
@@ -124,17 +124,17 @@ export default function UseCasesIndex() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             Use cases
           </p>
-          <h1 className="text-4xl tracking-[-0.02em] text-slate-950 sm:text-5xl">
+          <h1 className="text-4xl tracking-[-0.02em] text-stone-900 sm:text-5xl">
             Four channels your analytics files under Direct.
           </h1>
-          <p className="text-base leading-[1.7] text-slate-800">
+          <p className="text-base leading-[1.7] text-stone-800">
             One class of problem, four faces of it: the exposure happened somewhere tracking
             cannot reach, so every one of these people lands in the same bucket as someone
             typing your domain from memory. Asking them is the only signal that survives all
             four.
           </p>
-          <p className="text-base leading-[1.7] text-slate-800">
-            <strong className="font-semibold text-slate-900">
+          <p className="text-base leading-[1.7] text-stone-800">
+            <strong className="font-semibold text-stone-900">
               &ldquo;TikTok&rdquo; is not an answer
             </strong>{' '}
             — six ambassador accounts collapse into one string and every conclusion drawn
@@ -153,13 +153,13 @@ export default function UseCasesIndex() {
               <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)]">
                 {it.channel}
               </p>
-              <h2 className="mt-2 text-lg font-semibold leading-6 text-slate-950">
+              <h2 className="mt-2 text-lg font-semibold leading-6 text-stone-900">
                 {it.headline}
               </h2>
-              <p className="mt-2 text-[15px] leading-[1.7] text-slate-800">{it.body}</p>
+              <p className="mt-2 text-[15px] leading-[1.7] text-stone-800">{it.body}</p>
               <Link
                 href={it.href}
-                className="mt-3 inline-flex min-h-9 items-center justify-center rounded-full border border-[var(--accent-strong)] px-4 text-xs font-semibold text-slate-950 transition hover:bg-[var(--accent-strong)] hover:text-[var(--accent-fg)]"
+                className="mt-3 inline-flex min-h-9 items-center justify-center rounded-full border border-[var(--accent-strong)] px-4 text-xs font-semibold text-stone-900 transition hover:bg-[var(--accent-strong)] hover:text-[var(--accent-fg)]"
               >
                 Read the walkthrough →
               </Link>
@@ -171,16 +171,16 @@ export default function UseCasesIndex() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             Not on this list
           </p>
-          <p className="text-sm leading-6 text-slate-700">
+          <p className="text-sm leading-6 text-stone-700">
             Channels with their own reporting console — LinkedIn Ads, Google Ads — already
             have ground truth, and are not what this measures. Their role here is the
             reverse: a calibration anchor you can compare self-report against, to see how
             much self-report under-counts.
           </p>
-          <p className="text-sm leading-6 text-slate-700">
+          <p className="text-sm leading-6 text-stone-700">
             <a
               href="/use-cases.md"
-              className="underline underline-offset-2 hover:text-slate-950"
+              className="underline underline-offset-2 hover:text-stone-900"
             >
               View this page as markdown
             </a>{' '}

@@ -91,15 +91,15 @@ function Block({
       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
         {tag}
       </p>
-      <h2 className="text-2xl tracking-[-0.015em] text-slate-950 sm:text-3xl">{title}</h2>
-      <div className="space-y-4 text-base leading-[1.8] text-slate-800">{children}</div>
+      <h2 className="text-2xl tracking-[-0.015em] text-stone-900 sm:text-3xl">{title}</h2>
+      <div className="space-y-4 text-base leading-[1.8] text-stone-800">{children}</div>
     </section>
   )
 }
 
 function C({ children }: { children: React.ReactNode }) {
   return (
-    <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">{children}</code>
+    <code className="rounded bg-[var(--surface-muted)] px-1.5 py-0.5 font-mono text-[13px]">{children}</code>
   )
 }
 
@@ -117,7 +117,7 @@ const facts: [string, React.ReactNode][] = [
         href="https://github.com/sunsiyuan/human-survey"
         target="_blank"
         rel="noreferrer"
-        className="underline underline-offset-2 hover:text-slate-950"
+        className="underline underline-offset-2 hover:text-stone-900"
       >
         github.com/sunsiyuan/human-survey
       </a>
@@ -130,7 +130,7 @@ const facts: [string, React.ReactNode][] = [
         href="https://www.npmjs.com/package/humansurvey-mcp"
         target="_blank"
         rel="noreferrer"
-        className="underline underline-offset-2 hover:text-slate-950"
+        className="underline underline-offset-2 hover:text-stone-900"
       >
         humansurvey-mcp
       </a>{' '}
@@ -143,15 +143,15 @@ const facts: [string, React.ReactNode][] = [
   [
     'Machine references',
     <>
-      <a href="/api/openapi.json" className="underline underline-offset-2 hover:text-slate-950">
+      <a href="/api/openapi.json" className="underline underline-offset-2 hover:text-stone-900">
         /api/openapi.json
       </a>
       ,{' '}
-      <a href="/llms.txt" className="underline underline-offset-2 hover:text-slate-950">
+      <a href="/llms.txt" className="underline underline-offset-2 hover:text-stone-900">
         /llms.txt
       </a>
       ,{' '}
-      <a href="/llms-full.txt" className="underline underline-offset-2 hover:text-slate-950">
+      <a href="/llms-full.txt" className="underline underline-offset-2 hover:text-stone-900">
         /llms-full.txt
       </a>
     </>,
@@ -163,7 +163,7 @@ const facts: [string, React.ReactNode][] = [
         href="https://github.com/sunsiyuan/human-survey/issues"
         target="_blank"
         rel="noreferrer"
-        className="underline underline-offset-2 hover:text-slate-950"
+        className="underline underline-offset-2 hover:text-stone-900"
       >
         GitHub issues
       </a>
@@ -183,20 +183,20 @@ export default function AboutPage() {
         <header className="flex items-center justify-between">
           <Link
             href="/"
-            className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)] hover:text-slate-900"
+            className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)] hover:text-stone-900"
           >
             ← HumanSurvey
           </Link>
           <div className="flex gap-2">
             <Link
               href="/faq"
-              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-900 hover:text-stone-900"
             >
               FAQ
             </Link>
             <Link
               href="/docs"
-              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-900 hover:text-stone-900"
             >
               Docs
             </Link>
@@ -207,10 +207,10 @@ export default function AboutPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             About
           </p>
-          <h1 className="text-4xl tracking-[-0.02em] text-slate-950 sm:text-5xl">
+          <h1 className="text-4xl tracking-[-0.02em] text-stone-900 sm:text-5xl">
             What HumanSurvey is, and what it refuses to do.
           </h1>
-          <p className="text-base leading-[1.7] text-slate-800">
+          <p className="text-base leading-[1.7] text-stone-800">
             Every claim below names the shipped surface it is checkable against. Where
             something is not built yet, it says so.
           </p>
@@ -218,7 +218,7 @@ export default function AboutPage() {
 
         <Block id="what-it-is" tag="Definition" title="What it is">
           <p>
-            <strong className="font-semibold text-slate-900">
+            <strong className="font-semibold text-stone-900">
               HumanSurvey is an open-source self-reported attribution service: it asks one
               question — how did you hear about us — inside a host&apos;s own signup or
               payment flow, records the answer at the granularity of a specific creator, show
@@ -230,7 +230,7 @@ export default function AboutPage() {
             question with one optional follow-up is the entire expressive range. The general
             survey engine and its <C>/api/surveys</C> endpoints were deleted on 2026-07-30,
             when the product narrowed to attribution —{' '}
-            <Link href="/changelog" className="underline underline-offset-2 hover:text-slate-950">
+            <Link href="/changelog" className="underline underline-offset-2 hover:text-stone-900">
               /changelog
             </Link>
             .
@@ -273,7 +273,7 @@ export default function AboutPage() {
           <ol className="space-y-3">
             {[
               <>
-                <strong className="font-semibold text-slate-900">Configure it.</strong> The
+                <strong className="font-semibold text-stone-900">Configure it.</strong> The
                 prompt, the candidate list, and which candidates expand a follow-up. Platform
                 rows can come from the catalog at <C>GET /api/attribution/catalog</C>, 39
                 entries today; creator, show and event rows come from you. Each PUT stores
@@ -281,21 +281,21 @@ export default function AboutPage() {
                 month&apos;s rollup says was shown.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">Embed it.</strong> An iframe
+                <strong className="font-semibold text-stone-900">Embed it.</strong> An iframe
                 at <C>/s/{'{id}'}?embed=1</C> inside your own signup or payment flow, with
                 your user id passed as <C>external_id</C>. Payment gives you channel against
                 revenue with no conversion plumbing; signup is the only way to see the people
                 a channel sends who never pay.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   The respondent answers.
                 </strong>{' '}
                 Candidate order is randomised per respondent by default, &ldquo;I don&apos;t
                 remember&rdquo; is pinned last and always visible, and skipping is allowed.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">Read the answers.</strong>{' '}
+                <strong className="font-semibold text-stone-900">Read the answers.</strong>{' '}
                 The rollup returns per-candidate counts and shares for a date window, each
                 share beside the denominator it was computed over, plus the unresolved
                 buckets. Free text is stored verbatim and can be mapped to a candidate months
@@ -306,7 +306,7 @@ export default function AboutPage() {
                 <span className="mt-[3px] shrink-0 font-mono text-[11px] text-[var(--accent)]">
                   0{i + 1}
                 </span>
-                <span className="text-slate-800">{item}</span>
+                <span className="text-stone-800">{item}</span>
               </li>
             ))}
           </ol>
@@ -314,11 +314,11 @@ export default function AboutPage() {
           <CodeBlock>{loopSnippet}</CodeBlock>
           <p>
             Full request and response shapes are on{' '}
-            <Link href="/docs" className="underline underline-offset-2 hover:text-slate-950">
+            <Link href="/docs" className="underline underline-offset-2 hover:text-stone-900">
               /docs
             </Link>{' '}
             and in the OpenAPI 3 document at{' '}
-            <a href="/api/openapi.json" className="underline underline-offset-2 hover:text-slate-950">
+            <a href="/api/openapi.json" className="underline underline-offset-2 hover:text-stone-900">
               /api/openapi.json
             </a>
             .
@@ -330,31 +330,31 @@ export default function AboutPage() {
           <Unordered
             items={[
               <>
-                <strong className="font-semibold text-slate-900">No theme editor.</strong>{' '}
+                <strong className="font-semibold text-stone-900">No theme editor.</strong>{' '}
                 <C>theme</C> accepts four tokens — <C>accent</C>, <C>radius</C>, <C>font</C>{' '}
                 and <C>dark_mode</C> — and rejects unknown keys. There is no CSS or HTML
                 plugin surface: a bounded set of parameters is a requirement of embedding in
                 someone else&apos;s checkout.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">No dashboard.</strong> No
+                <strong className="font-semibold text-stone-900">No dashboard.</strong> No
                 human-facing analytics UI, and none is planned. The aggregates are an API
                 resource and your agent is the reader.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   No multi-touch modelling.
                 </strong>{' '}
                 One self-reported answer per person, and the rollup counts answers.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">No last touch.</strong> The
+                <strong className="font-semibold text-stone-900">No last touch.</strong> The
                 question is where you <em>first</em> heard about us. Last touch is
                 near-constant — people search the brand name — so a second question costs
                 completion rate and buys no media decision.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   No outbound contact with respondents.
                 </strong>{' '}
                 The service returns a URL and an iframe that renders it; it never emails,
@@ -362,7 +362,7 @@ export default function AboutPage() {
                 people is the host&apos;s job.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   No identity resolution.
                 </strong>{' '}
                 It renders the candidate list you supply and returns the id that was chosen.
@@ -371,24 +371,24 @@ export default function AboutPage() {
                 window.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">No cross-site tracking.</strong>{' '}
+                <strong className="font-semibold text-stone-900">No cross-site tracking.</strong>{' '}
                 The respondent page collects no name, no email and no fingerprint, and asks no
                 free-text question that could be repurposed to ask for one. The only thing
                 that can identify a response is the <C>external_id</C> the host passes. Leave
                 it out and the response is anonymous.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">No form builder.</strong> No
+                <strong className="font-semibold text-stone-900">No form builder.</strong> No
                 NPS, no CSAT, no rating scales, no multi-select. &ldquo;Select all that
                 apply&rdquo; means select everything, which means no signal. How this differs
                 from Typeform, Google Forms and SurveyMonkey is answered on{' '}
-                <Link href="/faq" className="underline underline-offset-2 hover:text-slate-950">
+                <Link href="/faq" className="underline underline-offset-2 hover:text-stone-900">
                   /faq
                 </Link>
                 .
               </>,
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   No direct Stripe or AppsFlyer integration.
                 </strong>{' '}
                 Conversion events are pushed by the caller to{' '}
@@ -406,7 +406,7 @@ export default function AboutPage() {
           <Unordered
             items={[
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   Self-report is memory, not behaviour.
                 </strong>{' '}
                 It records what a person says they remember, not what they did. Recall decays,
@@ -414,7 +414,7 @@ export default function AboutPage() {
                 under-counts any channel whose users leave early. Ask early in the flow.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   Calibration is not computed.
                 </strong>{' '}
                 Knowing how much self-report under-counts means comparing it against a channel
@@ -423,7 +423,7 @@ export default function AboutPage() {
                 <C>null</C> rather than an estimate.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   <C>share_corrected</C> and <C>position_effect</C> are null too.
                 </strong>{' '}
                 Options shown earlier in a list are chosen more often. Under the default{' '}
@@ -433,7 +433,7 @@ export default function AboutPage() {
                 Both fields return <C>null</C> rather than a smoothed guess.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   <C>external_id</C> is host-asserted.
                 </strong>{' '}
                 It is whatever string the host page passes in; the service does not verify
@@ -443,21 +443,21 @@ export default function AboutPage() {
                 <C>(form_id, external_id)</C>.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   The per-response webhook does not deliver.
                 </strong>{' '}
                 <C>per_response_webhook_url</C> is accepted, validated and stored, and nothing
                 sends to it yet. Use the <C>?since_seq=</C> read on the responses route; do not build on the field.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   Rendered is treated as seen.
                 </strong>{' '}
                 The impressions map counts an option as shown if it was rendered, including
                 below the fold — a known approximation in the position model.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   The MCP package is current.
                 </strong>{' '}
                 <C>humansurvey-mcp</C> is published on npm at 1.x and its ten attribution
@@ -465,7 +465,7 @@ export default function AboutPage() {
                 calling deleted <C>/api/surveys</C> routes; they are deprecated but a stale
                 lockfile can still resolve one. The page kept current on this is the MCP
                 answer on{' '}
-                <Link href="/faq" className="underline underline-offset-2 hover:text-slate-950">
+                <Link href="/faq" className="underline underline-offset-2 hover:text-stone-900">
                   /faq
                 </Link>
                 .
@@ -487,7 +487,7 @@ export default function AboutPage() {
             for the text field. This product would be overhead.
           </p>
           <p>
-            <strong className="font-semibold text-slate-900">
+            <strong className="font-semibold text-stone-900">
               Where it stops being enough:
             </strong>
           </p>
@@ -514,7 +514,7 @@ export default function AboutPage() {
             across them.
           </p>
           <p>
-            <strong className="font-semibold text-slate-900">
+            <strong className="font-semibold text-stone-900">
               Where they are stronger, plainly:
             </strong>{' '}
             they record behaviour rather than memory, they count repeated exposures, and they
@@ -523,7 +523,7 @@ export default function AboutPage() {
             replaces them.
           </p>
           <p>
-            <strong className="font-semibold text-slate-900">Where the two do not meet:</strong>{' '}
+            <strong className="font-semibold text-stone-900">Where the two do not meet:</strong>{' '}
             a model can only assign credit among the touchpoints in its input. An exposure
             that produced no click and no referrer is not a touchpoint it can see, and it does
             not come back as unknown — that person&apos;s credit is distributed across
@@ -545,8 +545,8 @@ export default function AboutPage() {
                 key={term}
                 className="rounded-[1rem] border border-[var(--panel-border)] bg-[var(--surface)] p-3"
               >
-                <dt className="text-sm font-semibold text-slate-950">{term}</dt>
-                <dd className="mt-1 text-sm leading-6 text-slate-700">{value}</dd>
+                <dt className="text-sm font-semibold text-stone-900">{term}</dt>
+                <dd className="mt-1 text-sm leading-6 text-stone-700">{value}</dd>
               </div>
             ))}
           </dl>
@@ -574,26 +574,26 @@ export default function AboutPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             Where to go next
           </p>
-          <p className="text-sm leading-6 text-slate-700">
-            <Link href="/docs" className="underline underline-offset-2 hover:text-slate-950">
+          <p className="text-sm leading-6 text-stone-700">
+            <Link href="/docs" className="underline underline-offset-2 hover:text-stone-900">
               /docs
             </Link>{' '}
             for endpoints and the embed contract,{' '}
-            <Link href="/faq" className="underline underline-offset-2 hover:text-slate-950">
+            <Link href="/faq" className="underline underline-offset-2 hover:text-stone-900">
               /faq
             </Link>{' '}
             for the questions buyers actually ask,{' '}
-            <Link href="/use-cases" className="underline underline-offset-2 hover:text-slate-950">
+            <Link href="/use-cases" className="underline underline-offset-2 hover:text-stone-900">
               /use-cases
             </Link>{' '}
             for four worked configurations, and{' '}
-            <Link href="/changelog" className="underline underline-offset-2 hover:text-slate-950">
+            <Link href="/changelog" className="underline underline-offset-2 hover:text-stone-900">
               /changelog
             </Link>{' '}
             for what changed when.
           </p>
-          <p className="text-sm leading-6 text-slate-700">
-            <a href="/about.md" className="underline underline-offset-2 hover:text-slate-950">
+          <p className="text-sm leading-6 text-stone-700">
+            <a href="/about.md" className="underline underline-offset-2 hover:text-stone-900">
               View this page as markdown
             </a>{' '}
             — for agent context / LLM readers.

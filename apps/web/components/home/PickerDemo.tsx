@@ -191,7 +191,7 @@ export function PickerDemo({ startExpanded = false }: PickerDemoProps) {
               setCreator(null)
               setRun((current) => current + 1)
             }}
-            className="shrink-0 text-[12px] text-slate-500 underline decoration-dotted underline-offset-4 transition hover:text-slate-900"
+            className="shrink-0 text-[12px] text-stone-600 underline decoration-dotted underline-offset-4 transition hover:text-stone-900"
           >
             Start over
           </button>
@@ -272,16 +272,16 @@ function Readout({
         </pre>
       ) : null}
 
-      <p className="mt-3 text-[13px] leading-6 text-slate-600">
+      <p className="mt-3 text-[13px] leading-6 text-stone-600">
         {note(channel, creator, expanded)}
       </p>
 
-      <p className="mt-2 text-[12px] leading-5 text-slate-500">
+      <p className="mt-2 text-[12px] leading-5 text-stone-600">
         Nothing on this card is sent anywhere — no account, no request, nothing stored. The
         logos, labels and aliases are the ones the API serves from{' '}
         <a
           href="/api/attribution/catalog"
-          className="underline decoration-dotted underline-offset-2 hover:text-slate-800"
+          className="underline decoration-dotted underline-offset-2 hover:text-stone-800"
         >
           /api/attribution/catalog
         </a>

@@ -169,14 +169,14 @@ export default function FaqPage() {
         <header className="flex items-center justify-between">
           <Link
             href="/"
-            className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)] hover:text-slate-900"
+            className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)] hover:text-stone-900"
           >
             ← HumanSurvey
           </Link>
           <div className="flex gap-2">
             <Link
               href="/docs"
-              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-900 hover:text-stone-900"
             >
               Docs
             </Link>
@@ -187,10 +187,10 @@ export default function FaqPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             FAQ
           </p>
-          <h1 className="text-4xl tracking-[-0.02em] text-slate-950 sm:text-5xl">
+          <h1 className="text-4xl tracking-[-0.02em] text-stone-900 sm:text-5xl">
             Where your signups come from, and how far to trust the answer.
           </h1>
-          <p className="text-base leading-[1.7] text-slate-800">
+          <p className="text-base leading-[1.7] text-stone-800">
             What a growth owner, a founder and the engineer who has to embed it ask
             before putting a &ldquo;how did you hear about us&rdquo; question into a
             signup or payment flow. The ones about Direct traffic, AI assistants and
@@ -205,13 +205,13 @@ export default function FaqPage() {
               key={i}
               className="group rounded-2xl border border-[var(--panel-border)] bg-[var(--surface)] px-5 py-4 backdrop-blur-sm"
             >
-              <summary className="flex cursor-pointer list-none items-start justify-between gap-4 text-[15px] font-medium leading-6 text-slate-900 [&::-webkit-details-marker]:hidden">
+              <summary className="flex cursor-pointer list-none items-start justify-between gap-4 text-[15px] font-medium leading-6 text-stone-900 [&::-webkit-details-marker]:hidden">
                 <span>{f.q}</span>
                 <span className="mt-1 shrink-0 font-mono text-xs text-[var(--accent)] transition group-open:rotate-45">
                   +
                 </span>
               </summary>
-              <p className="mt-3 whitespace-pre-line text-[15px] leading-[1.7] text-slate-800">
+              <p className="mt-3 whitespace-pre-line text-[15px] leading-[1.7] text-stone-800">
                 {f.a}
               </p>
             </details>
@@ -222,26 +222,26 @@ export default function FaqPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             Still have questions?
           </p>
-          <p className="text-sm leading-6 text-slate-700">
+          <p className="text-sm leading-6 text-stone-700">
             Open an issue on{' '}
             <a
               href="https://github.com/sunsiyuan/human-survey/issues"
               target="_blank"
               rel="noreferrer"
-              className="underline underline-offset-2 hover:text-slate-950"
+              className="underline underline-offset-2 hover:text-stone-900"
             >
               GitHub
             </a>{' '}
             or read the{' '}
-            <Link href="/docs" className="underline underline-offset-2 hover:text-slate-950">
+            <Link href="/docs" className="underline underline-offset-2 hover:text-stone-900">
               full docs
             </Link>
             .
           </p>
-          <p className="text-sm leading-6 text-slate-700">
+          <p className="text-sm leading-6 text-stone-700">
             <a
               href="/faq.md"
-              className="underline underline-offset-2 hover:text-slate-950"
+              className="underline underline-offset-2 hover:text-stone-900"
             >
               View this page as markdown
             </a>{' '}

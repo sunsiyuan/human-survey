@@ -48,12 +48,12 @@ export default async function SignInPage() {
     >
       <SignInFlow />
 
-      <p className="text-[13px] leading-6 text-slate-600">
+      <p className="text-[13px] leading-6 text-stone-600">
         What is behind this page is your keys, and nothing else. Forms, candidate lists and
         answers are read and written over the{' '}
         <a
           href="/docs"
-          className="text-[var(--accent-strong)] underline decoration-dotted underline-offset-4 hover:text-slate-900"
+          className="text-[var(--accent-strong)] underline decoration-dotted underline-offset-4 hover:text-stone-900"
         >
           API
         </a>{' '}

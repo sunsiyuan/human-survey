@@ -179,26 +179,26 @@ export default function EventsPage() {
         <header className="flex items-center justify-between">
           <Link
             href="/"
-            className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)] hover:text-slate-900"
+            className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)] hover:text-stone-900"
           >
             ← HumanSurvey
           </Link>
           <div className="flex gap-2">
             <Link
               href="/use-cases"
-              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-900 hover:text-stone-900"
             >
               Use cases
             </Link>
             <Link
               href="/faq"
-              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-900 hover:text-stone-900"
             >
               FAQ
             </Link>
             <Link
               href="/docs"
-              className="hidden min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950 sm:inline-flex"
+              className="hidden min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-900 hover:text-stone-900 sm:inline-flex"
             >
               Docs
             </Link>
@@ -209,15 +209,15 @@ export default function EventsPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             Use case · Conferences and trade shows
           </p>
-          <h1 className="text-4xl tracking-[-0.02em] text-slate-950 sm:text-5xl">
+          <h1 className="text-4xl tracking-[-0.02em] text-stone-900 sm:text-5xl">
             The booth sent them. Analytics says they found you on Google.
           </h1>
-          <p className="text-base leading-[1.7] text-slate-800">
+          <p className="text-base leading-[1.7] text-stone-800">
             Events are the most expensive thing on the marketing plan and the worst tracked. There
             is no referrer to lose here, because there was never a click: someone talked to you at
             a booth, took a sticker, and signed up nine days later by typing your name into a
             browser.{' '}
-            <strong className="font-semibold text-slate-900">
+            <strong className="font-semibold text-stone-900">
               Search or Direct takes the credit, which is worse than no answer — it looks like an
               answer.
             </strong>
@@ -228,20 +228,20 @@ export default function EventsPage() {
           <Unordered
             items={[
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   There is no digital trace at all.
                 </strong>{' '}
                 Not a stripped referrer, not a missing UTM — nothing. A badge scan tells you who
                 you talked to, not who came back.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   A QR code only measures the people who scanned it at the booth.
                 </strong>{' '}
                 The ones who scan on the spot are usually collecting the giveaway.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   &ldquo;Events&rdquo; is not a channel you can act on.
                 </strong>{' '}
                 A company running eight a year signs for the next one six months in advance, and
@@ -271,14 +271,14 @@ export default function EventsPage() {
           <Unordered
             items={[
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   Event ids carry the edition, deliberately.
                 </strong>{' '}
                 An event id must <em>not</em> merge two instances, because you buy the booth once
                 per instance and the 2027 renewal is a separate decision from the 2026 one.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   Your own field events belong on the list.
                 </strong>{' '}
                 A dinner for twenty is a channel — if it is the line with the best return, that is
@@ -286,7 +286,7 @@ export default function EventsPage() {
                 conference&rdquo;.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   Aliases are how people actually name events.
                 </strong>{' '}
                 Nobody says &ldquo;KubeCon EU 2026&rdquo;; they say &ldquo;the one in
@@ -314,7 +314,7 @@ export default function EventsPage() {
             Revenue joins for free at the payment placement: the respondent has just paid, so
             pushing your own <code>paid</code> events keyed on the same user id turns heads into
             money.{' '}
-            <strong className="font-semibold text-slate-900">
+            <strong className="font-semibold text-stone-900">
               Payment date does not have to fall inside the window
             </strong>{' '}
             — a September payment is summed against the channel the response recorded in July.
@@ -357,7 +357,7 @@ export default function EventsPage() {
             payment flow a larger one.
           </p>
           <p>
-            <strong className="font-semibold text-slate-900">
+            <strong className="font-semibold text-stone-900">
               That gap, if it is there, is the argument for the booth
             </strong>
             . Divide the channel&apos;s share of the paying population by its share of the signup
@@ -402,10 +402,10 @@ export default function EventsPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             More
           </p>
-          <ul className="space-y-2 text-sm text-slate-700">
+          <ul className="space-y-2 text-sm text-stone-700">
             <li>
               ·{' '}
-              <Link href="/docs" className="underline underline-offset-2 hover:text-slate-950">
+              <Link href="/docs" className="underline underline-offset-2 hover:text-stone-900">
                 Docs
               </Link>{' '}
               — form config, the embed contract, cursor reads, the rollup
@@ -414,7 +414,7 @@ export default function EventsPage() {
               ·{' '}
               <Link
                 href="/use-cases/community-feedback"
-                className="underline underline-offset-2 hover:text-slate-950"
+                className="underline underline-offset-2 hover:text-stone-900"
               >
                 Community attribution
               </Link>{' '}
@@ -424,7 +424,7 @@ export default function EventsPage() {
               ·{' '}
               <Link
                 href="/use-cases/product-launch"
-                className="underline underline-offset-2 hover:text-slate-950"
+                className="underline underline-offset-2 hover:text-stone-900"
               >
                 Launch attribution
               </Link>{' '}
@@ -434,7 +434,7 @@ export default function EventsPage() {
               ·{' '}
               <Link
                 href="/use-cases/ai-assistants"
-                className="underline underline-offset-2 hover:text-slate-950"
+                className="underline underline-offset-2 hover:text-stone-900"
               >
                 AI assistant attribution
               </Link>{' '}
@@ -442,7 +442,7 @@ export default function EventsPage() {
             </li>
             <li>
               ·{' '}
-              <Link href="/faq" className="underline underline-offset-2 hover:text-slate-950">
+              <Link href="/faq" className="underline underline-offset-2 hover:text-stone-900">
                 FAQ
               </Link>{' '}
               — anonymity, what a form can and cannot ask, pricing
@@ -451,7 +451,7 @@ export default function EventsPage() {
               ·{' '}
               <a
                 href="/use-cases/events.md"
-                className="underline underline-offset-2 hover:text-slate-950"
+                className="underline underline-offset-2 hover:text-stone-900"
               >
                 View this page as markdown
               </a>{' '}

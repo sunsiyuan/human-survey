@@ -175,8 +175,8 @@ export function Keys() {
       {issued ? <NewKey issued={issued} onDismiss={() => setIssued(null)} /> : null}
 
       <section className="rounded-2xl border border-[var(--panel-border)] bg-[var(--surface)] p-6 backdrop-blur-sm">
-        <h2 className="text-base font-semibold text-slate-950">Issue a key</h2>
-        <p className="mt-2 text-[13px] leading-6 text-slate-600">
+        <h2 className="text-base font-semibold text-stone-900">Issue a key</h2>
+        <p className="mt-2 text-[13px] leading-6 text-stone-600">
           One per place you paste it — the name is how you tell them apart later, when one
           of them has to be revoked and the others must keep working.
         </p>
@@ -197,7 +197,7 @@ export function Keys() {
             onChange={(event) => setName(event.target.value)}
             placeholder="claude-desktop"
             aria-label="Key name"
-            className="min-w-0 flex-1 rounded-xl border border-[var(--panel-border)] bg-white/70 px-4 py-3 text-[15px] text-slate-950 outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)]"
+            className="min-w-0 flex-1 rounded-xl border border-[var(--panel-border)] bg-white/70 px-4 py-3 text-[15px] text-stone-900 outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)]"
           />
           <button
             type="submit"
@@ -212,29 +212,29 @@ export function Keys() {
       {error ? (
         <p
           role="alert"
-          className="rounded-xl border border-amber-300/70 bg-amber-50/80 px-4 py-3 text-[13px] leading-6 text-slate-900"
+          className="rounded-xl border border-amber-300/70 bg-amber-50/80 px-4 py-3 text-[13px] leading-6 text-stone-900"
         >
           {error}
         </p>
       ) : null}
 
       <section className="space-y-3">
-        <h2 className="text-base font-semibold text-slate-950">Your keys</h2>
+        <h2 className="text-base font-semibold text-stone-900">Your keys</h2>
 
-        {phase === 'loading' ? <p className="text-[13px] text-slate-600">Loading…</p> : null}
+        {phase === 'loading' ? <p className="text-[13px] text-stone-600">Loading…</p> : null}
 
         {/* Said explicitly, because the alternative is a heading with nothing under it —
             which reads as "you have no keys" and invites issuing a duplicate of one that
             is sitting right there unlisted. */}
         {phase === 'failed' ? (
-          <p className="text-[13px] leading-6 text-slate-600">
+          <p className="text-[13px] leading-6 text-stone-600">
             The list did not load, so this is not a statement that you have no keys. Reload the
             page.
           </p>
         ) : null}
 
         {phase === 'ready' && keys.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-[var(--panel-border)] px-5 py-6 text-[13px] leading-6 text-slate-600">
+          <p className="rounded-2xl border border-dashed border-[var(--panel-border)] px-5 py-6 text-[13px] leading-6 text-stone-600">
             No keys yet. Issue one above, paste the config it gives you into your MCP client,
             and then tell your agent what channels you run — it does the rest.
           </p>
@@ -282,18 +282,18 @@ function KeyRow({
       <div className="min-w-0">
         <p className="flex flex-wrap items-baseline gap-2">
           <span
-            className={`text-[15px] font-medium ${revoked ? 'text-slate-500 line-through' : 'text-slate-950'}`}
+            className={`text-[15px] font-medium ${revoked ? 'text-stone-600 line-through' : 'text-stone-900'}`}
           >
             {apiKey.name ?? 'Unnamed key'}
           </span>
-          <span className="font-mono text-[11px] text-slate-500">{apiKey.id}</span>
+          <span className="font-mono text-[11px] text-stone-600">{apiKey.id}</span>
           {revoked ? (
-            <span className="rounded-full bg-slate-900/8 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-600">
+            <span className="rounded-full bg-stone-900/8 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-stone-600">
               revoked
             </span>
           ) : null}
         </p>
-        <p className="mt-1 text-[12px] leading-5 text-slate-600">
+        <p className="mt-1 text-[12px] leading-5 text-stone-600">
           Issued {day(apiKey.created_at)}
           {' · '}
           {/* Last used is the only feedback that tells someone whether the config they
@@ -318,7 +318,7 @@ function KeyRow({
           <button
             type="button"
             onClick={onCancel}
-            className="text-slate-600 hover:text-slate-900"
+            className="text-stone-600 hover:text-stone-900"
           >
             Cancel
           </button>
@@ -329,7 +329,7 @@ function KeyRow({
         <button
           type="button"
           onClick={onAskConfirm}
-          className="text-[13px] text-slate-600 underline decoration-dotted underline-offset-4 hover:text-slate-900"
+          className="text-[13px] text-stone-600 underline decoration-dotted underline-offset-4 hover:text-stone-900"
         >
           Revoke
         </button>
@@ -353,10 +353,10 @@ function NewKey({ issued, onDismiss }: { issued: Issued; onDismiss: () => void }
   return (
     <section className="space-y-4 rounded-2xl border border-[var(--accent)]/45 bg-[var(--surface)] p-6 shadow-[0_28px_90px_-70px_rgba(14,23,38,0.5)]">
       <div>
-        <h2 className="text-base font-semibold text-slate-950">
+        <h2 className="text-base font-semibold text-stone-900">
           {issued.name ? `“${issued.name}” is ready.` : 'Your key is ready.'} Copy it now.
         </h2>
-        <p className="mt-2 text-[13px] leading-6 text-slate-700">
+        <p className="mt-2 text-[13px] leading-6 text-stone-700">
           This is the only time it can be read. Only a SHA-256 hash of it is stored, so
           nobody — including us — can show it to you again. If it goes missing, issue
           another and revoke this one: your forms and answers belong to the account, not to
@@ -385,7 +385,7 @@ function NewKey({ issued, onDismiss }: { issued: Issued; onDismiss: () => void }
                 type="button"
                 onClick={() => setTab(value)}
                 className={`rounded-md px-3 py-1 font-mono text-[11px] transition ${
-                  tab === value ? 'bg-white/10 text-white' : 'text-slate-500 hover:text-slate-300'
+                  tab === value ? 'bg-white/10 text-white' : 'text-stone-400 hover:text-stone-200'
                 }`}
               >
                 {label}
@@ -402,14 +402,14 @@ function NewKey({ issued, onDismiss }: { issued: Issued; onDismiss: () => void }
       <div className="flex flex-wrap items-center justify-between gap-3 text-[13px]">
         <a
           href="/docs#mcp-tools"
-          className="text-[var(--accent-strong)] underline decoration-dotted underline-offset-4 hover:text-slate-900"
+          className="text-[var(--accent-strong)] underline decoration-dotted underline-offset-4 hover:text-stone-900"
         >
           What your agent can do with it
         </a>
         <button
           type="button"
           onClick={onDismiss}
-          className="text-slate-600 underline decoration-dotted underline-offset-4 hover:text-slate-900"
+          className="text-stone-600 underline decoration-dotted underline-offset-4 hover:text-stone-900"
         >
           I have copied it — hide the key
         </button>
@@ -443,7 +443,7 @@ function CopyButton({ value, label }: { value: string; label: string }) {
     <button
       type="button"
       onClick={copy}
-      className="font-mono text-[11px] whitespace-nowrap text-slate-400 transition hover:text-slate-100"
+      className="font-mono text-[11px] whitespace-nowrap text-stone-400 transition hover:text-stone-100"
     >
       {state === 'done' ? 'copied!' : state === 'failed' ? 'select it by hand' : label}
     </button>

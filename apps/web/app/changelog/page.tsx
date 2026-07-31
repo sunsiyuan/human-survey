@@ -240,20 +240,20 @@ export default function ChangelogPage() {
         <header className="flex items-center justify-between">
           <Link
             href="/"
-            className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)] hover:text-slate-900"
+            className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)] hover:text-stone-900"
           >
             ← HumanSurvey
           </Link>
           <div className="flex gap-2">
             <Link
               href="/faq"
-              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-900 hover:text-stone-900"
             >
               FAQ
             </Link>
             <Link
               href="/docs"
-              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-900 hover:text-stone-900"
             >
               Docs
             </Link>
@@ -264,10 +264,10 @@ export default function ChangelogPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             Changelog
           </p>
-          <h1 className="text-4xl tracking-[-0.02em] text-slate-950 sm:text-5xl">
+          <h1 className="text-4xl tracking-[-0.02em] text-stone-900 sm:text-5xl">
             What&apos;s shipped.
           </h1>
-          <p className="text-base leading-[1.7] text-slate-800">
+          <p className="text-base leading-[1.7] text-stone-800">
             Dated releases since the MVP. Tracked publicly so humans and agents
             alike can tell the project is alive and moving.
           </p>
@@ -287,15 +287,15 @@ export default function ChangelogPage() {
                   {e.date}
                 </time>
                 {e.version ? (
-                  <span className="rounded-full border border-[var(--panel-border)] px-2 py-0.5 font-mono text-[11px] text-slate-600">
+                  <span className="rounded-full border border-[var(--panel-border)] px-2 py-0.5 font-mono text-[11px] text-stone-600">
                     {e.version}
                   </span>
                 ) : null}
               </div>
-              <h2 className="mt-2 text-lg font-semibold leading-6 text-slate-950">
+              <h2 className="mt-2 text-lg font-semibold leading-6 text-stone-900">
                 {e.title}
               </h2>
-              <ul className="mt-3 space-y-2 text-[15px] leading-[1.7] text-slate-800">
+              <ul className="mt-3 space-y-2 text-[15px] leading-[1.7] text-stone-800">
                 {e.items.map((it) => (
                   <li key={it} className="flex gap-2">
                     <span className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]" />
@@ -308,13 +308,13 @@ export default function ChangelogPage() {
         </section>
 
         <section className="space-y-3 border-t border-[var(--panel-border)] pt-8">
-          <p className="text-sm leading-6 text-slate-600">
+          <p className="text-sm leading-6 text-stone-600">
             For the live commit log, see the{' '}
             <a
               href="https://github.com/sunsiyuan/human-survey/commits/main"
               target="_blank"
               rel="noreferrer"
-              className="underline underline-offset-2 hover:text-slate-950"
+              className="underline underline-offset-2 hover:text-stone-900"
             >
               GitHub history
             </a>

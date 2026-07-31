@@ -60,12 +60,12 @@ export default async function AccountPage() {
       title="Your keys."
       lede={
         <>
-          Signed in as <strong className="font-medium text-slate-950">{email}</strong>. This
+          Signed in as <strong className="font-medium text-stone-900">{email}</strong>. This
           page is keys and, later, billing — the forms, the candidate lists and the answers
           all live behind the{' '}
           <a
             href="/docs"
-            className="text-[var(--accent-strong)] underline decoration-dotted underline-offset-4 hover:text-slate-900"
+            className="text-[var(--accent-strong)] underline decoration-dotted underline-offset-4 hover:text-stone-900"
           >
             API
           </a>
@@ -76,7 +76,7 @@ export default async function AccountPage() {
     >
       <Keys />
 
-      <footer className="border-t border-[var(--panel-border)] pt-6 text-[13px] leading-6 text-slate-600">
+      <footer className="border-t border-[var(--panel-border)] pt-6 text-[13px] leading-6 text-stone-600">
         <p>
           A key never expires and is never shown twice. Revoke one from this page — any key
           on the account can be killed from here, which is the point of the page existing at
@@ -84,12 +84,12 @@ export default async function AccountPage() {
         </p>
         <p className="mt-3">
           Rather not use a browser at all? Your agent can run the MCP server&apos;s{' '}
-          <code className="font-mono text-[12px] text-slate-700">login</code> tool: same
+          <code className="font-mono text-[12px] text-stone-700">login</code> tool: same
           six-digit code, and the key it gets back is written to a file on your machine
           instead of into a conversation.{' '}
           <a
             href="/docs#authentication"
-            className="text-[var(--accent-strong)] underline decoration-dotted underline-offset-4 hover:text-slate-900"
+            className="text-[var(--accent-strong)] underline decoration-dotted underline-offset-4 hover:text-stone-900"
           >
             Both paths, in full
           </a>

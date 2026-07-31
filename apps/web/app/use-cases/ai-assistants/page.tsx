@@ -133,26 +133,26 @@ export default function AiAssistantsPage() {
         <header className="flex items-center justify-between">
           <Link
             href="/"
-            className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)] hover:text-slate-900"
+            className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)] hover:text-stone-900"
           >
             ← HumanSurvey
           </Link>
           <div className="flex gap-2">
             <Link
               href="/use-cases"
-              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-900 hover:text-stone-900"
             >
               Use cases
             </Link>
             <Link
               href="/faq"
-              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-900 hover:text-stone-900"
             >
               FAQ
             </Link>
             <Link
               href="/docs"
-              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-900 hover:text-stone-900"
             >
               Docs
             </Link>
@@ -163,14 +163,14 @@ export default function AiAssistantsPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             Use case · AI assistants
           </p>
-          <h1 className="text-4xl tracking-[-0.02em] text-slate-950 sm:text-5xl">
+          <h1 className="text-4xl tracking-[-0.02em] text-stone-900 sm:text-5xl">
             The only way to know ChatGPT sent them is to ask.
           </h1>
-          <p className="text-base leading-[1.7] text-slate-800">
+          <p className="text-base leading-[1.7] text-stone-800">
             ChatGPT, Claude, Perplexity and Gemini do not send a referrer. The people they
-            send you arrive as <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">direct / none</code>,
+            send you arrive as <code className="rounded bg-[var(--surface-muted)] px-1.5 py-0.5 font-mono text-[13px]">direct / none</code>,
             in the same bucket as someone typing your domain from memory.{' '}
-            <strong className="font-semibold text-slate-900">
+            <strong className="font-semibold text-stone-900">
               No log-based method fixes this, and the size of what you are missing is exactly
               the thing you cannot see.
             </strong>{' '}
@@ -186,7 +186,7 @@ export default function AiAssistantsPage() {
                 web page and has no referrer to pass on.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   Most often, there is no click at all.
                 </strong>{' '}
                 The person reads a name in an answer, searches it, and lands on you from
@@ -208,7 +208,7 @@ export default function AiAssistantsPage() {
           <Unordered
             items={[
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   Use the product name, never the category.
                 </strong>{' '}
                 A category asks them to classify their own
@@ -216,21 +216,21 @@ export default function AiAssistantsPage() {
                 <em>I don&apos;t remember</em>.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   Put it beside Google, not under it.
                 </strong>{' '}
                 The catalog&apos;s default channel list ships{' '}
-                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">
+                <code className="rounded bg-[var(--surface-muted)] px-1.5 py-0.5 font-mono text-[13px]">
                   chatgpt
                 </code>{' '}
                 as its own row, next to{' '}
-                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">
+                <code className="rounded bg-[var(--surface-muted)] px-1.5 py-0.5 font-mono text-[13px]">
                   google
                 </code>
                 .
               </>,
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   One row per assistant, not one row for all of them.
                 </strong>{' '}
                 Collapse them into
@@ -240,7 +240,7 @@ export default function AiAssistantsPage() {
                 Order rotates per respondent by default, so no assistant sits above Google
                 for everybody and the raw share is unbiased by construction. If you pin the
                 order with{' '}
-                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">
+                <code className="rounded bg-[var(--surface-muted)] px-1.5 py-0.5 font-mono text-[13px]">
                   &quot;order&quot;: &quot;fixed&quot;
                 </code>
                 , you inherit the position bias that comes with it.
@@ -252,14 +252,14 @@ export default function AiAssistantsPage() {
         <Section tag="Where the question goes">
           <p>
             Lead with the{' '}
-            <strong className="font-semibold text-slate-900">payment or upgrade flow</strong>.
+            <strong className="font-semibold text-stone-900">payment or upgrade flow</strong>.
             The respondent has just paid, so the answer is joined to revenue with no
             conversion tracking at all: &ldquo;ChatGPT produced this much revenue last
             month&rdquo; is the sentence a budget holder acts on.
           </p>
           <p>
             Then run a second form in the{' '}
-            <strong className="font-semibold text-slate-900">signup flow</strong>. It is the
+            <strong className="font-semibold text-stone-900">signup flow</strong>. It is the
             only way to see the people an assistant sends who never pay — and with both
             running, you can divide a channel&apos;s share of the paying population by its
             share of the signup population. Above 1 it converts better than your average,
@@ -276,7 +276,7 @@ export default function AiAssistantsPage() {
             Picking a candidate can expand a follow-up in place, no page transition. Point
             the assistant rows at a node that asks what they were asking about, and what
             comes back is{' '}
-            <strong className="font-semibold text-slate-900">
+            <strong className="font-semibold text-stone-900">
               a real question from a real person who then converted
             </strong>{' '}
             — a different artifact from the prompt sets an AI-visibility tool guesses at and
@@ -291,7 +291,7 @@ export default function AiAssistantsPage() {
           <Unordered
             items={[
               <>
-                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">
+                <code className="rounded bg-[var(--surface-muted)] px-1.5 py-0.5 font-mono text-[13px]">
                   allow_free_text
                 </code>{' '}
                 is where the value actually is. Your three topic buckets are a guess;
@@ -300,7 +300,7 @@ export default function AiAssistantsPage() {
               </>,
               <>
                 All four assistants expanding into one{' '}
-                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">
+                <code className="rounded bg-[var(--surface-muted)] px-1.5 py-0.5 font-mono text-[13px]">
                   ai_topic
                 </code>{' '}
                 node pools the topic counts across them. Give each its own node if you need
@@ -325,12 +325,12 @@ export default function AiAssistantsPage() {
           <CodeBlock>{rowsSnippet}</CodeBlock>
           <p>
             The{' '}
-            <strong className="font-semibold text-slate-900">
+            <strong className="font-semibold text-stone-900">
               denominator ships next to the shares
             </strong>
             , so 8% is 96 of 1,204 and not a percentage of some population you have to
             infer. And the people who did not give you an answer stay visible in{' '}
-            <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">
+            <code className="rounded bg-[var(--surface-muted)] px-1.5 py-0.5 font-mono text-[13px]">
               unresolved
             </code>{' '}
             instead of being dropped from the base — dropping them would inflate every
@@ -355,7 +355,7 @@ export default function AiAssistantsPage() {
           <Unordered
             items={[
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   It is self-report, and self-report is imperfect.
                 </strong>{' '}
                 People misremember, and some of them will have met your name twice. The base
@@ -375,15 +375,15 @@ export default function AiAssistantsPage() {
                 <em>this person&apos;s discovery ran through ChatGPT</em>.
               </>,
               <>
-                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">
+                <code className="rounded bg-[var(--surface-muted)] px-1.5 py-0.5 font-mono text-[13px]">
                   share_corrected
                 </code>
                 ,{' '}
-                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">
+                <code className="rounded bg-[var(--surface-muted)] px-1.5 py-0.5 font-mono text-[13px]">
                   position_effect
                 </code>{' '}
                 and{' '}
-                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">
+                <code className="rounded bg-[var(--surface-muted)] px-1.5 py-0.5 font-mono text-[13px]">
                   calibration
                 </code>{' '}
                 come back as explicit nulls today, not as computed numbers. Rotation already
@@ -408,11 +408,11 @@ export default function AiAssistantsPage() {
           </p>
           <p>
             The endpoints, the embed contract and the full rollup shape are in the{' '}
-            <Link href="/docs" className="underline underline-offset-2 hover:text-slate-950">
+            <Link href="/docs" className="underline underline-offset-2 hover:text-stone-900">
               docs
             </Link>
             , with{' '}
-            <a href="/llms-full.txt" className="underline underline-offset-2 hover:text-slate-950">
+            <a href="/llms-full.txt" className="underline underline-offset-2 hover:text-stone-900">
               llms-full.txt
             </a>{' '}
             for the agent doing the work.
@@ -423,34 +423,34 @@ export default function AiAssistantsPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             The rest of the class
           </p>
-          <p className="text-sm leading-6 text-slate-700">
+          <p className="text-sm leading-6 text-stone-700">
             Assistants are one row in a list of channels with no referrer. The others:{' '}
             <Link
               href="/use-cases/community-feedback"
-              className="underline underline-offset-2 hover:text-slate-950"
+              className="underline underline-offset-2 hover:text-stone-900"
             >
               communities and word of mouth
             </Link>
             ,{' '}
             <Link
               href="/use-cases/product-launch"
-              className="underline underline-offset-2 hover:text-slate-950"
+              className="underline underline-offset-2 hover:text-stone-900"
             >
               launch day
             </Link>
             , and{' '}
             <Link
               href="/use-cases/events"
-              className="underline underline-offset-2 hover:text-slate-950"
+              className="underline underline-offset-2 hover:text-stone-900"
             >
               podcasts and events
             </Link>
             .
           </p>
-          <p className="text-sm leading-6 text-slate-700">
+          <p className="text-sm leading-6 text-stone-700">
             <a
               href="/use-cases/ai-assistants.md"
-              className="underline underline-offset-2 hover:text-slate-950"
+              className="underline underline-offset-2 hover:text-stone-900"
             >
               View this page as markdown
             </a>{' '}

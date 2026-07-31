@@ -32,7 +32,7 @@ export function AppFrame({ eyebrow, title, lede, action, children }: Props) {
         <header className="flex items-center justify-between gap-3">
           <Link
             href="/"
-            className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)] transition hover:text-slate-950"
+            className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)] transition hover:text-stone-900"
           >
             HumanSurvey
           </Link>
@@ -40,7 +40,7 @@ export function AppFrame({ eyebrow, title, lede, action, children }: Props) {
             {action}
             <Link
               href="/"
-              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-900 hover:text-stone-900"
             >
               Back to site
             </Link>
@@ -48,13 +48,13 @@ export function AppFrame({ eyebrow, title, lede, action, children }: Props) {
         </header>
 
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-600">
             {eyebrow}
           </p>
-          <h1 className="mt-3 text-[2.1rem] leading-[1.1] tracking-[-0.02em] text-slate-950 sm:text-[2.75rem]">
+          <h1 className="mt-3 text-[2.1rem] leading-[1.1] tracking-[-0.02em] text-stone-900 sm:text-[2.75rem]">
             {title}
           </h1>
-          <p className="mt-4 text-[15px] leading-7 text-slate-700">{lede}</p>
+          <p className="mt-4 text-[15px] leading-7 text-stone-700">{lede}</p>
         </div>
 
         {children}

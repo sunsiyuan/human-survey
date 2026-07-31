@@ -176,7 +176,7 @@ export function SignInFlow() {
           className="space-y-4"
         >
           <label className="block">
-            <span className="text-sm font-semibold text-slate-950">Email</span>
+            <span className="text-sm font-semibold text-stone-900">Email</span>
             <input
               type="email"
               name="email"
@@ -186,7 +186,7 @@ export function SignInFlow() {
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               placeholder="you@company.com"
-              className="mt-2 block w-full rounded-xl border border-[var(--panel-border)] bg-white/70 px-4 py-3 text-[15px] text-slate-950 outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)]"
+              className="mt-2 block w-full rounded-xl border border-[var(--panel-border)] bg-white/70 px-4 py-3 text-[15px] text-stone-900 outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)]"
             />
           </label>
 
@@ -200,7 +200,7 @@ export function SignInFlow() {
             {busy ? 'Sending…' : 'Email me a code'}
           </button>
 
-          <p className="text-[13px] leading-6 text-slate-600">
+          <p className="text-[13px] leading-6 text-stone-600">
             No password to set and none to forget. If this address has never signed in
             before, verifying the code creates the account — that is the whole sign-up.
           </p>
@@ -216,10 +216,10 @@ export function SignInFlow() {
           className="space-y-4"
         >
           <label className="block">
-            <span className="text-sm font-semibold text-slate-950">Six-digit code</span>
-            <span className="mt-1 block text-[13px] leading-6 text-slate-600">
+            <span className="text-sm font-semibold text-stone-900">Six-digit code</span>
+            <span className="mt-1 block text-[13px] leading-6 text-stone-600">
               {sent ? 'Sent to ' : 'Check '}
-              <strong className="font-medium text-slate-900">{email}</strong>
+              <strong className="font-medium text-stone-900">{email}</strong>
               {sent ? '. It is in the subject line too.' : ' for it.'}
             </span>
             <input
@@ -233,7 +233,7 @@ export function SignInFlow() {
               value={code}
               onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
               placeholder="000000"
-              className="mt-3 block w-full rounded-xl border border-[var(--panel-border)] bg-white/70 px-4 py-3 font-mono text-2xl tracking-[0.35em] text-slate-950 outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)]"
+              className="mt-3 block w-full rounded-xl border border-[var(--panel-border)] bg-white/70 px-4 py-3 font-mono text-2xl tracking-[0.35em] text-stone-900 outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)]"
             />
           </label>
 
@@ -257,8 +257,8 @@ export function SignInFlow() {
               onClick={() => void requestCode()}
               className={`underline decoration-dotted underline-offset-4 disabled:opacity-55 ${
                 trouble?.dead
-                  ? 'font-semibold text-slate-950'
-                  : 'text-[var(--accent-strong)] hover:text-slate-900'
+                  ? 'font-semibold text-stone-900'
+                  : 'text-[var(--accent-strong)] hover:text-stone-900'
               }`}
             >
               Send another code
@@ -272,7 +272,7 @@ export function SignInFlow() {
                 setTrouble(null)
                 setSent(false)
               }}
-              className="text-slate-600 underline decoration-dotted underline-offset-4 hover:text-slate-900 disabled:opacity-55"
+              className="text-stone-600 underline decoration-dotted underline-offset-4 hover:text-stone-900 disabled:opacity-55"
             >
               Use a different address
             </button>
@@ -293,8 +293,8 @@ function Trouble({ trouble }: { trouble: Trouble | null }) {
       role="alert"
       className="rounded-xl border border-amber-300/70 bg-amber-50/80 px-4 py-3 text-[13px] leading-6"
     >
-      <p className="font-semibold text-slate-950">{trouble.message}</p>
-      {trouble.next ? <p className="mt-1 text-slate-700">{trouble.next}</p> : null}
+      <p className="font-semibold text-stone-900">{trouble.message}</p>
+      {trouble.next ? <p className="mt-1 text-stone-700">{trouble.next}</p> : null}
     </div>
   )
 }

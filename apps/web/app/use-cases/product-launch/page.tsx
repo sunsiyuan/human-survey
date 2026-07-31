@@ -183,26 +183,26 @@ export default function ProductLaunchPage() {
         <header className="flex items-center justify-between">
           <Link
             href="/"
-            className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)] hover:text-slate-900"
+            className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)] hover:text-stone-900"
           >
             ← HumanSurvey
           </Link>
           <div className="flex gap-2">
             <Link
               href="/use-cases"
-              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-900 hover:text-stone-900"
             >
               Use cases
             </Link>
             <Link
               href="/faq"
-              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-900 hover:text-stone-900"
             >
               FAQ
             </Link>
             <Link
               href="/docs"
-              className="hidden min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950 sm:inline-flex"
+              className="hidden min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-900 hover:text-stone-900 sm:inline-flex"
             >
               Docs
             </Link>
@@ -213,14 +213,14 @@ export default function ProductLaunchPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             Use case · Launch day
           </p>
-          <h1 className="text-4xl tracking-[-0.02em] text-slate-950 sm:text-5xl">
+          <h1 className="text-4xl tracking-[-0.02em] text-stone-900 sm:text-5xl">
             You posted in six places. The spike came back labelled Direct.
           </h1>
-          <p className="text-base leading-[1.7] text-slate-800">
+          <p className="text-base leading-[1.7] text-stone-800">
             A launch is the one traffic event you most want to decompose, and the one your
             analytics is least able to. The traffic that converts mostly arrives with no referrer at
             all: from an in-app browser, or after the post was screenshotted into a group chat.{' '}
-            <strong className="font-semibold text-slate-900">
+            <strong className="font-semibold text-stone-900">
               The only signal that survives all of that is asking, and the only version worth
               asking gets down to which account&apos;s post it was.
             </strong>
@@ -234,13 +234,13 @@ export default function ProductLaunchPage() {
           <Unordered
             items={[
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   A UTM link only covers the link you placed.
                 </strong>{' '}
                 It cannot follow the copy-paste, which on launch day is most of the distribution.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   The referrers that do arrive name a domain.
                 </strong>{' '}
                 <code>x.com</code> tells you a launch is happening on X. It cannot tell you that
@@ -258,14 +258,14 @@ export default function ProductLaunchPage() {
           <Unordered
             items={[
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   X expands, Product Hunt does not.
                 </strong>{' '}
                 A launch on X is six accounts amplifying each other; a launch on Product Hunt is
                 one page.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   No expiry, no response limit.
                 </strong>{' '}
                 The form sits in the flow long after the launch is over, which is the only way to
@@ -285,7 +285,7 @@ export default function ProductLaunchPage() {
           <CodeBlock>{cursorShapeSnippet}</CodeBlock>
           <p>
             That second row is the reason this read exists:{' '}
-            <strong className="font-semibold text-slate-900">
+            <strong className="font-semibold text-stone-900">
               somebody typed a Slack group you had not listed
             </strong>
             , a channel that would otherwise have arrived as Direct forever. Free text is stored
@@ -341,7 +341,7 @@ export default function ProductLaunchPage() {
             to revenue with no conversion tracking to build.
           </p>
           <p>
-            <strong className="font-semibold text-slate-900">
+            <strong className="font-semibold text-stone-900">
               Divide a channel&apos;s share of the paying population by its share of the signup
               population: above 1 it converts better than your average, below 1 worse.
             </strong>
@@ -380,10 +380,10 @@ export default function ProductLaunchPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             More
           </p>
-          <ul className="space-y-2 text-sm text-slate-700">
+          <ul className="space-y-2 text-sm text-stone-700">
             <li>
               ·{' '}
-              <Link href="/docs" className="underline underline-offset-2 hover:text-slate-950">
+              <Link href="/docs" className="underline underline-offset-2 hover:text-stone-900">
                 Docs
               </Link>{' '}
               — form config, the embed contract, cursor reads, the rollup
@@ -392,7 +392,7 @@ export default function ProductLaunchPage() {
               ·{' '}
               <Link
                 href="/use-cases/community-feedback"
-                className="underline underline-offset-2 hover:text-slate-950"
+                className="underline underline-offset-2 hover:text-stone-900"
               >
                 Community attribution
               </Link>{' '}
@@ -402,7 +402,7 @@ export default function ProductLaunchPage() {
               ·{' '}
               <Link
                 href="/use-cases/events"
-                className="underline underline-offset-2 hover:text-slate-950"
+                className="underline underline-offset-2 hover:text-stone-900"
               >
                 Event attribution
               </Link>{' '}
@@ -412,7 +412,7 @@ export default function ProductLaunchPage() {
               ·{' '}
               <Link
                 href="/use-cases/ai-assistants"
-                className="underline underline-offset-2 hover:text-slate-950"
+                className="underline underline-offset-2 hover:text-stone-900"
               >
                 AI assistant attribution
               </Link>{' '}
@@ -420,7 +420,7 @@ export default function ProductLaunchPage() {
             </li>
             <li>
               ·{' '}
-              <Link href="/faq" className="underline underline-offset-2 hover:text-slate-950">
+              <Link href="/faq" className="underline underline-offset-2 hover:text-stone-900">
                 FAQ
               </Link>{' '}
               — anonymity, what a form can and cannot ask, pricing
@@ -429,7 +429,7 @@ export default function ProductLaunchPage() {
               ·{' '}
               <a
                 href="/use-cases/product-launch.md"
-                className="underline underline-offset-2 hover:text-slate-950"
+                className="underline underline-offset-2 hover:text-stone-900"
               >
                 View this page as markdown
               </a>{' '}

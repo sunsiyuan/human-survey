@@ -186,26 +186,26 @@ export default function CommunityFeedbackPage() {
         <header className="flex items-center justify-between">
           <Link
             href="/"
-            className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)] hover:text-slate-900"
+            className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--accent-strong)] hover:text-stone-900"
           >
             ← HumanSurvey
           </Link>
           <div className="flex gap-2">
             <Link
               href="/use-cases"
-              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-900 hover:text-stone-900"
             >
               Use cases
             </Link>
             <Link
               href="/faq"
-              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-900 hover:text-stone-900"
             >
               FAQ
             </Link>
             <Link
               href="/docs"
-              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-900 hover:text-stone-900"
             >
               Docs
             </Link>
@@ -216,13 +216,13 @@ export default function CommunityFeedbackPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             Use case · Community-led growth
           </p>
-          <h1 className="text-4xl tracking-[-0.02em] text-slate-950 sm:text-5xl">
+          <h1 className="text-4xl tracking-[-0.02em] text-stone-900 sm:text-5xl">
             &ldquo;Reddit&rdquo; is not an answer. r/selfhosted is.
           </h1>
-          <p className="text-base leading-[1.7] text-slate-800">
+          <p className="text-base leading-[1.7] text-stone-800">
             Community-led growth is the hardest thing on your dashboard to measure and the
             cheapest thing you do. A Slack group leaves no trace whatsoever.{' '}
-            <strong className="font-semibold text-slate-900">
+            <strong className="font-semibold text-stone-900">
               This page configures the one question that gets past all of it, at the
               granularity of the specific community.
             </strong>
@@ -233,15 +233,15 @@ export default function CommunityFeedbackPage() {
           <div className="overflow-x-auto rounded-2xl border border-[var(--panel-border)] bg-[var(--surface)]">
             <table className="w-full text-[13px]">
               <thead>
-                <tr className="border-b border-[var(--panel-border)] text-left text-[11px] uppercase tracking-[0.14em] text-slate-500">
+                <tr className="border-b border-[var(--panel-border)] text-left text-[11px] uppercase tracking-[0.14em] text-stone-600">
                   <th className="px-4 py-3 font-semibold">Path in</th>
                   <th className="px-4 py-3 font-semibold">What arrives</th>
                   <th className="px-4 py-3 font-semibold">What you can conclude</th>
                 </tr>
               </thead>
-              <tbody className="text-slate-700">
+              <tbody className="text-stone-700">
                 <tr className="border-b border-[var(--panel-border)]">
-                  <td className="px-4 py-3 font-medium text-slate-900">
+                  <td className="px-4 py-3 font-medium text-stone-900">
                     Reddit, desktop browser
                   </td>
                   <td className="px-4 py-3 font-mono text-[12px]">
@@ -253,14 +253,14 @@ export default function CommunityFeedbackPage() {
                   </td>
                 </tr>
                 <tr className="border-b border-[var(--panel-border)]">
-                  <td className="px-4 py-3 font-medium text-slate-900">
+                  <td className="px-4 py-3 font-medium text-stone-900">
                     Reddit app, Slack, Discord
                   </td>
                   <td className="px-4 py-3">Nothing</td>
                   <td className="px-4 py-3">Direct.</td>
                 </tr>
                 <tr className="border-b border-[var(--panel-border)]">
-                  <td className="px-4 py-3 font-medium text-slate-900">
+                  <td className="px-4 py-3 font-medium text-stone-900">
                     A UTM link you posted
                   </td>
                   <td className="px-4 py-3">The campaign you tagged</td>
@@ -269,7 +269,7 @@ export default function CommunityFeedbackPage() {
                   </td>
                 </tr>
                 <tr>
-                  <td className="px-4 py-3 font-medium text-slate-900">Asking the person</td>
+                  <td className="px-4 py-3 font-medium text-stone-900">Asking the person</td>
                   <td className="px-4 py-3 font-mono text-[12px]">
                     reddit → r/selfhosted
                   </td>
@@ -298,7 +298,7 @@ export default function CommunityFeedbackPage() {
           <p>
             So the form asks twice. Picking Reddit expands a second list in place; Hacker News
             does not, because there is only one Hacker News.{' '}
-            <strong className="font-semibold text-slate-900">
+            <strong className="font-semibold text-stone-900">
               Which channels earn the follow-up is a monthly judgment, not a fixed property
             </strong>{' '}
             — that is a config edit.
@@ -316,7 +316,7 @@ export default function CommunityFeedbackPage() {
           <Unordered
             items={[
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   Subreddit names are their own stable key.
                 </strong>{' '}
                 A subreddit cannot be renamed, so <code>r/selfhosted</code> is safe as an id. A
@@ -325,7 +325,7 @@ export default function CommunityFeedbackPage() {
                 <code>label</code>.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   A missing community does not cost you one data point.
                 </strong>{' '}
                 It contaminates a neighbour: someone who found you in a Slack group and then
@@ -333,14 +333,14 @@ export default function CommunityFeedbackPage() {
                 search.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   Order is randomized per respondent by default.
                 </strong>{' '}
                 Options near the top get picked more often; rotating means no community sits at
                 the top for everybody, so the raw share is unbiased.
               </>,
               <>
-                <strong className="font-semibold text-slate-900">
+                <strong className="font-semibold text-stone-900">
                   &ldquo;I don&apos;t remember&rdquo; stays visible and last.
                 </strong>{' '}
                 Given a list and a search box, someone who does not remember will pick
@@ -429,10 +429,10 @@ export default function CommunityFeedbackPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             More
           </p>
-          <ul className="space-y-2 text-sm text-slate-700">
+          <ul className="space-y-2 text-sm text-stone-700">
             <li>
               ·{' '}
-              <Link href="/docs" className="underline underline-offset-2 hover:text-slate-950">
+              <Link href="/docs" className="underline underline-offset-2 hover:text-stone-900">
                 Docs
               </Link>{' '}
               — form config, the embed contract, cursor reads, the rollup
@@ -441,7 +441,7 @@ export default function CommunityFeedbackPage() {
               ·{' '}
               <Link
                 href="/use-cases/product-launch"
-                className="underline underline-offset-2 hover:text-slate-950"
+                className="underline underline-offset-2 hover:text-stone-900"
               >
                 Launch attribution
               </Link>{' '}
@@ -451,7 +451,7 @@ export default function CommunityFeedbackPage() {
               ·{' '}
               <Link
                 href="/use-cases/events"
-                className="underline underline-offset-2 hover:text-slate-950"
+                className="underline underline-offset-2 hover:text-stone-900"
               >
                 Event attribution
               </Link>{' '}
@@ -461,7 +461,7 @@ export default function CommunityFeedbackPage() {
               ·{' '}
               <Link
                 href="/use-cases/ai-assistants"
-                className="underline underline-offset-2 hover:text-slate-950"
+                className="underline underline-offset-2 hover:text-stone-900"
               >
                 AI assistant attribution
               </Link>{' '}
@@ -469,7 +469,7 @@ export default function CommunityFeedbackPage() {
             </li>
             <li>
               ·{' '}
-              <Link href="/faq" className="underline underline-offset-2 hover:text-slate-950">
+              <Link href="/faq" className="underline underline-offset-2 hover:text-stone-900">
                 FAQ
               </Link>{' '}
               — anonymity, what a form can and cannot ask, pricing
@@ -478,7 +478,7 @@ export default function CommunityFeedbackPage() {
               ·{' '}
               <a
                 href="/use-cases/community-feedback.md"
-                className="underline underline-offset-2 hover:text-slate-950"
+                className="underline underline-offset-2 hover:text-stone-900"
               >
                 View this page as markdown
               </a>{' '}

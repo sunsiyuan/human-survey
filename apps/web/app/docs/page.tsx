@@ -317,8 +317,8 @@ function Section({
 }>) {
   return (
     <section id={id} className="scroll-mt-24 rounded-[1.75rem] border border-[var(--panel-border)] bg-[var(--surface)] p-5 shadow-[0_28px_90px_-68px_rgba(14,23,38,0.38)] backdrop-blur sm:p-7">
-      <h2 className="text-xl font-semibold tracking-[-0.03em] text-slate-950 sm:text-2xl">{title}</h2>
-      <div className="mt-4 space-y-5 text-slate-700">{children}</div>
+      <h2 className="text-xl font-semibold tracking-[-0.03em] text-stone-900 sm:text-2xl">{title}</h2>
+      <div className="mt-4 space-y-5 text-stone-700">{children}</div>
     </section>
   )
 }
@@ -350,10 +350,10 @@ export default function DocsPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--accent-strong)]">
             Docs
           </p>
-          <h1 className="mt-4 max-w-4xl text-4xl leading-[1.1] tracking-[-0.02em] text-slate-950 sm:text-6xl">
+          <h1 className="mt-4 max-w-4xl text-4xl leading-[1.1] tracking-[-0.02em] text-stone-900 sm:text-6xl">
             API reference: configure the form, embed it, read the rollup.
           </h1>
-          <p className="mt-4 max-w-3xl text-base leading-[1.7] text-slate-800 sm:text-lg sm:leading-8">
+          <p className="mt-4 max-w-3xl text-base leading-[1.7] text-stone-800 sm:text-lg sm:leading-8">
             HumanSurvey asks one question — how did you hear about us — at a granularity that is
             actually actionable. An agent configures the candidate list over HTTP, the form is
             embedded in a host page, and the same agent reads answers back as a stream of rows or
@@ -368,25 +368,25 @@ export default function DocsPage() {
             </a>
             <a
               href="/llms-full.txt"
-              className="inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--accent-strong)] px-5 py-3 font-semibold whitespace-nowrap text-slate-950 transition hover:bg-[var(--accent-strong)] hover:text-[var(--accent-fg)]"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--accent-strong)] px-5 py-3 font-semibold whitespace-nowrap text-stone-900 transition hover:bg-[var(--accent-strong)] hover:text-[var(--accent-fg)]"
             >
               llms-full.txt
             </a>
             <a
               href="/llms.txt"
-              className="inline-flex min-h-11 items-center justify-center rounded-full border border-black/10 px-5 py-3 font-semibold whitespace-nowrap text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-black/10 px-5 py-3 font-semibold whitespace-nowrap text-stone-700 transition hover:border-stone-900 hover:text-stone-900"
             >
               llms.txt
             </a>
             <Link
               href="/faq"
-              className="inline-flex min-h-11 items-center justify-center rounded-full border border-black/10 px-5 py-3 font-semibold whitespace-nowrap text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-black/10 px-5 py-3 font-semibold whitespace-nowrap text-stone-700 transition hover:border-stone-900 hover:text-stone-900"
             >
               FAQ
             </Link>
             <Link
               href="/"
-              className="inline-flex min-h-11 items-center justify-center rounded-full border border-black/10 px-5 py-3 font-semibold whitespace-nowrap text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-black/10 px-5 py-3 font-semibold whitespace-nowrap text-stone-700 transition hover:border-stone-900 hover:text-stone-900"
             >
               Back to site
             </Link>
@@ -404,12 +404,12 @@ export default function DocsPage() {
             themselves. minmax(0,1fr) already does the same job for the second column at lg. */}
         <div className="grid gap-6 lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-8">
           <aside className="h-fit min-w-0 rounded-[1.5rem] border border-[var(--panel-border)] bg-white/80 p-4 text-sm shadow-[0_20px_70px_-60px_rgba(14,23,38,0.36)] backdrop-blur sm:p-5 lg:sticky lg:top-6">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Contents</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-600">Contents</p>
             <nav className="mt-4 flex gap-2 overflow-x-auto pb-1 lg:block lg:space-y-3">
               {navItems.map(([href, label]) => (
                 <a
                   key={href}
-                  className="rounded-full border border-[var(--panel-border)] px-3 py-2 whitespace-nowrap text-slate-700 hover:border-slate-900 hover:text-slate-950 lg:block lg:rounded-none lg:border-0 lg:px-0 lg:py-0"
+                  className="rounded-full border border-[var(--panel-border)] px-3 py-2 whitespace-nowrap text-stone-700 hover:border-stone-900 hover:text-stone-900 lg:block lg:rounded-none lg:border-0 lg:px-0 lg:py-0"
                   href={href}
                 >
                   {label}
@@ -448,7 +448,7 @@ export default function DocsPage() {
                 it: every attribution route is bearer-only.
               </p>
 
-              <h3 className="text-lg font-semibold text-slate-950">Key management</h3>
+              <h3 className="text-lg font-semibold text-stone-900">Key management</h3>
               <CodeBlock code={keyManagementSnippet} />
               <ul className="list-disc space-y-2 pl-5">
                 <li>
@@ -536,7 +536,7 @@ export default function DocsPage() {
                 not burn a turn per typo.
               </p>
 
-              <h3 className="text-lg font-semibold text-slate-950">Settings, and the lifecycle</h3>
+              <h3 className="text-lg font-semibold text-stone-900">Settings, and the lifecycle</h3>
               <p>
                 <code>PATCH</code> takes <code>name</code>, <code>status</code>,{' '}
                 <code>allowed_origins</code>, <code>theme</code> and{' '}
@@ -573,12 +573,12 @@ export default function DocsPage() {
                   below — do not build on the field.
                 </li>
               </ul>
-              <h3 className="text-lg font-semibold text-slate-950">Limits</h3>
+              <h3 className="text-lg font-semibold text-stone-900">Limits</h3>
               <dl className="grid gap-2 sm:grid-cols-2">
                 {limits.map(([what, value]) => (
                   <div key={what} className="rounded-[1rem] border border-[var(--panel-border)] bg-white p-3">
-                    <dt className="text-sm font-semibold text-slate-950">{what}</dt>
-                    <dd className="mt-1 text-sm text-slate-700">{value}</dd>
+                    <dt className="text-sm font-semibold text-stone-900">{what}</dt>
+                    <dd className="mt-1 text-sm text-stone-700">{value}</dd>
                   </div>
                 ))}
               </dl>
@@ -599,8 +599,8 @@ export default function DocsPage() {
                         line, which is what the track sizing reads. Wrapping beats a per-card
                         horizontal scroller here: the whole card is three short lines of prose. */}
                     <p className="font-mono text-xs wrap-anywhere text-[var(--accent-strong)]">{route}</p>
-                    <p className="mt-2 text-sm font-semibold text-slate-950">{auth}</p>
-                    <p className="mt-2 text-sm leading-6 text-slate-700">{purpose}</p>
+                    <p className="mt-2 text-sm font-semibold text-stone-900">{auth}</p>
+                    <p className="mt-2 text-sm leading-6 text-stone-700">{purpose}</p>
                   </article>
                 ))}
               </div>
@@ -727,7 +727,7 @@ export default function DocsPage() {
                 submission makes the first answer durable before the form is done. A host that
                 hides the iframe on <code>submitted</code> cuts the respondent off mid-question.
               </p>
-              <h3 className="text-lg font-semibold text-slate-950">Answer payload</h3>
+              <h3 className="text-lg font-semibold text-stone-900">Answer payload</h3>
               <p>
                 <code>answers</code> is keyed by node id and carries the one node that was just
                 answered — the same answer object the write path takes, not a whole-form map.
@@ -737,7 +737,7 @@ export default function DocsPage() {
                 There is no <code>::</code> fill-in encoding any more. Free text is a first-class{' '}
                 <code>raw</code> answer, so nothing has to be split on a separator.
               </p>
-              <h3 className="text-lg font-semibold text-slate-950">Response tagging</h3>
+              <h3 className="text-lg font-semibold text-stone-900">Response tagging</h3>
               <p>
                 Any query param on the form URL that is not reserved is captured and stored as the
                 response&apos;s <code>metadata</code>, so you can segment by whatever you already
@@ -805,7 +805,7 @@ export default function DocsPage() {
                 one on purpose: a caller who only ever sees the resolved answer cannot audit a
                 mapping it disagrees with.
               </p>
-              <h3 className="text-lg font-semibold text-slate-950">One identity</h3>
+              <h3 className="text-lg font-semibold text-stone-900">One identity</h3>
               <p>
                 <code>?external_id=</code> is the other read on the same verb — one person&apos;s
                 answers, so attribution can be a property of a user record rather than a monthly
