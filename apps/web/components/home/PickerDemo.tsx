@@ -204,6 +204,10 @@ export function PickerDemo({ startExpanded = false }: PickerDemoProps) {
           node={CHANNEL_NODE}
           ordered={ORDERED_CHANNELS}
           onPick={pickChannel}
+          // Only on the very first render. `run` increments on Start over, and the key
+          // change remounts the picker — passing this unconditionally would make Start
+          // over put the answer straight back.
+          initialPick={startExpanded && run === 0 ? 'tiktok' : undefined}
         />
       </div>
 

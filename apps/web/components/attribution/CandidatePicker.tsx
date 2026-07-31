@@ -64,6 +64,17 @@ type CandidatePickerProps = {
   onPick: (answer: PickAnswer, meta: PickMeta) => void
   disabled?: boolean
   autoFocusSearch?: boolean
+  /**
+   * Mount with this candidate already committed. Only the homepage demo uses it, to land a
+   * visitor on the follow-up without a click.
+   *
+   * It exists because seeding the PARENT's answer alone was not enough and looked fine:
+   * the follow-up appeared and a "Start over" control appeared, while the row that had
+   * supposedly been picked sat unhighlighted in the list above — an answered question that
+   * rendered as unanswered. A respondent build must never set this; a pre-committed answer
+   * is an answer nobody gave.
+   */
+  initialPick?: string
 }
 
 /**
@@ -94,6 +105,7 @@ export function CandidatePicker({
   onPick,
   disabled = false,
   autoFocusSearch = false,
+  initialPick,
 }: CandidatePickerProps) {
   const [query, setQuery] = useState('')
   const [activeIndex, setActiveIndex] = useState(-1)
@@ -101,7 +113,9 @@ export function CandidatePicker({
   // picked. §3's mock keeps the chosen row visible with the follow-up expanded beneath
   // it, in place; a respondent who cannot see their own answer while answering the
   // second question has no way to correct the first.
-  const [committed, setCommitted] = useState<Committed>(null)
+  const [committed, setCommitted] = useState<Committed>(
+    initialPick === undefined ? null : { kind: 'candidate', id: initialPick },
+  )
 
   const inputRef = useRef<HTMLInputElement>(null)
   const baseId = useId()
