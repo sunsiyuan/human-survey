@@ -719,6 +719,12 @@ poll forever":
 | `remap` | write — resolve free text to a candidate, retroactively |
 | `configure` | write — order, candidates, expansion policy |
 
+> This table is the design-time sketch, not the shipped surface, and is left as written for
+> the same reason the changelog is: it records what was intended on the day. Two of these
+> names never shipped — `compare_windows` was not built, and `configure` shipped as
+> `configure_form` — and one that did ship is missing, `revoke_remap`. The list that is true
+> today is in `packages/mcp-server/README.md` and on /docs; read those, not this.
+
 This is the concrete form of agent-first here. Not "an agent *can* call the API" — **the
 configuration is not maintainable without one.**
 

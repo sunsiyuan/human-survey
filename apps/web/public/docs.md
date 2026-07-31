@@ -444,9 +444,9 @@ curl "https://www.humansurvey.co/api/attribution/rollup\
 
 ## MCP tools
 
-`humansurvey-mcp` on the 1.x line speaks this API. Nine tools: `login`, `get_catalog`, `list_forms`, `get_form`, `create_form`, `configure_form`, `get_attribution`, `list_unresolved` and `remap`. The five survey-era tools were deleted rather than shimmed.
+`humansurvey-mcp` on the 1.x line speaks this API. Ten tools: `login`, `get_catalog`, `list_forms`, `get_form`, `create_form`, `configure_form`, `get_attribution`, `list_unresolved`, `remap` and `revoke_remap`. The five survey-era tools were deleted rather than shimmed.
 
-**1.x is published**, so `npx -y humansurvey-mcp` fetches a server whose nine tools match this document. Versions below 1.0.0 are the pre-pivot build, call the removed `/api/surveys` endpoints, and are deprecated on npm — a pinned version or a stale lockfile can still resolve one. The HTTP surface below remains the source of truth either way.
+**1.x is published**, so `npx -y humansurvey-mcp` fetches a server whose ten tools match this document. Versions below 1.0.0 are the pre-pivot build, call the removed `/api/surveys` endpoints, and are deprecated on npm — a pinned version or a stale lockfile can still resolve one. The HTTP surface below remains the source of truth either way.
 
 The tool set is shaped as a read-write loop on a monthly cadence rather than configure-once-poll-forever: sign in and store a key, list forms, read the rollup, list unresolved free text, remap it, and reconfigure the candidate list and expansion policy against where the money went this month. Deliberately absent are raw response exports and the identity lookup (a backend job on a schedule, not a conversation's), the conversion-event ingest (that arrives from a payment webhook), and anything destructive.
 

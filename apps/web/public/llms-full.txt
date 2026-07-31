@@ -872,7 +872,7 @@ not to this service. Transports the host or user controls — the URL, the ifram
 
 Two facts that point in opposite directions. Both are true as written.
 
-**In the repo — 1.0.0, speaks this API.** `packages/mcp-server` carries nine tools, verified end
+**In the repo — on the 1.x line, speaks this API.** `packages/mcp-server` carries ten tools, verified end
 to end against the endpoints above:
 
 | Tool | Wraps | Direction |
@@ -886,6 +886,7 @@ to end against the endpoints above:
 | `get_attribution` | `GET /api/attribution/rollup` | read — shares with their denominator, coverage read-outs |
 | `list_unresolved` | `GET /api/attribution/forms/{id}/unresolved` | read — free text awaiting a mapping |
 | `remap` | `POST /api/attribution/forms/{id}/remaps` | write — resolve free text to a candidate, retroactively |
+| `revoke_remap` | `DELETE /api/attribution/forms/{id}/remaps/{remapId}` | write — stop a mapping applying; soft, the row is kept |
 
 - The pre-pivot tools `create_key`, `create_survey`, `get_results`, `list_surveys` and
   `close_survey` are **removed** with the endpoints they called. `close_survey` has no successor:
@@ -895,7 +896,7 @@ to end against the endpoints above:
 - Every tool is a thin wrapper. Anything the tools can do, the HTTP surface above can do
 
 **On npm — `humansurvey-mcp` is published at 1.x.** `npx -y humansurvey-mcp` installs a server
-whose nine tools match the endpoints documented here. Versions below 1.0.0 are
+whose ten tools match the endpoints documented here. Versions below 1.0.0 are
 the pre-pivot build: every one of their tools calls a deleted `/api/surveys` route and fails
 against the current deployment. Those versions are deprecated on npm, but a pinned version or a
 stale lockfile still resolves one — pin `^1` if you pin at all. Driving the REST endpoints

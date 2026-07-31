@@ -167,7 +167,7 @@ identity via `?external_id=`), `.../unresolved` for free text awaiting a mapping
 ```
 
 The server name stays `survey` and the package stays `humansurvey-mcp` — both sit inside
-every existing user's config. Its nine tools now speak the attribution API — see
+every existing user's config. Its ten tools now speak the attribution API — see
 [`packages/mcp-server/README.md`](./packages/mcp-server/README.md). npm publishes separately
 from this repo, so the version on npm can lag what is here.
 

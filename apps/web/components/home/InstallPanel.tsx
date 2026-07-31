@@ -88,29 +88,15 @@ export function InstallPanel() {
           who ran that command and wondered why every tool fails deserves to have read it
           here first.
 
-          Kept to two sentences and a link on purpose. The full version — which nine tools,
+          Kept to two sentences and a link on purpose. The full version — which ten tools,
           which five went away, what to do meanwhile — lives in one answer on /faq, and this
           panel points at it rather than restating it. Five surfaces each carrying their own
           account of the npm/repo split is how two of them ended up wrong in opposite
           directions, and the one that goes stale first is always the one nobody re-reads. */}
       <p className="border-t border-white/10 px-5 py-3 text-[12px] leading-5 text-slate-500">
-        Status: <code className="text-slate-400">1.0.0</code>, which speaks attribution, is
-        built and verified but not published — so npm still serves{' '}
-        <code className="text-slate-400">0.6.0</code> and the command above fetches it. Until
-        the publish lands, build it from the{' '}
-        <a
-          href="https://github.com/sunsiyuan/human-survey"
-          target="_blank"
-          rel="noreferrer"
-          className="text-slate-300 underline underline-offset-2"
-        >
-          repo
-        </a>{' '}
-        or drive the{' '}
-        <a href="/docs#api-reference" className="text-slate-300 underline underline-offset-2">
-          REST endpoints
-        </a>{' '}
-        the tools wrap.{' '}
+        On npm at <code className="text-slate-400">1.x</code>, ten tools, MIT. Anything below{' '}
+        <code className="text-slate-400">1.0.0</code> is the pre-pivot build and is deprecated,
+        so pin <code className="text-slate-400">^1</code> if you pin at all.{' '}
         <a href="/faq" className="text-slate-300 underline underline-offset-2">
           Where this stands, in full
         </a>

@@ -176,14 +176,14 @@ There is no terminal state to wait for. An attribution form is a perpetual strea
 
 Two facts, and they point in opposite directions, so hold both.
 
-**In the repo:** `packages/mcp-server` is on the 1.x line and speaks this API. Nine tools, verified end to
+**In the repo:** `packages/mcp-server` is on the 1.x line and speaks this API. Ten tools, verified end to
 end against it — `login`, `get_catalog`, `list_forms`, `get_form`, `create_form`,
-`configure_form`, `get_attribution`, `list_unresolved`, `remap`. The pre-pivot tools
+`configure_form`, `get_attribution`, `list_unresolved`, `remap`, `revoke_remap`. The pre-pivot tools
 (`create_key`, `create_survey`, `get_results`, `list_surveys`, `close_survey`) are gone with the
 endpoints they called.
 
 **On npm:** `humansurvey-mcp` is published at 1.x, so `npx -y humansurvey-mcp` installs a
-server whose nine tools match the endpoints above.
+server whose ten tools match the endpoints above.
 Versions below 1.0.0 are the pre-pivot build: every one of their tools calls a deleted
 `/api/surveys` route and fails against the current deployment. Those versions are deprecated
 on npm, but a pinned version or a stale lockfile still resolves one — pin `^1` if you pin.

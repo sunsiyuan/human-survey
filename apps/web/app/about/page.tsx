@@ -514,14 +514,15 @@ export default function AboutPage() {
               </>,
               <>
                 <strong className="font-semibold text-slate-900">
-                  The published MCP package is stale.
+                  Old MCP versions still install.
                 </strong>{' '}
-                <C>humansurvey-mcp</C> on npm is 1.x, matching the current API. Versions below 1.0.0 are a pre-pivot build whose tools
-                call deleted <C>/api/surveys</C> routes. The package in the repository is
-                1.0.0 with nine attribution tools; publishing it is a separate step that has
-                not happened. Build from the repository or drive the REST endpoints directly —
-                every tool is a thin wrapper over them. The single place kept current on
-                whether the publish has landed is the MCP answer on{' '}
+                <C>humansurvey-mcp</C> on npm is on the 1.x line and its ten tools match the
+                live API. Anything below <C>1.0.0</C> is the pre-pivot build, calling{' '}
+                <C>/api/surveys</C> routes that no longer exist; those versions are deprecated
+                on npm, but a pinned version or a stale lockfile still resolves one, so pin{' '}
+                <C>^1</C> if you pin at all. npm and the MCP registry are two separate manual
+                publishes and either can lag; the one page kept current on both is the MCP
+                answer on{' '}
                 <Link href="/faq" className="underline underline-offset-2 hover:text-slate-950">
                   /faq
                 </Link>

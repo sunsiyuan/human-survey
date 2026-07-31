@@ -78,7 +78,7 @@ The first item is inherent to the method and will never be fixed. The rest are c
 - **`external_id` is host-asserted.** It is whatever string the host page passes in. The service does not verify that it identifies anyone, and it is not backfillable — a response collected without one can never be joined to a user later. It is deliberately not unique, so a retake is allowed; the rollup counts the first response per `(form_id, external_id)`.
 - **The per-response webhook does not deliver.** `per_response_webhook_url` is accepted, validated and stored, and nothing sends to it yet. Use the cursor read until that changes, and do not build on the field.
 - **Rendered is treated as seen.** The impressions map counts an option as shown if it was rendered, including below the fold. That is a known approximation in the position model, which is part of why its output ships with its sample size rather than on its own.
-- **The MCP package is current.** `humansurvey-mcp` is published on npm at 1.x and its nine attribution tools match the live API. Versions below 1.0.0 are the pre-pivot build calling deleted `/api/surveys` routes; they are deprecated but a stale lockfile can still resolve one.
+- **The MCP package is current.** `humansurvey-mcp` is published on npm at 1.x and its ten attribution tools match the live API. Versions below 1.0.0 are the pre-pivot build calling deleted `/api/surveys` routes; they are deprecated but a stale lockfile can still resolve one.
 
 ## Versus a DIY "how did you hear about us" field
 

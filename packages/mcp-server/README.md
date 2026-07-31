@@ -62,6 +62,7 @@ hands back a URL to embed. A month later: *"how did last month look?"*
 | `get_attribution` | The rollup: counts, shares with their bases, unresolved answers, follow-up coverage, revenue |
 | `list_unresolved` | The answers people typed instead of picking, grouped and counted |
 | `remap` | Records that a typed answer means a specific candidate — retroactively |
+| `revoke_remap` | Stops a mapping applying, in past windows as well as future ones. The mapping is kept, not deleted |
 
 Deliberately absent: raw response exports and the identity lookup (a backend job on a
 schedule, not a conversation's), the conversion-event ingest (that comes from your payment

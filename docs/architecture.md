@@ -88,9 +88,9 @@ cannot be used to walk the id space.
 
 ### MCP server (`packages/mcp-server`)
 
-A thin authenticated client over the API, at 1.0.0 with nine tools: `login`, `get_catalog`,
+A thin authenticated client over the API, on the 1.x line with ten tools: `login`, `get_catalog`,
 `list_forms`, `get_form`, `create_form`, `configure_form`, `get_attribution`,
-`list_unresolved`, `remap`. The five survey-era tools are gone with the API they called.
+`list_unresolved`, `remap`, `revoke_remap`. The five survey-era tools are gone with the API they called.
 
 Publishing is manual and separate from deploying, so the version on npm can lag this repo.
 

@@ -969,15 +969,16 @@ export default function DocsPage() {
 
             <Section id="mcp-tools" title="MCP Tools">
               <p>
-                <code>humansurvey-mcp</code> 1.0.0 speaks this API. Nine tools:{' '}
+                <code>humansurvey-mcp</code> on the 1.x line speaks this API. Ten tools:{' '}
                 <code>login</code>, <code>get_catalog</code>, <code>list_forms</code>,{' '}
                 <code>get_form</code>, <code>create_form</code>, <code>configure_form</code>,{' '}
-                <code>get_attribution</code>, <code>list_unresolved</code> and <code>remap</code>.
+                <code>get_attribution</code>, <code>list_unresolved</code>, <code>remap</code> and{' '}
+                <code>revoke_remap</code>.
                 The five survey-era tools were deleted rather than shimmed.
               </p>
               <p>
                 <strong>1.x is published</strong>, so{' '}
-                <code>npx -y humansurvey-mcp</code> fetches a server whose nine tools match this page. Versions below 1.0.0 are the pre-pivot build and call the removed{' '}
+                <code>npx -y humansurvey-mcp</code> fetches a server whose ten tools match this page. Versions below 1.0.0 are the pre-pivot build and call the removed{' '}
                 <code>/api/surveys</code> endpoints and will fail — they are deprecated on npm, but a
                 pinned version or a stale lockfile still resolves one. Driving the HTTP surface
                 directly stays equivalent. <Link href="/faq">/faq</Link> is the one page kept current

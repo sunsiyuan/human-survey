@@ -40,7 +40,7 @@ Anonymous key creation is gone.
 
 ### MCP 1.0.0 — ✅ 2026-07-30
 
-Nine tools; the five survey-era ones deleted outright rather than shimmed, since the
+Ten tools; the five survey-era ones deleted outright rather than shimmed, since the
 pre-reset export showed no third-party users to shim for. Tool descriptions and formatted
 output are treated as the product surface: no description names another tool, and a share is
 never printed without its denominator, because a model handed a bare percentage quotes a bare

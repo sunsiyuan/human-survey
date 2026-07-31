@@ -98,8 +98,8 @@ const faqs: Faq[] = [
     // wall of text is how a reader comes away holding whichever half they read last.
     a:
       'Two halves to that, and this answer is where the site keeps them so every other page can point here instead of each carrying its own account.\n\n' +
-      'In the repo: packages/mcp-server is on the 1.x line and speaks attribution — nine tools, verified end to end against the live API: `login`, `get_catalog`, `list_forms`, `get_form`, `create_form`, `configure_form`, `get_attribution`, `list_unresolved`, `remap`. The pre-pivot five (`create_key`, `create_survey`, `get_results`, `list_surveys`, `close_survey`) are gone along with the endpoints they called.\n\n' +
-      'On npm: `humansurvey-mcp` is published at 1.x, so `npx -y humansurvey-mcp` fetches a server whose nine tools match the current API. Versions below 1.0.0 are the pre-pivot build and call the deleted `/api/surveys` routes; they are deprecated on npm, but a pinned version or a stale lockfile will still resolve one, so pin `^1` if you pin at all.\n\n' +
+      'In the repo: packages/mcp-server is on the 1.x line and speaks attribution — ten tools, verified end to end against the live API: `login`, `get_catalog`, `list_forms`, `get_form`, `create_form`, `configure_form`, `get_attribution`, `list_unresolved`, `remap`, `revoke_remap`. The pre-pivot five (`create_key`, `create_survey`, `get_results`, `list_surveys`, `close_survey`) are gone along with the endpoints they called.\n\n' +
+      'On npm: `humansurvey-mcp` is published at 1.x, so `npx -y humansurvey-mcp` fetches a server whose ten tools match the current API. Versions below 1.0.0 are the pre-pivot build and call the deleted `/api/surveys` routes; they are deprecated on npm, but a pinned version or a stale lockfile will still resolve one, so pin `^1` if you pin at all.\n\n' +
       'Driving the REST endpoints directly stays equivalent — every tool is a thin wrapper over them, so nothing is out of reach either way.',
   },
   {
