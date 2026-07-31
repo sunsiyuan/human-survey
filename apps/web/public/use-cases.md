@@ -24,7 +24,7 @@ Full walkthrough: https://www.humansurvey.co/use-cases/community-feedback
 
 Markdown: https://www.humansurvey.co/use-cases/community-feedback.md
 
-## Launch day — you posted in twelve places and the spike says Direct
+## Launch day — you posted in six places and the spike says Direct
 
 Product Hunt, Hacker News, X, three newsletters, a dozen DMs. In-app browsers and forwarded links drop the referrer, so the traffic that decides whether the launch worked is exactly the traffic you cannot attribute. Ask at signup and you learn which post; ask again at payment and you learn which post sent people who pay.
 

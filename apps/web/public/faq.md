@@ -62,7 +62,7 @@ Two calls and no browser. `POST /api/auth/code` mails a six-digit code to an add
 
 Two halves to that, and this answer is where the site keeps them so every other page can point here instead of each carrying its own account.
 
-**In the repo:** `packages/mcp-server` is 1.0.0 and speaks attribution — nine tools, verified end to end against the live API: `login`, `get_catalog`, `list_forms`, `get_form`, `create_form`, `configure_form`, `get_attribution`, `list_unresolved`, `remap`. The pre-pivot five (`create_key`, `create_survey`, `get_results`, `list_surveys`, `close_survey`) are gone along with the endpoints they called.
+**In the repo:** `packages/mcp-server` is on the 1.x line and speaks attribution — nine tools, verified end to end against the live API: `login`, `get_catalog`, `list_forms`, `get_form`, `create_form`, `configure_form`, `get_attribution`, `list_unresolved`, `remap`. The pre-pivot five (`create_key`, `create_survey`, `get_results`, `list_surveys`, `close_survey`) are gone along with the endpoints they called.
 
 **On npm:** `humansurvey-mcp` is published at 1.x, so `npx -y humansurvey-mcp` fetches a server whose nine tools match the current API. Versions below 1.0.0 are the pre-pivot build and call the deleted `/api/surveys` routes; they are deprecated on npm, but a pinned version or a stale lockfile will still resolve one, so pin `^1` if you pin at all.
 

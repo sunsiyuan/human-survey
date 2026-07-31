@@ -176,7 +176,7 @@ There is no terminal state to wait for. An attribution form is a perpetual strea
 
 Two facts, and they point in opposite directions, so hold both.
 
-**In the repo:** `packages/mcp-server` is 1.0.0 and speaks this API. Nine tools, verified end to
+**In the repo:** `packages/mcp-server` is on the 1.x line and speaks this API. Nine tools, verified end to
 end against it — `login`, `get_catalog`, `list_forms`, `get_form`, `create_form`,
 `configure_form`, `get_attribution`, `list_unresolved`, `remap`. The pre-pivot tools
 (`create_key`, `create_survey`, `get_results`, `list_surveys`, `close_survey`) are gone with the
@@ -218,7 +218,7 @@ and the homepage is the only such entry.
 - **FAQ** — https://www.humansurvey.co/faq (markdown: https://www.humansurvey.co/faq.md) —
   what this measures that analytics cannot, how far to trust a self-reported number, where
   the form goes in a flow, pricing, and what it cannot tell you. Also the single page kept
-  current on whether the MCP package has been published; do not infer that from anywhere
+  current on which npm version line matches this API; do not infer that from anywhere
   else.
 - **Use cases** — https://www.humansurvey.co/use-cases (markdown:
   https://www.humansurvey.co/use-cases.md) — index of the four walkthroughs, framed as four
@@ -232,7 +232,7 @@ and the homepage is the only such entry.
   https://www.humansurvey.co/use-cases/community-feedback.md) — resolving Reddit to a
   subreddit and Slack to a named group, with the config that does it.
 - **Launch day** — https://www.humansurvey.co/use-cases/product-launch (markdown:
-  https://www.humansurvey.co/use-cases/product-launch.md) — twelve posts and a spike that
+  https://www.humansurvey.co/use-cases/product-launch.md) — six posts and a spike that
   says Direct; the follow-up that names the account whose post was seen.
 - **Podcasts and events** — https://www.humansurvey.co/use-cases/events (markdown:
   https://www.humansurvey.co/use-cases/events.md) — a spoken mention has no link to lose, and
