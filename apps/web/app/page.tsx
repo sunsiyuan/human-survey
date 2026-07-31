@@ -23,11 +23,15 @@ import { PickerDemo } from '@/components/home/PickerDemo'
  * So: this page demonstrates, /index.md explains, and nothing was deleted — the cut prose
  * is in the twin verbatim, and in /faq and /about where it already lived.
  *
- * Cut again, deliberately, after the first revamp still read as an essay: the two-placement
- * arithmetic, the no-dashboard section and the answer to "I'd just add a text field" all
- * came off. Each is a good argument and none of them is a first-screen argument — a visitor
- * who has not yet understood WHAT this asks cannot evaluate WHY it asks twice. They are one
- * click away in the twin and on /faq.
+ * Cut twice, and then to the bone. The two-placement arithmetic, the no-dashboard section,
+ * the answer to "I'd just add a text field" and finally the limitations went. Each is a good
+ * argument and none of them is a first-screen argument — a visitor who has not yet understood
+ * WHAT this asks cannot evaluate why it asks twice, or what it cannot tell them.
+ *
+ * The limitations section survived one round longer than the rest because I rated it highest,
+ * which was the wrong criterion: a page whose only section is what the product cannot do ends
+ * on its own ceiling. It is in /index.md, /about and /faq, and /about is the page written to
+ * be quoted.
  *
  * The hero is one card with two labelled panes because the framing question — show the
  * buyer's act, like Resend, or show the respondent's screen — has a wrong answer either
@@ -167,23 +171,6 @@ export default function Home() {
               </p>
             </div>
           </div>
-        </section>
-
-        {/* The ceiling, in the product's own voice */}
-        <section className="max-w-3xl">
-          <h2 className="font-display text-2xl tracking-[-0.015em] text-stone-900 sm:text-3xl">
-            What it cannot tell you.
-          </h2>
-          {/* Rescued from 450 words deep inside the old WhenToUse section, where it was
-              invisible. It publishes a null where a lesser page would publish a number, and
-              it resolves the contradiction a careful reader has already noticed: why Google
-              is in a list of channels that supposedly report nothing. */}
-          <p className="mt-4 text-[15px] leading-7 text-stone-700 sm:text-base sm:leading-8">
-            It records what a person says they remember, not what they did. Google and
-            LinkedIn are in the list on purpose — they count their own conversions, and that
-            is the only way to find out how much self-report undercounts everything else. We
-            have not measured that yet, so it ships as an explicit null rather than a guess.
-          </p>
         </section>
 
         {/* Footer links */}

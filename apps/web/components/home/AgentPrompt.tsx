@@ -17,9 +17,15 @@ import { useState } from 'react'
  * What this pane shows is an ENGLISH SENTENCE, not the install command. That is the actual
  * shape of the work for this buyer: they sign up, hand a key to their agent, and describe
  * the channels they spend money on. They will not write the config, and showing them one
- * would advertise a job they are not going to do. The install line is here too, under a
- * rule and at half the weight, because a page whose only call to action is "get a key"
- * still has to answer "and then where does the key go".
+ * would advertise a job they are not going to do.
+ *
+ * ON THE SURFACE COLOUR. This was briefly a dark terminal panel in Claude's own palette. It
+ * was wrong twice. It made the loudest element on the page the most technical-looking one,
+ * for a buyer likelier to come from marketing than engineering — and what it contains is a
+ * sentence in English, so a code surface mis-signals what is being asked of them. It also
+ * put a second brand's colour on our own hero. It is the site's card now: same surface,
+ * same border, same green as everything else here. Only the install line, which really is a
+ * command, keeps a monospace inset.
  */
 
 const SPOKEN =
@@ -40,14 +46,14 @@ export function AgentPrompt() {
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-[var(--panel-border)] bg-[var(--claude-surface)]">
-      <div className="flex items-center justify-between gap-3 border-b border-[var(--claude-rule)] px-4 py-2.5">
-        <span className="font-mono text-[11px] text-[var(--claude-accent)]">You, to Claude Code</span>
+    <div className="overflow-hidden rounded-2xl border border-[var(--panel-border)] bg-[var(--surface)]">
+      <div className="flex items-center justify-between gap-3 border-b border-[var(--panel-border)] px-4 py-2.5">
+        <span className="font-mono text-[11px] text-[var(--accent)]">You, to Claude Code</span>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => copy('spoken')}
-            className="rounded-md px-2 py-1 font-mono text-[11px] text-[var(--claude-muted)] transition hover:text-[var(--claude-fg)]"
+            className="rounded-md px-2 py-1 font-mono text-[11px] text-stone-500 transition hover:text-stone-900"
           >
             {copied === 'spoken' ? 'copied' : 'copy'}
           </button>
@@ -55,24 +61,22 @@ export function AgentPrompt() {
               the moment the next step becomes obvious, and the next step needs a key. */}
           <Link
             href="/signin"
-            className="inline-flex min-h-7 items-center justify-center rounded-full bg-[var(--claude-accent)] px-3 text-[11px] font-semibold text-[var(--claude-surface)] transition hover:brightness-110"
+            className="inline-flex min-h-7 items-center justify-center rounded-full bg-[var(--accent-strong)] px-3 text-[11px] font-semibold text-white transition hover:bg-[var(--accent)]"
           >
             Get a key
           </Link>
         </div>
       </div>
 
-      <p className="px-5 py-5 text-[15px] leading-7 text-[var(--claude-fg)]">
-        &ldquo;{SPOKEN}&rdquo;
-      </p>
+      <p className="px-5 py-5 text-[15px] leading-7 text-stone-800">&ldquo;{SPOKEN}&rdquo;</p>
 
-      <div className="border-t border-[var(--claude-rule)] px-5 py-3">
+      <div className="border-t border-[var(--panel-border)] bg-[var(--surface-muted)] px-5 py-3">
         <div className="flex items-center justify-between gap-3">
-          <span className="font-mono text-[11px] text-[var(--claude-muted)]">once, to install</span>
+          <span className="font-mono text-[11px] text-stone-600">once, to install</span>
           <button
             type="button"
             onClick={() => copy('install')}
-            className="font-mono text-[11px] text-[var(--claude-muted)] transition hover:text-[var(--claude-fg)]"
+            className="font-mono text-[11px] text-stone-600 transition hover:text-stone-900"
           >
             {copied === 'install' ? 'copied' : 'copy'}
           </button>
@@ -80,15 +84,15 @@ export function AgentPrompt() {
         {/* overflow-x on the line itself, never on the page: a long command inside a grid
             item whose automatic minimum is min-content would otherwise widen the document
             and give the whole page a horizontal scrollbar on a phone. */}
-        <pre className="mt-2 overflow-x-auto font-mono text-[11px] leading-5 text-[var(--claude-muted)]">
+        <pre className="mt-2 overflow-x-auto font-mono text-[11px] leading-5 text-stone-600">
           <code>{INSTALL}</code>
         </pre>
       </div>
 
-      <p className="border-t border-[var(--claude-rule)] px-5 py-3 text-[12px] leading-5 text-[var(--claude-muted)]">
-        npm: <code className="text-[var(--claude-fg)]">humansurvey-mcp</code> on the{' '}
-        <code className="text-[var(--claude-fg)]">1.x</code> line · ten tools · MIT ·{' '}
-        <a href="/faq" className="text-[var(--claude-accent)] underline underline-offset-2">
+      <p className="border-t border-[var(--panel-border)] px-5 py-3 text-[12px] leading-5 text-stone-600">
+        npm: <code className="text-stone-800">humansurvey-mcp</code> on the{' '}
+        <code className="text-stone-800">1.x</code> line · ten tools · MIT ·{' '}
+        <a href="/faq" className="text-[var(--accent)] underline underline-offset-2">
           where this stands
         </a>
       </p>
