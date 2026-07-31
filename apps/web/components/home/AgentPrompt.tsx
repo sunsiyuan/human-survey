@@ -40,14 +40,14 @@ export function AgentPrompt() {
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-[var(--panel-border)] bg-[var(--code-surface)]">
-      <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-2.5">
-        <span className="font-mono text-[11px] text-slate-500">You, to Claude Code</span>
+    <div className="overflow-hidden rounded-2xl border border-[var(--panel-border)] bg-[var(--claude-surface)]">
+      <div className="flex items-center justify-between gap-3 border-b border-[var(--claude-rule)] px-4 py-2.5">
+        <span className="font-mono text-[11px] text-[var(--claude-accent)]">You, to Claude Code</span>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => copy('spoken')}
-            className="rounded-md px-2 py-1 font-mono text-[11px] text-slate-500 transition hover:text-slate-200"
+            className="rounded-md px-2 py-1 font-mono text-[11px] text-[var(--claude-muted)] transition hover:text-[var(--claude-fg)]"
           >
             {copied === 'spoken' ? 'copied' : 'copy'}
           </button>
@@ -55,24 +55,24 @@ export function AgentPrompt() {
               the moment the next step becomes obvious, and the next step needs a key. */}
           <Link
             href="/signin"
-            className="inline-flex min-h-7 items-center justify-center rounded-full bg-white px-3 text-[11px] font-semibold text-slate-950 transition hover:bg-slate-200"
+            className="inline-flex min-h-7 items-center justify-center rounded-full bg-[var(--claude-accent)] px-3 text-[11px] font-semibold text-[var(--claude-surface)] transition hover:brightness-110"
           >
             Get a key
           </Link>
         </div>
       </div>
 
-      <p className="px-5 py-5 text-[15px] leading-7 text-slate-100">
+      <p className="px-5 py-5 text-[15px] leading-7 text-[var(--claude-fg)]">
         &ldquo;{SPOKEN}&rdquo;
       </p>
 
-      <div className="border-t border-white/10 px-5 py-3">
+      <div className="border-t border-[var(--claude-rule)] px-5 py-3">
         <div className="flex items-center justify-between gap-3">
-          <span className="font-mono text-[11px] text-slate-500">once, to install</span>
+          <span className="font-mono text-[11px] text-[var(--claude-muted)]">once, to install</span>
           <button
             type="button"
             onClick={() => copy('install')}
-            className="font-mono text-[11px] text-slate-500 transition hover:text-slate-200"
+            className="font-mono text-[11px] text-[var(--claude-muted)] transition hover:text-[var(--claude-fg)]"
           >
             {copied === 'install' ? 'copied' : 'copy'}
           </button>
@@ -80,15 +80,15 @@ export function AgentPrompt() {
         {/* overflow-x on the line itself, never on the page: a long command inside a grid
             item whose automatic minimum is min-content would otherwise widen the document
             and give the whole page a horizontal scrollbar on a phone. */}
-        <pre className="mt-2 overflow-x-auto font-mono text-[11px] leading-5 text-slate-400">
+        <pre className="mt-2 overflow-x-auto font-mono text-[11px] leading-5 text-[var(--claude-muted)]">
           <code>{INSTALL}</code>
         </pre>
       </div>
 
-      <p className="border-t border-white/10 px-5 py-3 text-[12px] leading-5 text-slate-500">
-        npm: <code className="text-slate-400">humansurvey-mcp</code> on the{' '}
-        <code className="text-slate-400">1.x</code> line · ten tools · MIT ·{' '}
-        <a href="/faq" className="text-slate-300 underline underline-offset-2">
+      <p className="border-t border-[var(--claude-rule)] px-5 py-3 text-[12px] leading-5 text-[var(--claude-muted)]">
+        npm: <code className="text-[var(--claude-fg)]">humansurvey-mcp</code> on the{' '}
+        <code className="text-[var(--claude-fg)]">1.x</code> line · ten tools · MIT ·{' '}
+        <a href="/faq" className="text-[var(--claude-accent)] underline underline-offset-2">
           where this stands
         </a>
       </p>

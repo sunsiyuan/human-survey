@@ -55,7 +55,7 @@ const links = [
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[var(--page-gradient)]">
+    <main data-palette="growth" className="min-h-screen bg-[var(--page-gradient)]">
       {/* Block flow with vertical rhythm, deliberately not `flex flex-col gap-*`. A flex
           item's automatic minimum size is its min-content width, so a flex column lets a
           nowrap row inside the picker — or a long line in a code block — push the whole
@@ -74,19 +74,19 @@ export default function Home() {
           <div className="flex gap-2">
             <Link
               href="/docs"
-              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-800 hover:text-stone-900"
             >
               Docs
             </Link>
             <Link
               href="/faq"
-              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950"
+              className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-800 hover:text-stone-900"
             >
               FAQ
             </Link>
             <Link
               href="/use-cases"
-              className="hidden min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950 sm:inline-flex"
+              className="hidden min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-800 hover:text-stone-900 sm:inline-flex"
             >
               Use cases
             </Link>
@@ -94,7 +94,7 @@ export default function Home() {
               href="https://github.com/sunsiyuan/human-survey"
               target="_blank"
               rel="noreferrer"
-              className="hidden min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-slate-700 transition hover:border-slate-900 hover:text-slate-950 sm:inline-flex"
+              className="hidden min-h-9 items-center justify-center rounded-full border border-black/10 px-4 text-sm font-medium text-stone-700 transition hover:border-stone-800 hover:text-stone-900 sm:inline-flex"
             >
               GitHub
             </a>
@@ -103,7 +103,7 @@ export default function Home() {
                 entirely — /signin existed and worked, and nothing on the site pointed at it. */}
             <Link
               href="/signin"
-              className="inline-flex min-h-9 items-center justify-center rounded-full bg-[var(--accent-strong)] px-4 text-sm font-medium text-[var(--accent-fg)] transition hover:bg-slate-900"
+              className="inline-flex min-h-9 items-center justify-center rounded-full bg-[var(--accent-strong)] px-4 text-sm font-medium text-[var(--accent-fg)] transition hover:bg-[var(--accent)]"
             >
               Sign in
             </Link>
@@ -113,10 +113,10 @@ export default function Home() {
         {/* Hero */}
         <section className="space-y-10">
           <div className="max-w-3xl">
-            <h1 className="text-[2.4rem] leading-[1.08] tracking-[-0.02em] text-slate-950 sm:text-[3.5rem] sm:leading-[1.02] sm:tracking-[-0.025em]">
+            <h1 className="text-[2.4rem] leading-[1.08] tracking-[-0.02em] text-stone-900 sm:text-[3.5rem] sm:leading-[1.02] sm:tracking-[-0.025em]">
               Find out where your signups actually come from.
             </h1>
-            <p className="mt-6 text-base leading-[1.7] text-slate-800 sm:text-lg sm:leading-8">
+            <p className="mt-6 text-base leading-[1.7] text-stone-800 sm:text-lg sm:leading-8">
               TikTok in-app, podcasts, Slack groups, word of mouth, ChatGPT — none of them
               send a referrer, so your analytics files them all under Direct. Ask the person
               instead, in your own signup or checkout. Then ask which account, so the answer
@@ -127,13 +127,13 @@ export default function Home() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/signin"
-                className="inline-flex min-h-11 items-center justify-center rounded-full bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-800"
+                className="inline-flex min-h-11 items-center justify-center rounded-full bg-[var(--accent-strong)] px-5 text-sm font-semibold text-white transition hover:bg-[var(--accent)]"
               >
                 Get a key
               </Link>
               <Link
                 href="/docs"
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-slate-900 px-5 text-sm font-semibold text-slate-950 transition hover:bg-slate-950 hover:text-white"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-stone-800 px-5 text-sm font-semibold text-stone-900 transition hover:bg-[var(--accent-strong)] hover:text-white"
               >
                 Docs
               </Link>
@@ -154,7 +154,7 @@ export default function Home() {
             </div>
 
             <div className="min-w-0">
-              <p className="mb-3 font-mono text-[11px] text-slate-500">
+              <p className="mb-3 font-mono text-[11px] text-stone-500">
                 What your customer sees
               </p>
               {/* Mounted with TikTok already picked, so the follow-up — the whole wedge — is
@@ -162,7 +162,7 @@ export default function Home() {
               <PickerDemo startExpanded />
               {/* The old "You scanned that. You did not read it." section was 180 words
                   explaining a decision the picker performs. It is one caption now. */}
-              <p className="mt-3 text-[13px] leading-6 text-slate-600">
+              <p className="mt-3 text-[13px] leading-6 text-stone-600">
                 You scanned that. You did not read it.
               </p>
             </div>
@@ -171,14 +171,14 @@ export default function Home() {
 
         {/* The ceiling, in the product's own voice */}
         <section className="max-w-3xl">
-          <h2 className="font-display text-2xl tracking-[-0.015em] text-slate-950 sm:text-3xl">
+          <h2 className="font-display text-2xl tracking-[-0.015em] text-stone-900 sm:text-3xl">
             What it cannot tell you.
           </h2>
           {/* Rescued from 450 words deep inside the old WhenToUse section, where it was
               invisible. It publishes a null where a lesser page would publish a number, and
               it resolves the contradiction a careful reader has already noticed: why Google
               is in a list of channels that supposedly report nothing. */}
-          <p className="mt-4 text-[15px] leading-7 text-slate-700 sm:text-base sm:leading-8">
+          <p className="mt-4 text-[15px] leading-7 text-stone-700 sm:text-base sm:leading-8">
             It records what a person says they remember, not what they did. Google and
             LinkedIn are in the list on purpose — they count their own conversions, and that
             is the only way to find out how much self-report undercounts everything else. We
@@ -194,7 +194,7 @@ export default function Home() {
               href={href}
               target={href.startsWith('http') ? '_blank' : undefined}
               rel={href.startsWith('http') ? 'noreferrer' : undefined}
-              className="text-sm text-slate-600 underline-offset-4 transition hover:text-slate-950 hover:underline"
+              className="text-sm text-stone-600 underline-offset-4 transition hover:text-stone-900 hover:underline"
             >
               {label}
             </a>

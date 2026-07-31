@@ -21,6 +21,25 @@
   --accent-fg: #e5edf5;
   --code-surface: #0b1320;
 
+  /* The agent pane on the homepage depicts a conversation with Claude Code, so it is
+     painted in Claude's palette rather than the site's. #D97757 is not guessed — it is
+     the brandColor already held for the `claude` entry in lib/catalog/platforms.ts,
+     fetched from the brand's own source by scripts/generate-logos.mjs, so there is one
+     value for it in this repo and not two.
+
+     The old surface was #0b1320, a cold navy, sitting on a warm #f2f1ec page: the one
+     element on the homepage that did not belong to the page it was on. This is a warm
+     near-black in the same family as Claude's own dark surface.
+
+     Depicting the tool, not claiming it: no Anthropic wordmark, no logo, no implication
+     of partnership. The label above the pane says what it is — the thing you type into
+     Claude Code. */
+  --claude-surface: #1f1d1b;
+  --claude-accent: #d97757;
+  --claude-fg: #f5f2ee;
+  --claude-muted: #a39b93;
+  --claude-rule: rgba(245, 242, 238, 0.1);
+
   /* The candidate row's real border-box, and the gap between rows. Declared once
      because two places must agree on them: CandidateRow's own min-height, and the
      height CandidatePicker reserves for the listbox so it does not collapse as a query
@@ -35,6 +54,37 @@
   --page-gradient:
     radial-gradient(circle at top left, rgba(88, 112, 134, 0.1), transparent 28%),
     radial-gradient(circle at top right, rgba(148, 159, 170, 0.1), transparent 20%),
+    linear-gradient(180deg, #f7f6f1 0%, #f1efea 50%, #ece9e2 100%);
+}
+
+/* The growth palette, scoped to the homepage while it is being tried.
+ *
+ * These are the same token NAMES as :root, rebound on a wrapper, so every component
+ * inside follows without one of them being edited — including CandidatePicker, which is
+ * shared with the respondent page at /s/{id}. That sharing is the reason this is scoped
+ * rather than global: a palette experiment must not repaint a form already embedded in
+ * somebody's checkout.
+ *
+ * Green, and specifically not a warm ochre, because the hero's agent pane is painted in
+ * Claude's #D97757. Two adjacent warm hues on one screen read as one colour mis-set
+ * twice; green reads as two roles. It also happens to be what "this number went up"
+ * looks like to the person this page is for.
+ *
+ * To promote this site-wide: move these declarations into :root and delete the
+ * data-palette attribute on the homepage. To abandon it: delete this block and the
+ * attribute. Nothing else references these names. */
+[data-palette="growth"] {
+  --foreground: #1c1b19;
+  /* #2b7355, not the #2f7d5c it was picked as: that measured 4.41 against the page
+     background, just under WCAG AA for text. Same hue, one step down, 5.04. */
+  --accent: #2b7355;
+  --accent-strong: #1f5c43;
+  --accent-soft: rgba(43, 115, 85, 0.12);
+  --accent-fg: #f4faf6;
+  --panel-border: rgba(28, 27, 25, 0.1);
+  --page-gradient:
+    radial-gradient(circle at top left, rgba(43, 115, 85, 0.1), transparent 28%),
+    radial-gradient(circle at top right, rgba(170, 160, 145, 0.12), transparent 20%),
     linear-gradient(180deg, #f7f6f1 0%, #f1efea 50%, #ece9e2 100%);
 }
 
