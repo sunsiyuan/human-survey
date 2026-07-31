@@ -37,7 +37,7 @@
   "scripts": {
     "build": "tsup src/index.ts --format esm",
     "dev": "tsup src/index.ts --format esm --watch",
-    "prepublishOnly": "pnpm build"
+    "prepack": "pnpm build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
