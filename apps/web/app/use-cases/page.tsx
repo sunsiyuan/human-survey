@@ -33,7 +33,7 @@ const items: Item[] = [
     channel: 'Communities and word of mouth',
     headline: 'Someone pasted your link in a Slack you will never see',
     body:
-      'Discord, Slack groups, subreddits, a friend forwarding a message. The exposure happens inside somebody else’s room, and by the time the link is clicked it has been re-pasted twice and stripped of everything. Asking is the only signal, and the follow-up gets you which room — “a community” is not something you can go and do more of.',
+      'Discord, Slack groups, subreddits, a friend forwarding a message. The exposure happens inside somebody else’s room, and by the time the link is clicked it has been re-pasted twice and stripped of everything. The follow-up gets you which room — “a community” is not something you can go and do more of.',
     href: '/use-cases/community-feedback',
   },
   {
@@ -47,7 +47,7 @@ const items: Item[] = [
     channel: 'Podcasts and events',
     headline: 'A spoken mention has no link to lose',
     body:
-      'A sponsored episode, a conference talk, a booth conversation. Nobody clicks anything — they hear a name in a car and type it in a week later, which is unattributable by construction rather than by accident. The follow-up asks which show or which event, because “a podcast” is not a media-buying decision.',
+      'A sponsored episode, a conference talk, a booth conversation. Nobody clicks anything — they hear a name in a car and type it in a week later. The follow-up asks which show or which event, because “a podcast” is not a media-buying decision.',
     href: '/use-cases/events',
   },
 ]
@@ -90,7 +90,7 @@ const collectionJsonLd = {
 
 export default function UseCasesIndex() {
   return (
-    <main className="min-h-screen bg-[var(--page-gradient)]">
+    <main data-palette="growth" className="min-h-screen bg-[var(--page-gradient)]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
@@ -129,12 +129,11 @@ export default function UseCasesIndex() {
           </h1>
           <p className="text-base leading-[1.7] text-slate-800">
             One class of problem, four faces of it: the exposure happened somewhere tracking
-            cannot reach, so nothing arrives with a referrer and every one of these people
-            lands in the same bucket as someone typing your domain from memory. Asking them
-            is the only signal that survives all four.
+            cannot reach, so every one of these people lands in the same bucket as someone
+            typing your domain from memory. Asking them is the only signal that survives all
+            four.
           </p>
           <p className="text-base leading-[1.7] text-slate-800">
-            What makes an answer useful is how far down it goes.{' '}
             <strong className="font-semibold text-slate-900">
               &ldquo;TikTok&rdquo; is not an answer
             </strong>{' '}
@@ -160,7 +159,7 @@ export default function UseCasesIndex() {
               <p className="mt-2 text-[15px] leading-[1.7] text-slate-800">{it.body}</p>
               <Link
                 href={it.href}
-                className="mt-3 inline-flex min-h-9 items-center justify-center rounded-full border border-slate-900 px-4 text-xs font-semibold text-slate-950 transition hover:bg-slate-950 hover:text-white"
+                className="mt-3 inline-flex min-h-9 items-center justify-center rounded-full border border-[var(--accent-strong)] px-4 text-xs font-semibold text-slate-950 transition hover:bg-[var(--accent-strong)] hover:text-[var(--accent-fg)]"
               >
                 Read the walkthrough →
               </Link>

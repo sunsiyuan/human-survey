@@ -195,7 +195,7 @@ export function SignInFlow() {
           <button
             type="submit"
             disabled={busy}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-55"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-[var(--accent-strong)] px-5 text-sm font-semibold text-white transition hover:bg-[var(--accent)] disabled:opacity-55"
           >
             {busy ? 'Sending…' : 'Email me a code'}
           </button>
@@ -245,7 +245,7 @@ export function SignInFlow() {
           <button
             type="submit"
             disabled={busy || code.length !== 6 || trouble?.dead === true}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-55"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-[var(--accent-strong)] px-5 text-sm font-semibold text-white transition hover:bg-[var(--accent)] disabled:opacity-55"
           >
             {busy ? 'Checking…' : 'Sign in'}
           </button>

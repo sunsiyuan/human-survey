@@ -123,7 +123,7 @@ const unresolvedSnippet = `curl "https://www.humansurvey.co/api/attribution/form
 
 export default function AiAssistantsPage() {
   return (
-    <main className="min-h-screen bg-[var(--page-gradient)]">
+    <main data-palette="growth" className="min-h-screen bg-[var(--page-gradient)]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
@@ -169,22 +169,16 @@ export default function AiAssistantsPage() {
           <p className="text-base leading-[1.7] text-slate-800">
             ChatGPT, Claude, Perplexity and Gemini do not send a referrer. The people they
             send you arrive as <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">direct / none</code>,
-            in the same bucket as someone typing your domain from memory. There is no
-            percentage worth quoting here, because nobody can measure a channel that leaves
-            no trace —{' '}
+            in the same bucket as someone typing your domain from memory.{' '}
             <strong className="font-semibold text-slate-900">
-              which is the point: no log-based method fixes this, and the size of what you
-              are missing is exactly the thing you cannot see.
+              No log-based method fixes this, and the size of what you are missing is exactly
+              the thing you cannot see.
             </strong>{' '}
             One row in a candidate list is what makes it visible.
           </p>
         </section>
 
         <Section tag="Why it lands in Direct">
-          <p>
-            Four separate things have to go right for a referrer to survive, and with an
-            assistant in the middle they mostly do not:
-          </p>
           <Unordered
             items={[
               <>
@@ -192,42 +186,22 @@ export default function AiAssistantsPage() {
                 web page and has no referrer to pass on.
               </>,
               <>
-                Links are opened in an in-app browser, or carry{' '}
-                <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">
-                  rel=&quot;noreferrer&quot;
-                </code>
-                , or route through a redirector that drops the header.
-              </>,
-              <>
-                The citation is a link to somebody else — a listicle, a Reddit thread, your
-                own docs page — so whatever referrer does arrive names that page and not the
-                assistant.
-              </>,
-              <>
                 <strong className="font-semibold text-slate-900">
                   Most often, there is no click at all.
                 </strong>{' '}
                 The person reads a name in an answer, searches it, and lands on you from
-                Google. That path is not a tracking gap you could close with better
-                instrumentation — the visit genuinely came from search. The{' '}
+                Google. The visit genuinely came from search; the{' '}
                 <em>discovery</em> happened somewhere with no log.
               </>,
             ]}
           />
           <p>
-            That last one is the whole argument for asking. A perfect referrer header would
-            still book this person against Google, because Google is where they clicked. Only
-            the person knows the assistant was the reason, and they will tell you if you make
-            it a single tap.
+            A perfect referrer header would still book this person against Google, because
+            Google is where they clicked. Only the person knows the assistant was the reason.
           </p>
         </Section>
 
         <Section tag="The wording is most of the work">
-          <p>
-            This channel is more sensitive to phrasing than any other, for a reason worth
-            being precise about: people do not experience themselves as having come from an
-            LLM. They asked a question, got a name, searched the name, and remember Google.
-          </p>
           <Quote>
             &ldquo;AI assistant&rdquo; is a category. &ldquo;ChatGPT&rdquo; is a memory.
           </Quote>
@@ -237,8 +211,7 @@ export default function AiAssistantsPage() {
                 <strong className="font-semibold text-slate-900">
                   Use the product name, never the category.
                 </strong>{' '}
-                A brand name has a logo, a colour and an app icon behind it, and costs the
-                respondent no translation. A category asks them to classify their own
+                A category asks them to classify their own
                 experience first, which is exactly the step that ends in{' '}
                 <em>I don&apos;t remember</em>.
               </>,
@@ -246,9 +219,7 @@ export default function AiAssistantsPage() {
                 <strong className="font-semibold text-slate-900">
                   Put it beside Google, not under it.
                 </strong>{' '}
-                Nesting the assistants inside a &ldquo;search&rdquo; group makes the
-                respondent decide whether asking ChatGPT counts as searching. The catalog&apos;s
-                default channel list ships{' '}
+                The catalog&apos;s default channel list ships{' '}
                 <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">
                   chatgpt
                 </code>{' '}
@@ -256,16 +227,14 @@ export default function AiAssistantsPage() {
                 <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">
                   google
                 </code>
-                , for that reason.
+                .
               </>,
               <>
                 <strong className="font-semibold text-slate-900">
                   One row per assistant, not one row for all of them.
                 </strong>{' '}
-                Four rows cost four lines of config and are scanned, not read — a list with
-                logos is affordable in a way a list of sentences is not. Collapse them into
-                one and you can never answer &ldquo;is this ChatGPT or is this all four&rdquo;,
-                which is the first question anyone asks of the number.
+                Collapse them into
+                one and you can never answer &ldquo;is this ChatGPT or is this all four&rdquo;.
               </>,
               <>
                 Order rotates per respondent by default, so no assistant sits above Google
@@ -278,21 +247,6 @@ export default function AiAssistantsPage() {
               </>,
             ]}
           />
-          <p>
-            One production detail rather than a surprise later: an assistant row renders with
-            a logo only if the catalog carries a mark for it, and a catalog entry that carries
-            none falls back to a two-letter monogram tile. Every entry in the catalog today
-            ships a mark, ChatGPT included, but that is a property of the catalog rather than a
-            promise — read{' '}
-            <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">
-              icon_url
-            </code>{' '}
-            before you configure anything, rather than assuming either way:{' '}
-            <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">
-              GET /api/attribution/catalog
-            </code>{' '}
-            needs no key.
-          </p>
         </Section>
 
         <Section tag="Where the question goes">
@@ -300,9 +254,8 @@ export default function AiAssistantsPage() {
             Lead with the{' '}
             <strong className="font-semibold text-slate-900">payment or upgrade flow</strong>.
             The respondent has just paid, so the answer is joined to revenue with no
-            conversion tracking at all, and the confirmation screen was dead space anyway.
-            &ldquo;ChatGPT produced this much revenue last month&rdquo; is the sentence a
-            budget holder acts on.
+            conversion tracking at all: &ldquo;ChatGPT produced this much revenue last
+            month&rdquo; is the sentence a budget holder acts on.
           </p>
           <p>
             Then run a second form in the{' '}
@@ -310,15 +263,11 @@ export default function AiAssistantsPage() {
             only way to see the people an assistant sends who never pay — and with both
             running, you can divide a channel&apos;s share of the paying population by its
             share of the signup population. Above 1 it converts better than your average,
-            below 1 worse. Multiply that ratio by your overall signup-to-paid rate to get the
-            channel&apos;s own rate. Nothing else reports that, because nothing else asks
-            twice.
+            below 1 worse.
           </p>
           <p>
             Ask early inside each flow. Memory decays, and asking late means asking only the
-            people who stayed: if a channel sends users who churn in week one, a
-            late-placed question systematically under-counts it. A small sample is visibly
-            small. A biased one is not.
+            people who stayed. A small sample is visibly small. A biased one is not.
           </p>
         </Section>
 
@@ -331,14 +280,12 @@ export default function AiAssistantsPage() {
               a real question from a real person who then converted
             </strong>{' '}
             — a different artifact from the prompt sets an AI-visibility tool guesses at and
-            scores you against. Nobody has to guess which prompts matter when the people who
-            bought tell you theirs.
+            scores you against.
           </p>
           <p>
-            Nothing ships preconfigured here. The assistant catalog entries carry no
-            follow-up by default, and the topic list is yours, because only you know what
-            your buyers ask. This is you spending one extra tap on the channel you care
-            about most this month:
+            The assistant catalog entries carry no follow-up by default, and the topic list
+            is yours. This is you spending one extra tap on the channel you care about most
+            this month:
           </p>
           <CodeBlock>{configSnippet}</CodeBlock>
           <Unordered
@@ -357,8 +304,8 @@ export default function AiAssistantsPage() {
                   ai_topic
                 </code>{' '}
                 node pools the topic counts across them. Give each its own node if you need
-                topics per assistant — the rollup keys rows on node × candidate, so pooling
-                is a decision you make in the config, not one you can undo at read time.
+                topics per assistant — pooling is a decision you make in the config, not one
+                you can undo at read time.
               </>,
               <>
                 A follow-up costs a tap, so it belongs on the channels carrying spend. The
@@ -377,7 +324,7 @@ export default function AiAssistantsPage() {
           <CodeBlock>{rollupSnippet}</CodeBlock>
           <CodeBlock>{rowsSnippet}</CodeBlock>
           <p>
-            Two things about that payload matter more than the row values. The{' '}
+            The{' '}
             <strong className="font-semibold text-slate-900">
               denominator ships next to the shares
             </strong>
@@ -396,16 +343,14 @@ export default function AiAssistantsPage() {
           </p>
           <CodeBlock>{unresolvedSnippet}</CodeBlock>
           <p>
-            A mapping is not an edit. Nothing about the stored response changes; the rollup
-            resolves against the live remap table on every read, so one row fixes two months
-            of history at once and revoking it moves them back.
+            Nothing about the stored response changes; the rollup resolves against the live
+            remap table on every read.
           </p>
         </Section>
 
         <Section tag="What this does not tell you">
           <p>
-            The product&apos;s job is not to hand you a confident percentage. Most attribution
-            tools do that, and it is why nobody believes them. So, plainly:
+            The product&apos;s job is not to hand you a confident percentage:
           </p>
           <Unordered
             items={[
@@ -413,8 +358,8 @@ export default function AiAssistantsPage() {
                 <strong className="font-semibold text-slate-900">
                   It is self-report, and self-report is imperfect.
                 </strong>{' '}
-                People misremember, and some of them will have met your name twice. What the
-                shipped numbers do is refuse to hide that: the base is always there, and{' '}
+                People misremember, and some of them will have met your name twice. The base
+                is always there, and{' '}
                 <em>I don&apos;t remember</em> is a first-class row rather than a rounding
                 error.
               </>,
@@ -427,8 +372,7 @@ export default function AiAssistantsPage() {
                 &ldquo;ChatGPT&rdquo; is not proof the assistant recommended you. It could
                 have cited an article about you, and the respondent cannot tell the
                 difference. Read the row as{' '}
-                <em>this person&apos;s discovery ran through ChatGPT</em>, which is still the
-                thing you were unable to see at all.
+                <em>this person&apos;s discovery ran through ChatGPT</em>.
               </>,
               <>
                 <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">
@@ -443,8 +387,8 @@ export default function AiAssistantsPage() {
                   calibration
                 </code>{' '}
                 come back as explicit nulls today, not as computed numbers. Rotation already
-                makes the raw share unbiased, so the correction would only serve someone who
-                pinned the order — and an absent number is better than a smoothed guess.
+                makes the raw share unbiased, and an absent number is better than a smoothed
+                guess.
               </>,
               <>
                 Small channels are small samples. Nine Gemini responses is nine responses,

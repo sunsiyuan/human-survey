@@ -2,9 +2,9 @@
 
 Canonical: https://www.humansurvey.co/use-cases
 
-One class of problem, four faces of it: the exposure happened somewhere tracking cannot reach, so nothing arrives with a referrer and every one of these people lands in the same bucket as someone typing your domain from memory. Asking them is the only signal that survives all four.
+One class of problem, four faces of it: the exposure happened somewhere tracking cannot reach, so every one of these people lands in the same bucket as someone typing your domain from memory. Asking them is the only signal that survives all four.
 
-What makes an answer useful is how far down it goes. **"TikTok" is not an answer** — six ambassador accounts collapse into one string and every conclusion drawn from it is noise. Each walkthrough below covers the second question that gets you to which account, which room, which show, and where to place the form so the answer sits next to revenue.
+**"TikTok" is not an answer** — six ambassador accounts collapse into one string and every conclusion drawn from it is noise. Each walkthrough below covers the second question that gets you to which account, which room, which show, and where to place the form so the answer sits next to revenue.
 
 ---
 
@@ -18,7 +18,7 @@ Markdown: https://www.humansurvey.co/use-cases/ai-assistants.md
 
 ## Communities and word of mouth — someone pasted your link in a Slack you will never see
 
-Discord, Slack groups, subreddits, a friend forwarding a message. The exposure happens inside somebody else's room, and by the time the link is clicked it has been re-pasted twice and stripped of everything. Asking is the only signal, and the follow-up gets you which room — "a community" is not something you can go and do more of.
+Discord, Slack groups, subreddits, a friend forwarding a message. The exposure happens inside somebody else's room, and by the time the link is clicked it has been re-pasted twice and stripped of everything. The follow-up gets you which room — "a community" is not something you can go and do more of.
 
 Full walkthrough: https://www.humansurvey.co/use-cases/community-feedback
 
@@ -34,7 +34,7 @@ Markdown: https://www.humansurvey.co/use-cases/product-launch.md
 
 ## Podcasts and events — a spoken mention has no link to lose
 
-A sponsored episode, a conference talk, a booth conversation. Nobody clicks anything — they hear a name in a car and type it in a week later, which is unattributable by construction rather than by accident. The follow-up asks which show or which event, because "a podcast" is not a media-buying decision.
+A sponsored episode, a conference talk, a booth conversation. Nobody clicks anything — they hear a name in a car and type it in a week later. The follow-up asks which show or which event, because "a podcast" is not a media-buying decision.
 
 Full walkthrough: https://www.humansurvey.co/use-cases/events
 

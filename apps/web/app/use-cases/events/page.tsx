@@ -169,7 +169,7 @@ curl -X POST https://www.humansurvey.co/api/attribution/forms/abc123efgh45/remap
 
 export default function EventsPage() {
   return (
-    <main className="min-h-screen bg-[var(--page-gradient)]">
+    <main data-palette="growth" className="min-h-screen bg-[var(--page-gradient)]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
@@ -231,36 +231,27 @@ export default function EventsPage() {
                 <strong className="font-semibold text-slate-900">
                   There is no digital trace at all.
                 </strong>{' '}
-                Not a stripped referrer, not a missing UTM — nothing. The exposure happened in a
-                conversation. A badge scan tells you who you talked to, not who came back.
+                Not a stripped referrer, not a missing UTM — nothing. A badge scan tells you who
+                you talked to, not who came back.
               </>,
               <>
                 <strong className="font-semibold text-slate-900">
                   A QR code only measures the people who scanned it at the booth.
                 </strong>{' '}
-                The ones who scan on the spot are usually collecting the giveaway. The ones who
-                actually buy do it later, from a laptop, after talking to their team.
-              </>,
-              <>
-                <strong className="font-semibold text-slate-900">
-                  The gap is days or weeks.
-                </strong>{' '}
-                By the time they sign up, every session-scoped attribution model has expired the
-                event out of existence.
+                The ones who scan on the spot are usually collecting the giveaway.
               </>,
               <>
                 <strong className="font-semibold text-slate-900">
                   &ldquo;Events&rdquo; is not a channel you can act on.
                 </strong>{' '}
                 A company running eight a year signs for the next one six months in advance, and
-                the decision is <em>which</em> — the flagship conference, the regional one, or the
-                dinner for twenty people that cost a twentieth as much.
+                the decision is <em>which</em>.
               </>,
             ]}
           />
           <p>
             So the highest cost per lead in the plan is defended, every year, with an argument
-            rather than a number. That is what makes this the most valuable place to simply ask.
+            rather than a number.
           </p>
           <p>
             A sponsored podcast episode has the same shape and takes the same configuration: no
@@ -283,18 +274,15 @@ export default function EventsPage() {
                 <strong className="font-semibold text-slate-900">
                   Event ids carry the edition, deliberately.
                 </strong>{' '}
-                A creator id must survive a rename; an event id must <em>not</em> merge two
-                instances, because you buy the booth once per instance and the 2027 renewal is a
-                separate decision from the 2026 one. Ids are yours and validated, never minted, so
-                this is your call to make.
+                An event id must <em>not</em> merge two instances, because you buy the booth once
+                per instance and the 2027 renewal is a separate decision from the 2026 one.
               </>,
               <>
                 <strong className="font-semibold text-slate-900">
                   Your own field events belong on the list.
                 </strong>{' '}
-                A dinner for twenty is a channel. It has no platform, no console and no row in any
-                analytics product — so if it is the line with the best return, that is something
-                you will never discover while the only option on screen is &ldquo;a
+                A dinner for twenty is a channel — if it is the line with the best return, that is
+                something you will never discover while the only option on screen is &ldquo;a
                 conference&rdquo;.
               </>,
               <>
@@ -302,17 +290,7 @@ export default function EventsPage() {
                   Aliases are how people actually name events.
                 </strong>{' '}
                 Nobody says &ldquo;KubeCon EU 2026&rdquo;; they say &ldquo;the one in
-                London&rdquo;. Aliases are matched by the search box and never displayed, so the
-                list stays clean while the matching stays generous.
-              </>,
-              <>
-                <strong className="font-semibold text-slate-900">
-                  Prune it as the year moves.
-                </strong>{' '}
-                Once an event is two quarters behind you, its row is costing every respondent
-                reading time. Dropping it is a config edit, and it is safe: each config is an
-                immutable snapshot, so removing a candidate never rewrites what an older response
-                says was on screen.
+                London&rdquo;. Aliases are matched by the search box and never displayed.
               </>,
             ]}
           />
@@ -329,11 +307,8 @@ export default function EventsPage() {
           <p>
             In that illustration the London dinner beat SaaStr Annual on people who named it —
             39 against 21 — at a fraction of the cost. Whether it beat it on customers is a
-            different question, and the section below is where it gets answered: the event rows
-            count responses, and <code>paying_responses</code> is reported on the channel row
-            only. Invented numbers, but that is the shape of finding the page
-            exists for, and it is one row of a follow-up question — collapsed into &ldquo;At a
-            conference or event&rdquo;, it does not exist at all.
+            different question: the event rows count responses, and <code>paying_responses</code>{' '}
+            is reported on the channel row only.
           </p>
           <p>
             Revenue joins for free at the payment placement: the respondent has just paid, so
@@ -342,64 +317,53 @@ export default function EventsPage() {
             <strong className="font-semibold text-slate-900">
               Payment date does not have to fall inside the window
             </strong>{' '}
-            — a September payment is summed against the channel the response recorded in July,
-            which is exactly the behaviour a channel with a long lag needs.
+            — a September payment is summed against the channel the response recorded in July.
           </p>
         </Section>
 
         <Section tag="Revenue per event needs one join">
           <p>
-            Read the row above carefully:{' '}
             <code>revenue_cents</code> is reported on the channel node and is <code>null</code> on
-            the event rows. That is not an oversight. A response&apos;s money belongs to the
-            response, so booking it on every node the person answered would multiply your total by
-            the number of questions asked — and <code>null</code> is used rather than{' '}
-            <code>0</code>, because zero would be a claim.
+            the event rows. A response&apos;s money belongs to the response, so booking it on
+            every node the person answered would multiply your total by the number of questions
+            asked — and <code>null</code> is used rather than <code>0</code>, because zero would
+            be a claim.
           </p>
           <p>
             So the rollup tells you how many people named each event, and both who among them
             paid and what they paid are one join away, on an id you already own:
           </p>
           <CodeBlock>{identitySnippet}</CodeBlock>
-          <p>
-            The second form is the more interesting one long-term: it makes the event a property
-            of a user record rather than a line in a monthly report, which is what lets sales open
-            an account and see <em>we met these people at KubeCon</em>.
-          </p>
         </Section>
 
         <Section tag="People will type the event name. That is fine.">
           <p>
             There is no <em>Other</em> option — if the event is not listed, they type it, and the
-            text is stored verbatim rather than normalized on the way in. For events this happens
-            more than anywhere else, because the thing people remember is a city and a month.
+            text is stored verbatim. For events this happens more than anywhere else, because the
+            thing people remember is a city and a month.
           </p>
           <CodeBlock>{remapSnippet}</CodeBlock>
           <p>
             The mapping is retroactive and revocable: nothing about the stored responses changes,
-            and the rollup resolves free text against the live table on every read. So one row
-            fixes six months of history at once — which matters here more than anywhere, because
-            an event&apos;s answers arrive over a season, not a week.
+            and the rollup resolves free text against the live table on every read. One row fixes
+            six months of history at once.
           </p>
         </Section>
 
         <Section tag="What the two placements tell you about an expensive booth">
           <p>
-            The case for a booth is usually that it is the inverse of a viral channel: low
-            volume, high value. If that holds for yours, the form in the signup flow shows a
-            small share and the form in the payment flow a larger one.
+            A booth is usually the inverse of a viral channel: low volume, high value. If that
+            holds for yours, the form in the signup flow shows a small share and the form in the
+            payment flow a larger one.
           </p>
           <p>
             <strong className="font-semibold text-slate-900">
               That gap, if it is there, is the argument for the booth
             </strong>
             . Divide the channel&apos;s share of the paying population by its share of the signup
-            population: above 1 it converts better than your average, below 1 worse. Multiply that
-            ratio by your overall signup-to-paid rate to get the channel&apos;s own rate. Whether
+            population: above 1 it converts better than your average, below 1 worse. Whether
             events beat the average is not something we have measured across customers, so treat
-            it as the hypothesis the two placements exist to test — run one placement only and you
-            cannot test it at all, and you get the half of the picture that makes a low-volume
-            channel look small.
+            it as the hypothesis the two placements exist to test.
           </p>
           <p>
             Ask early in each flow. Asking at the end of onboarding means asking only the people
@@ -423,14 +387,14 @@ export default function EventsPage() {
             in the list until June.&rdquo;
           </Quote>
           <p>
-            Your agent creates the forms, writes the candidate lists, and hands back the URLs to
-            embed. Before the next sponsorship deadline:{' '}
+            Your agent creates the forms and hands back the URLs to embed. Before the next
+            sponsorship deadline:{' '}
             <em>&ldquo;how many customers came from each event, and what did they pay?&rdquo;</em>
           </p>
           <p>
-            What this is not: a post-event feedback form. It does not rate sessions, poll
-            attendees or collect speaker feedback — there is one question here, asked of your own
-            users inside your own product, and it is where they first heard about you.
+            What this is not: a post-event feedback form. It does not rate sessions or poll
+            attendees — there is one question here, asked of your own users inside your own
+            product, and it is where they first heard about you.
           </p>
         </Section>
 

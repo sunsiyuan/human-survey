@@ -4,7 +4,7 @@ _Use case · Community-led growth_
 
 Canonical: https://www.humansurvey.co/use-cases/community-feedback
 
-Community-led growth is the hardest thing on your dashboard to measure and the cheapest thing you do. A Slack group leaves no trace whatsoever. A Discord link arrives with nothing attached. And where a referrer _does_ survive — Reddit in a desktop browser — it names the platform and stops there. **This page configures the one question that gets past all of it, and gets past it at the granularity of the specific community.**
+Community-led growth is the hardest thing on your dashboard to measure and the cheapest thing you do. A Slack group leaves no trace whatsoever. **This page configures the one question that gets past all of it, at the granularity of the specific community.**
 
 ---
 
@@ -14,16 +14,16 @@ Community-led growth is the hardest thing on your dashboard to measure and the c
 | ---------------------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | Reddit, desktop browser            | `https://www.reddit.com/` | The platform. Browsers trim a cross-origin referrer to the origin by default, so the subreddit is gone before the request leaves. |
 | Reddit app, Slack, Discord         | Nothing                   | Direct.                                                                                                        |
-| A UTM link you posted              | The campaign you tagged   | Only the link you controlled. Not the reshare, not the DM, not the person who typed your name in three days later. |
+| A UTM link you posted              | The campaign you tagged   | Only the link you controlled. Not the reshare, not the DM.                                                      |
 | Asking the person                  | `reddit` → `r/selfhosted` | The community. Survives the app, the DM, and the three-day gap.                                                 |
 
-The UTM row is the one worth staring at. It works, and it measures exactly the fraction of community traffic that came through a link you personally placed — which in a healthy community is the minority, because the value of a community is other people repeating you.
+The UTM row is the one worth staring at. It measures exactly the fraction of community traffic that came through a link you personally placed — which in a healthy community is the minority.
 
 ## Why the follow-up question is the whole point
 
-Suppose you learn that 33% of your paying customers first heard about you on Reddit. You now know one useful thing and can act on none of it: you cannot post more in "Reddit". The decisions available to you are about specific communities — which subreddit to show up in weekly, which Slack group deserves a person rather than a link, whether r/sysadmin was ever worth the time.
+Suppose you learn that 33% of your paying customers first heard about you on Reddit. You now know one useful thing and can act on none of it: you cannot post more in "Reddit". The decisions available to you are about specific communities — which subreddit to show up in weekly, whether r/sysadmin was ever worth the time.
 
-So the form asks twice. Picking Reddit expands a second list in place, no page transition, and the response is durable before the second list even appears. Hacker News does not expand, because there is only one Hacker News and a second question there costs a click and returns nothing. **Which channels earn the follow-up is a monthly judgment, not a fixed property** — that is a config edit, and it is the reason an agent maintains this list rather than a form builder.
+So the form asks twice. Picking Reddit expands a second list in place; Hacker News does not, because there is only one Hacker News. **Which channels earn the follow-up is a monthly judgment, not a fixed property** — that is a config edit.
 
 ## The configuration
 
@@ -87,14 +87,14 @@ curl -X PUT https://www.humansurvey.co/api/attribution/forms/abc123efgh45 \
 # → 200 { "id": "abc123efgh45", "version": 3, "created": true, "warnings": [] }
 ```
 
-- **Subreddit names are their own stable key.** A subreddit cannot be renamed, so `r/selfhosted` is safe as an id. A Slack group is not — the workspace can be renamed, which is why those ids are internal (`slack_k8s`) and the pretty name lives in `label`. Ids are yours and are validated, never minted, so a rename never splits a community's history in two.
-- **A missing community does not cost you one data point.** It contaminates a neighbour: someone who found you in a Slack group and then searched picks Google, so you lose the group and book a false entry against search. Ten to twelve rows with logos scan faster than six rows of text, and `aliases` — matched, never displayed — catch the people who remember a description rather than a name.
-- **Order is randomized per respondent by default.** Options near the top get picked more often; rotating means no community sits at the top for everybody, so the raw share is unbiased without any correction being applied to it afterwards.
-- **"I don't remember" stays visible and last.** Given a list and a search box, someone who does not remember will pick something, and that is worse than a smaller sample — it is noise wearing the costume of signal.
+- **Subreddit names are their own stable key.** A subreddit cannot be renamed, so `r/selfhosted` is safe as an id. A Slack group is not — the workspace can be renamed, which is why those ids are internal (`slack_k8s`) and the pretty name lives in `label`.
+- **A missing community does not cost you one data point.** It contaminates a neighbour: someone who found you in a Slack group and then searched picks Google, so you lose the group and book a false entry against search.
+- **Order is randomized per respondent by default.** Options near the top get picked more often; rotating means no community sits at the top for everybody, so the raw share is unbiased.
+- **"I don't remember" stays visible and last.** Given a list and a search box, someone who does not remember will pick something — worse than a smaller sample.
 
 ## What comes back
 
-One aggregate read, computed in SQL at read time. There is no dashboard by design: the agent already in your terminal is the thing that reads this.
+One aggregate read. There is no dashboard; the agent already in your terminal is what reads this.
 
 ```bash
 curl "https://www.humansurvey.co/api/attribution/rollup\
@@ -123,15 +123,13 @@ curl "https://www.humansurvey.co/api/attribution/rollup\
 }
 ```
 
-The denominator ships in the payload, so the resolved rows sum to less than one and the remainder is the `unresolved` block. That is deliberate: a reader who has to guess whether 33% already excludes the don't-knows will guess wrong, and in the direction that flatters every channel.
+The denominator ships in the payload, so the resolved rows sum to less than one and the remainder is the `unresolved` block. A reader who has to guess whether 33% already excludes the don't-knows will guess wrong, and in the direction that flatters every channel.
 
-`followup_unresolved` is the number to watch in the first week. It is the share of Reddit picks that never resolved to a subreddit — coverage of your candidate list, reported without your having to instrument anything. High and steady usually means the list is missing the community people actually came from.
+`followup_unresolved` is the number to watch in the first week: the share of Reddit picks that never resolved to a subreddit. High and steady usually means the list is missing the community people actually came from.
 
 ## Two placements, and the number neither gives alone
 
-Run one form in the payment or upgrade flow and one in the signup flow. The payment one is where the money is: the respondent has just paid, so the answer joins to revenue with no conversion tracking at all, and the confirmation page was dead space anyway.
-
-The signup one is the only way to see the people a community sends who never pay. Ask only at payment and you can never learn that a subreddit delivers volume that does not convert — which is exactly the judgment that ends a channel.
+Run one form in the payment or upgrade flow and one in the signup flow. The payment one is where the money is: the respondent has just paid, so the answer joins to revenue with no conversion tracking at all. The signup one is the only way to see the people a community sends who never pay.
 
 ```
 # ILLUSTRATIVE — invented figures, to show the arithmetic
@@ -148,11 +146,11 @@ The signup one is the only way to see the people a community sends who never pay
 # Nothing computes it for you: it is two rollup calls and a division.
 ```
 
-Ask early in each flow. Memory decays, but the worse problem is that asking late means asking only the people who stayed, which systematically under-counts any community whose users churn early. A small sample is visibly small; a biased one is not.
+Ask early in each flow. Memory decays, and asking late means asking only the people who stayed, which systematically under-counts any community whose users churn early. A small sample is visibly small; a biased one is not.
 
 ## Free text is where you find the community you never listed
 
-There is no _Other_ option — if it is not in the list, people type. That text is stored verbatim and never normalized on the way in, and the most valuable thing attribution ever produces shows up here first: a community you had not thought to list.
+There is no _Other_ option — if it is not in the list, people type, and that text is stored verbatim. The most valuable thing attribution ever produces shows up here first: a community you had not thought to list.
 
 ```bash
 # what people typed instead of picking, most frequent first
@@ -170,7 +168,7 @@ curl -X POST https://www.humansurvey.co/api/attribution/forms/abc123efgh45/remap
 # → 201 { "resolved_responses": 9, "candidate_label": "Kubernetes", "warnings": [] }
 ```
 
-A mapping is not an edit. Nothing about the stored responses changes — the rollup resolves free text against the live mapping table on every read, so one row fixes three months of history at once and revoking it moves them back. `resolved_responses` tells you exactly how many responses just moved, so "I mapped it and nothing changed" is visible immediately rather than next quarter.
+A mapping is not an edit. The rollup resolves free text against the live mapping table on every read, so one row fixes three months of history at once and revoking it moves them back.
 
 ## Getting started
 
@@ -178,9 +176,9 @@ Sign in at https://www.humansurvey.co, copy a key, and hand it to your agent. Th
 
 > "Set up attribution on our upgrade page. Our communities are r/selfhosted, r/devops, r/kubernetes and the Kubernetes and MLOps Slacks — ask which one when someone picks Reddit or Slack. Also list Hacker News, GitHub, X, Google, ChatGPT and word of mouth."
 
-Your agent reads the platform catalog, creates the form, writes the candidate lists and hands back a URL to embed. A month later: _"which communities produced revenue, and which only produced signups?"_
+Your agent reads the catalog, creates the form and hands back a URL to embed. A month later: _"which communities produced revenue, and which only produced signups?"_
 
-What this is not: a place to ask your members what they thought of the AMA. There is one question here — where did you first hear about us — and no arbitrary questionnaire behind it.
+What this is not: a place to ask your members what they thought of the AMA. There is one question here — where did you first hear about us.
 
 ## More
 

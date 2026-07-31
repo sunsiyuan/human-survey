@@ -25,7 +25,9 @@ type Props = {
 
 export function AppFrame({ eyebrow, title, lede, action, children }: Props) {
   return (
-    <main className="min-h-screen bg-[var(--page-gradient)]">
+    // /signin and /account are the site, not the embed, so they take the site palette.
+    // The respondent page at /s/[id] deliberately does not — its accent is the host's.
+    <main data-palette="growth" className="min-h-screen bg-[var(--page-gradient)]">
       <div className="mx-auto w-full max-w-3xl space-y-8 px-4 py-8 sm:px-6 sm:py-12">
         <header className="flex items-center justify-between gap-3">
           <Link

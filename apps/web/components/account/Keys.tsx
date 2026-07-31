@@ -202,7 +202,7 @@ export function Keys() {
           <button
             type="submit"
             disabled={busy}
-            className="inline-flex min-h-11 items-center justify-center rounded-full bg-slate-950 px-5 text-sm font-semibold whitespace-nowrap text-white transition hover:bg-slate-800 disabled:opacity-55"
+            className="inline-flex min-h-11 items-center justify-center rounded-full bg-[var(--accent-strong)] px-5 text-sm font-semibold whitespace-nowrap text-white transition hover:bg-[var(--accent)] disabled:opacity-55"
           >
             {busy ? 'Working…' : 'Issue a key'}
           </button>

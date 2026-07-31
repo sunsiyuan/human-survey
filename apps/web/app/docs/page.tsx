@@ -300,7 +300,7 @@ const limits = [
 
 function CodeBlock({ code }: { code: string }) {
   return (
-    <pre className="overflow-x-auto rounded-[1.25rem] border border-[var(--panel-border)] bg-slate-950 p-4 text-[13px] leading-6 text-[var(--accent-fg)] sm:p-5 sm:text-sm sm:leading-7">
+    <pre className="overflow-x-auto rounded-[1.25rem] border border-[var(--panel-border)] bg-[var(--code-surface)] p-4 text-[13px] leading-6 text-[var(--accent-fg)] sm:p-5 sm:text-sm sm:leading-7">
       <code>{code}</code>
     </pre>
   )
@@ -340,7 +340,7 @@ const navItems = [
 
 export default function DocsPage() {
   return (
-    <main className="min-h-screen bg-[var(--page-gradient)]">
+    <main data-palette="growth" className="min-h-screen bg-[var(--page-gradient)]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(techArticleJsonLd) }}
@@ -362,13 +362,13 @@ export default function DocsPage() {
           <div className="mt-6 flex flex-col gap-3 text-sm sm:flex-row sm:flex-wrap">
             <a
               href="/api/openapi.json"
-              className="inline-flex min-h-11 items-center justify-center rounded-full bg-slate-950 px-5 py-3 font-semibold whitespace-nowrap text-white transition hover:bg-slate-800"
+              className="inline-flex min-h-11 items-center justify-center rounded-full bg-[var(--accent-strong)] px-5 py-3 font-semibold whitespace-nowrap text-white transition hover:bg-[var(--accent)]"
             >
               OpenAPI JSON
             </a>
             <a
               href="/llms-full.txt"
-              className="inline-flex min-h-11 items-center justify-center rounded-full border border-slate-900 px-5 py-3 font-semibold whitespace-nowrap text-slate-950 transition hover:bg-slate-950 hover:text-white"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-[var(--accent-strong)] px-5 py-3 font-semibold whitespace-nowrap text-slate-950 transition hover:bg-[var(--accent-strong)] hover:text-[var(--accent-fg)]"
             >
               llms-full.txt
             </a>

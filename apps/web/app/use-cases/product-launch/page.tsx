@@ -173,7 +173,7 @@ const rollupShapeSnippet = `// ILLUSTRATIVE — every figure below is invented, 
 
 export default function ProductLaunchPage() {
   return (
-    <main className="min-h-screen bg-[var(--page-gradient)]">
+    <main data-palette="growth" className="min-h-screen bg-[var(--page-gradient)]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
@@ -218,10 +218,8 @@ export default function ProductLaunchPage() {
           </h1>
           <p className="text-base leading-[1.7] text-slate-800">
             A launch is the one traffic event you most want to decompose, and the one your
-            analytics is least able to. The posts you wrote do send referrers. The traffic that
-            converts mostly does not: it arrives after the post was screenshotted into a group
-            chat, quoted by someone with an audience, read in a mail client, or opened in an
-            app.{' '}
+            analytics is least able to. The traffic that converts mostly arrives with no referrer at
+            all: from an in-app browser, or after the post was screenshotted into a group chat.{' '}
             <strong className="font-semibold text-slate-900">
               The only signal that survives all of that is asking, and the only version worth
               asking gets down to which account&apos;s post it was.
@@ -232,16 +230,9 @@ export default function ProductLaunchPage() {
         <Section tag="Why launch traffic is the worst-attributed traffic you will ever get">
           <p>
             Every mechanism that makes a launch work also strips the evidence that it worked.
-            The reshare is the point — you posted once, and the useful volume came from other
-            people repeating you, in places you cannot instrument. Concretely:
           </p>
           <Unordered
             items={[
-              <>
-                <strong className="font-semibold text-slate-900">The apps send nothing.</strong>{' '}
-                An in-app browser on X, LinkedIn or Reddit, and every DM and group chat the link
-                passed through, arrive with no referrer at all.
-              </>,
               <>
                 <strong className="font-semibold text-slate-900">
                   A UTM link only covers the link you placed.
@@ -255,27 +246,13 @@ export default function ProductLaunchPage() {
                 <code>x.com</code> tells you a launch is happening on X. It cannot tell you that
                 one quote-post did four times the work of your own announcement.
               </>,
-              <>
-                <strong className="font-semibold text-slate-900">
-                  Last-click buries the whole thing.
-                </strong>{' '}
-                Somebody sees the post on Tuesday and searches your name on Thursday. Analytics
-                credits search. You conclude that SEO launched your product.
-              </>,
             ]}
           />
-          <p>
-            So the post-launch question — <em>which of the six places we posted actually
-            worked</em> — is not a hard analytics query. It is unanswerable from analytics, and it
-            is the only question that changes what you do for the next launch.
-          </p>
         </Section>
 
         <Section tag="The configuration">
           <p>
-            One form in the signup flow, which is where launch traffic actually lands, and one in
-            the payment flow, which is what settles the argument a month later. Both take the
-            same config.
+            One form in the signup flow, one in the payment flow. Both take the same config.
           </p>
           <CodeBlock>{configSnippet}</CodeBlock>
           <Unordered
@@ -285,31 +262,14 @@ export default function ProductLaunchPage() {
                   X expands, Product Hunt does not.
                 </strong>{' '}
                 A launch on X is six accounts amplifying each other; a launch on Product Hunt is
-                one page. Spend the respondent&apos;s one extra click where the answers differ.
+                one page.
               </>,
               <>
                 <strong className="font-semibold text-slate-900">
-                  Ids survive renames; handles do not.
+                  No expiry, no response limit.
                 </strong>{' '}
-                <code>x_1799210044</code> is the numeric account id, so the day{' '}
-                <code>@rennacodes</code> becomes something else, that account&apos;s history stays
-                in one piece. <code>handle</code> and <code>icon_url</code> are what the
-                respondent sees, and they are the fields you expect to edit.
-              </>,
-              <>
-                <strong className="font-semibold text-slate-900">
-                  Aliases catch the people who remember a description.
-                </strong>{' '}
-                &ldquo;the person who does the teardown threads&rdquo; is matched by the search
-                box and never displayed, because that is genuinely how the memory is stored.
-              </>,
-              <>
-                <strong className="font-semibold text-slate-900">
-                  Nothing here can be closed or capped.
-                </strong>{' '}
-                There is no expiry and no response limit — the form sits in the flow after the
-                launch is over, which is the only way to see the tail. Status is{' '}
-                <code>active</code> or <code>paused</code>, and pausing is reversible.
+                The form sits in the flow long after the launch is over, which is the only way to
+                see the tail.
               </>,
             ]}
           />
@@ -319,46 +279,41 @@ export default function ProductLaunchPage() {
           <p>
             Aggregates are the wrong shape while a launch is still happening. Pass the previous
             cursor back and you get only what has completed since — every row emitted exactly
-            once and final when emitted.
+            once.
           </p>
           <CodeBlock>{cursorSnippet}</CodeBlock>
           <CodeBlock>{cursorShapeSnippet}</CodeBlock>
           <p>
-            That second row is the reason this read exists.{' '}
+            That second row is the reason this read exists:{' '}
             <strong className="font-semibold text-slate-900">
-              Somebody typed a Slack group you had not listed
-            </strong>{' '}
-            — a channel that would otherwise have arrived as Direct forever, found on the one day
-            you were watching. Free text is stored verbatim and stays mappable, so once you know
-            the group exists you can resolve every past answer that named it and add it to the
-            list for tomorrow.
+              somebody typed a Slack group you had not listed
+            </strong>
+            , a channel that would otherwise have arrived as Direct forever. Free text is stored
+            verbatim and stays mappable, so once you know the group exists you can resolve every
+            past answer that named it.
           </p>
           <p>
-            <code>next_check_hint_seconds</code> paces the polling for you:{' '}
-            <code>0</code> while a page is waiting, <code>120</code> while somebody is mid-answer,{' '}
-            <code>3600</code> once it has gone quiet. Nothing in this API ever reports that
-            collection has finished, because a form in a signup flow never does.
+            Nothing in this API ever reports that collection has finished, because a form in a
+            signup flow never does.
           </p>
         </Section>
 
         <Section tag="A week later: the tail is the finding">
           <p>
-            The single most common mistake in launch attribution is measuring the launch over the
+            The most common mistake in launch attribution is measuring the launch over the
             window of the launch. Responses are windowed on when they completed, so you can ask
             the same question of two windows and watch the answer invert.
           </p>
           <CodeBlock>{windowsSnippet}</CodeBlock>
           <p>
-            Product Hunt is a day-shaped channel and Hacker News is a month-shaped one. Neither
-            window is the wrong one to have asked about, which is the trap: only the pair is
-            useful. Then the follow-up node answers the question your own launch retro cannot:
+            Only the pair is useful. The follow-up node answers the question your launch retro
+            cannot:
           </p>
           <CodeBlock>{rollupShapeSnippet}</CodeBlock>
           <p>
             Renna&apos;s row is <code>0.531</code>: 51 of the 96 people who answered that
-            follow-up at all. A bit over half of everyone who got that far named one account, and
-            it is not yours — a concrete decision, who to send the next launch to before you post
-            it, and one that is invisible in a report where all of it reads <code>x.com</code>.
+            follow-up at all. Over half named one account, and it is not yours — that is who to
+            send the next launch to.
           </p>
           {/* This paragraph is here because an earlier version of the one above it said "two
               thirds", which is 51/(51+24) — the two rows that happen to be printed. Getting the
@@ -369,17 +324,13 @@ export default function ProductLaunchPage() {
             Note what the payload will not let you say. Set the 51 against the 24 who picked your
             own account and you get 68% — &ldquo;two thirds of our X traffic came from one
             account&rdquo; writes itself. It overstates by fifteen points, because it silently
-            drops the twenty-one people who named a third account or could not name one, and it
-            gets there by taking the denominator from the two rows that happened to be printed.{' '}
-            <code>denominator.per_node</code> ships in every payload so that the base is never the
-            thing a reader has to reconstruct.
+            drops the twenty-one people who named a third account or could not name one.{' '}
+            <code>denominator.per_node</code> ships in every payload so the base is never
+            something a reader has to reconstruct.
           </p>
           <p>
-            <code>followup_unresolved</code> at <code>0.273</code> is doing its job too: a bit
-            over a quarter of the people who said X never got to a named account — some walked
-            away, some picked <em>I don&apos;t remember whose</em>, some typed something no remap
-            has resolved yet. On launch day that is expected, and it is why the number ships next
-            to the share instead of being folded into it.
+            <code>followup_unresolved</code> at <code>0.273</code>: a bit over a quarter of the
+            people who said X never got to a named account.
           </p>
         </Section>
 
@@ -390,21 +341,14 @@ export default function ProductLaunchPage() {
             to revenue with no conversion tracking to build.
           </p>
           <p>
-            Comparing the two placements is the whole point.{' '}
             <strong className="font-semibold text-slate-900">
               Divide a channel&apos;s share of the paying population by its share of the signup
-              population. Above 1 it converts better than your average, below 1 worse. Multiply
-              that ratio by your overall signup-to-paid rate to get the channel&apos;s own rate.
-            </strong>{' '}
-            Launch channels are where those two shares are most likely to diverge — the platform
-            that sent the most signups on launch day need not be the one that sent the most
-            customers, and whether it was is a question no incumbent answers, because none of
-            them ask twice.
+              population: above 1 it converts better than your average, below 1 worse.
+            </strong>
           </p>
           <p>
             Both placements are ideally early in their flow. Asking at the end means asking only
-            the people who got to the end, which under-counts every channel whose users bounce —
-            and a launch channel is the most likely one to be sending exactly those people.
+            the people who got to the end, which under-counts every channel whose users bounce.
           </p>
         </Section>
 
@@ -422,14 +366,13 @@ export default function ProductLaunchPage() {
             when someone picks X ask whether it was us, @rennacodes or @softlaunchwk.&rdquo;
           </Quote>
           <p>
-            Your agent creates both forms, writes the candidate lists and hands back the URLs to
-            embed. On Wednesday: <em>&ldquo;what has come in since last night?&rdquo;</em> A month
-            later: <em>&ldquo;which of them produced customers rather than signups?&rdquo;</em>
+            Your agent creates both forms and hands back the URLs to embed. On Wednesday:{' '}
+            <em>&ldquo;what has come in since last night?&rdquo;</em> A month later:{' '}
+            <em>&ldquo;which of them produced customers rather than signups?&rdquo;</em>
           </p>
           <p>
-            What this is not: a post-launch feedback form. It does not ask what people think of
-            the product, what to build next, or whether they would pay $29 — there is one
-            question here, and it is where they came from.
+            What this is not: a post-launch feedback form. There is one question here, and it is
+            where they came from.
           </p>
         </Section>
 
@@ -453,7 +396,7 @@ export default function ProductLaunchPage() {
               >
                 Community attribution
               </Link>{' '}
-              — Reddit, Discord, Slack groups, and which community it was
+              — Reddit, Discord, Slack groups
             </li>
             <li>
               ·{' '}
@@ -463,7 +406,7 @@ export default function ProductLaunchPage() {
               >
                 Event attribution
               </Link>{' '}
-              — conferences and trade shows, and which of the eight it was
+              — conferences and trade shows
             </li>
             <li>
               ·{' '}

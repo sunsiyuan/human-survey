@@ -10,14 +10,13 @@ Events are the most expensive thing on the marketing plan and the worst tracked.
 
 ## Why this is the hardest channel you spend on
 
-- **There is no digital trace at all.** Not a stripped referrer, not a missing UTM — nothing. The exposure happened in a conversation. A badge scan tells you who you talked to, not who came back.
-- **A QR code only measures the people who scanned it at the booth.** The ones who scan on the spot are usually collecting the giveaway. The ones who actually buy do it later, from a laptop, after talking to their team.
-- **The gap is days or weeks.** By the time they sign up, every session-scoped attribution model has expired the event out of existence.
-- **"Events" is not a channel you can act on.** A company running eight a year signs for the next one six months in advance, and the decision is _which_ — the flagship conference, the regional one, or the dinner for twenty people that cost a twentieth as much.
+- **There is no digital trace at all.** Not a stripped referrer, not a missing UTM — nothing. A badge scan tells you who you talked to, not who came back.
+- **A QR code only measures the people who scanned it at the booth.** The ones who scan on the spot are usually collecting the giveaway.
+- **"Events" is not a channel you can act on.** A company running eight a year signs for the next one six months in advance, and the decision is _which_.
 
-So the highest cost per lead in the plan is defended, every year, with an argument rather than a number. That is what makes this the most valuable place to simply ask.
+So the highest cost per lead in the plan is defended, every year, with an argument rather than a number.
 
-A sponsored podcast episode has the same shape and takes the same configuration: no link to lose, a spoken name typed in days later, and a memory of the _show_ rather than the app it was played in. Swap the event list for a show list and everything below is unchanged.
+A sponsored podcast episode has the same shape and takes the same configuration: no link to lose, a spoken name typed in days later, and a memory of the *show* rather than the app it was played in. Swap the event list for a show list and everything below is unchanged.
 
 ## The configuration
 
@@ -63,10 +62,9 @@ One form in the payment or upgrade flow, one in the signup flow. The channel lis
 }
 ```
 
-- **Event ids carry the edition, deliberately.** A creator id must survive a rename; an event id must _not_ merge two instances, because you buy the booth once per instance and the 2027 renewal is a separate decision from the 2026 one. Ids are yours and validated, never minted, so this is your call to make.
-- **Your own field events belong on the list.** A dinner for twenty is a channel. It has no platform, no console and no row in any analytics product — so if it is the line with the best return, that is something you will never discover while the only option on screen is "a conference".
-- **Aliases are how people actually name events.** Nobody says "KubeCon EU 2026"; they say "the one in London". Aliases are matched by the search box and never displayed, so the list stays clean while the matching stays generous.
-- **Prune it as the year moves.** Once an event is two quarters behind you, its row is costing every respondent reading time. Dropping it is a config edit, and it is safe: each config is an immutable snapshot, so removing a candidate never rewrites what an older response says was on screen.
+- **Event ids carry the edition, deliberately.** An event id must _not_ merge two instances, because you buy the booth once per instance and the 2027 renewal is a separate decision from the 2026 one.
+- **Your own field events belong on the list.** A dinner for twenty is a channel — if it is the line with the best return, that is something you will never discover while the only option on screen is "a conference".
+- **Aliases are how people actually name events.** Nobody says "KubeCon EU 2026"; they say "the one in London". Aliases are matched by the search box and never displayed.
 
 ## Reading it back, and the window that trips people up
 
@@ -111,13 +109,13 @@ curl "https://www.humansurvey.co/api/attribution/rollup\
 }
 ```
 
-In that illustration the London dinner beat SaaStr Annual on people who named it — 39 against 21 — at a fraction of the cost. Whether it beat it on customers is a different question, and the section below is where it gets answered: the event rows count responses, and `paying_responses` is reported on the channel row only. Invented numbers, but that is the shape of finding the page exists for, and it is one row of a follow-up question — collapsed into "At a conference or event", it does not exist at all.
+In that illustration the London dinner beat SaaStr Annual on people who named it — 39 against 21 — at a fraction of the cost. Whether it beat it on customers is a different question: the event rows count responses, and `paying_responses` is reported on the channel row only.
 
-Revenue joins for free at the payment placement: the respondent has just paid, so pushing your own `paid` events keyed on the same user id turns heads into money. **Payment date does not have to fall inside the window** — a September payment is summed against the channel the response recorded in July, which is exactly the behaviour a channel with a long lag needs.
+Revenue joins for free at the payment placement: the respondent has just paid, so pushing your own `paid` events keyed on the same user id turns heads into money. **Payment date does not have to fall inside the window** — a September payment is summed against the channel the response recorded in July.
 
 ## Revenue per event needs one join
 
-Read the row above carefully: `revenue_cents` is reported on the channel node and is `null` on the event rows. That is not an oversight. A response's money belongs to the response, so booking it on every node the person answered would multiply your total by the number of questions asked — and `null` is used rather than `0`, because zero would be a claim.
+`revenue_cents` is reported on the channel node and is `null` on the event rows. A response's money belongs to the response, so booking it on every node the person answered would multiply your total by the number of questions asked — and `null` is used rather than `0`, because zero would be a claim.
 
 So the rollup tells you how many people named each event, and both who among them paid and what they paid are one join away, on an id you already own:
 
@@ -137,11 +135,9 @@ curl "https://www.humansurvey.co/api/attribution/forms/abc123efgh45/responses\
   -H "Authorization: Bearer hs_sk_..."
 ```
 
-The second form is the more interesting one long-term: it makes the event a property of a user record rather than a line in a monthly report, which is what lets sales open an account and see _we met these people at KubeCon_.
-
 ## People will type the event name. That is fine.
 
-There is no _Other_ option — if the event is not listed, they type it, and the text is stored verbatim rather than normalized on the way in. For events this happens more than anywhere else, because the thing people remember is a city and a month.
+There is no _Other_ option — if the event is not listed, they type it, and the text is stored verbatim. For events this happens more than anywhere else, because the thing people remember is a city and a month.
 
 ```bash
 curl "https://www.humansurvey.co/api/attribution/forms/abc123efgh45/unresolved" \
@@ -158,13 +154,13 @@ curl -X POST https://www.humansurvey.co/api/attribution/forms/abc123efgh45/remap
 #          "candidate_label": "Our London dinner, March 2026" }
 ```
 
-The mapping is retroactive and revocable: nothing about the stored responses changes, and the rollup resolves free text against the live table on every read. So one row fixes six months of history at once — which matters here more than anywhere, because an event's answers arrive over a season, not a week.
+The mapping is retroactive and revocable: nothing about the stored responses changes, and the rollup resolves free text against the live table on every read. One row fixes six months of history at once.
 
 ## What the two placements tell you about an expensive booth
 
-The case for a booth is usually that it is the inverse of a viral channel: low volume, high value. If that holds for yours, the form in the signup flow shows a small share and the form in the payment flow a larger one.
+A booth is usually the inverse of a viral channel: low volume, high value. If that holds for yours, the form in the signup flow shows a small share and the form in the payment flow a larger one.
 
-**That gap, if it is there, is the argument for the booth.** Divide the channel's share of the paying population by its share of the signup population: above 1 it converts better than your average, below 1 worse. Multiply that ratio by your overall signup-to-paid rate to get the channel's own rate. Whether events beat the average is not something we have measured across customers, so treat it as the hypothesis the two placements exist to test — run one placement only and you cannot test it at all, and you get the half of the picture that makes a low-volume channel look small.
+**That gap, if it is there, is the argument for the booth.** Divide the channel's share of the paying population by its share of the signup population: above 1 it converts better than your average, below 1 worse. Whether events beat the average is not something we have measured across customers, so treat it as the hypothesis the two placements exist to test.
 
 Ask early in each flow. Asking at the end of onboarding means asking only the people who finished, and a channel whose leads take three weeks to activate is the one most likely to be missing from that population.
 
@@ -174,9 +170,9 @@ Sign in at https://www.humansurvey.co, copy a key, and hand it to your agent wit
 
 > "Add a how-did-you-hear-about-us question to signup and to checkout. When someone says they met us at an event, ask which: KubeCon EU 2026, re:Invent 2025, DevOpsDays NYC, SaaStr, and our London dinner in March. Keep last year's events in the list until June."
 
-Your agent creates the forms, writes the candidate lists, and hands back the URLs to embed. Before the next sponsorship deadline: _"how many customers came from each event, and what did they pay?"_
+Your agent creates the forms and hands back the URLs to embed. Before the next sponsorship deadline: _"how many customers came from each event, and what did they pay?"_
 
-What this is not: a post-event feedback form. It does not rate sessions, poll attendees or collect speaker feedback — there is one question here, asked of your own users inside your own product, and it is where they first heard about you.
+What this is not: a post-event feedback form. It does not rate sessions or poll attendees — there is one question here, asked of your own users inside your own product, and it is where they first heard about you.
 
 ## More
 

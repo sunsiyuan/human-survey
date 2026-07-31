@@ -230,7 +230,7 @@ const changelogJsonLd = {
 
 export default function ChangelogPage() {
   return (
-    <main className="min-h-screen bg-[var(--page-gradient)]">
+    <main data-palette="growth" className="min-h-screen bg-[var(--page-gradient)]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(changelogJsonLd) }}

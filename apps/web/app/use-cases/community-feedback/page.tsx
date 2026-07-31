@@ -176,7 +176,7 @@ curl -X POST https://www.humansurvey.co/api/attribution/forms/abc123efgh45/remap
 
 export default function CommunityFeedbackPage() {
   return (
-    <main className="min-h-screen bg-[var(--page-gradient)]">
+    <main data-palette="growth" className="min-h-screen bg-[var(--page-gradient)]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
@@ -221,22 +221,15 @@ export default function CommunityFeedbackPage() {
           </h1>
           <p className="text-base leading-[1.7] text-slate-800">
             Community-led growth is the hardest thing on your dashboard to measure and the
-            cheapest thing you do. A Slack group leaves no trace whatsoever. A Discord link
-            arrives with nothing attached. And where a referrer <em>does</em> survive — Reddit
-            in a desktop browser — it names the platform and stops there.{' '}
+            cheapest thing you do. A Slack group leaves no trace whatsoever.{' '}
             <strong className="font-semibold text-slate-900">
-              This page configures the one question that gets past all of it, and gets past it
-              at the granularity of the specific community.
+              This page configures the one question that gets past all of it, at the
+              granularity of the specific community.
             </strong>
           </p>
         </section>
 
         <Section tag="What actually reaches your analytics">
-          <p>
-            Four different things can happen when someone clicks through from a community, and
-            only one of them tells you which community it was.
-          </p>
-
           <div className="overflow-x-auto rounded-2xl border border-[var(--panel-border)] bg-[var(--surface)]">
             <table className="w-full text-[13px]">
               <thead>
@@ -272,8 +265,7 @@ export default function CommunityFeedbackPage() {
                   </td>
                   <td className="px-4 py-3">The campaign you tagged</td>
                   <td className="px-4 py-3">
-                    Only the link you controlled. Not the reshare, not the DM, not the person
-                    who typed your name in three days later.
+                    Only the link you controlled. Not the reshare, not the DM.
                   </td>
                 </tr>
                 <tr>
@@ -290,10 +282,9 @@ export default function CommunityFeedbackPage() {
           </div>
 
           <p>
-            The UTM row is the one worth staring at. It works, and it measures exactly the
-            fraction of community traffic that came through a link you personally placed — which
-            in a healthy community is the minority, because the value of a community is other
-            people repeating you.
+            The UTM row is the one worth staring at. It measures exactly the fraction of
+            community traffic that came through a link you personally placed — which in a
+            healthy community is the minority.
           </p>
         </Section>
 
@@ -302,19 +293,15 @@ export default function CommunityFeedbackPage() {
             Suppose you learn that 33% of your paying customers first heard about you on Reddit.
             You now know one useful thing and can act on none of it: you cannot post more in
             &ldquo;Reddit&rdquo;. The decisions available to you are about specific communities —
-            which subreddit to show up in weekly, which Slack group deserves a person rather
-            than a link, whether r/sysadmin was ever worth the time.
+            which subreddit to show up in weekly, whether r/sysadmin was ever worth the time.
           </p>
           <p>
-            So the form asks twice. Picking Reddit expands a second list in place, no page
-            transition, and the response is durable before the second list even appears. Hacker
-            News does not expand, because there is only one Hacker News and a second question
-            there costs a click and returns nothing.{' '}
+            So the form asks twice. Picking Reddit expands a second list in place; Hacker News
+            does not, because there is only one Hacker News.{' '}
             <strong className="font-semibold text-slate-900">
               Which channels earn the follow-up is a monthly judgment, not a fixed property
             </strong>{' '}
-            — that is a config edit, and it is the reason an agent maintains this list rather
-            than a form builder.
+            — that is a config edit.
           </p>
         </Section>
 
@@ -335,8 +322,7 @@ export default function CommunityFeedbackPage() {
                 A subreddit cannot be renamed, so <code>r/selfhosted</code> is safe as an id. A
                 Slack group is not — the workspace can be renamed, which is why those ids are
                 internal (<code>slack_k8s</code>) and the pretty name lives in{' '}
-                <code>label</code>. Ids are yours and are validated, never minted, so a rename
-                never splits a community&apos;s history in two.
+                <code>label</code>.
               </>,
               <>
                 <strong className="font-semibold text-slate-900">
@@ -344,25 +330,21 @@ export default function CommunityFeedbackPage() {
                 </strong>{' '}
                 It contaminates a neighbour: someone who found you in a Slack group and then
                 searched picks Google, so you lose the group and book a false entry against
-                search. Ten to twelve rows with logos scan faster than six rows of text, and{' '}
-                <code>aliases</code> — matched, never displayed — catch the people who remember
-                a description rather than a name.
+                search.
               </>,
               <>
                 <strong className="font-semibold text-slate-900">
                   Order is randomized per respondent by default.
                 </strong>{' '}
                 Options near the top get picked more often; rotating means no community sits at
-                the top for everybody, so the raw share is unbiased without any correction being
-                applied to it afterwards.
+                the top for everybody, so the raw share is unbiased.
               </>,
               <>
                 <strong className="font-semibold text-slate-900">
                   &ldquo;I don&apos;t remember&rdquo; stays visible and last.
                 </strong>{' '}
                 Given a list and a search box, someone who does not remember will pick
-                something, and that is worse than a smaller sample — it is noise wearing the
-                costume of signal.
+                something — worse than a smaller sample.
               </>,
             ]}
           />
@@ -370,22 +352,21 @@ export default function CommunityFeedbackPage() {
 
         <Section tag="What comes back">
           <p>
-            One aggregate read, computed in SQL at read time. There is no dashboard by design:
-            the agent already in your terminal is the thing that reads this.
+            One aggregate read. There is no dashboard; the agent already in your terminal is
+            what reads this.
           </p>
           <CodeBlock>{rollupSnippet}</CodeBlock>
           <CodeBlock>{rollupShapeSnippet}</CodeBlock>
           <p>
             The denominator ships in the payload, so the resolved rows sum to less than one and
-            the remainder is the <code>unresolved</code> block. That is deliberate: a reader who
-            has to guess whether 33% already excludes the don&apos;t-knows will guess wrong, and
-            in the direction that flatters every channel.
+            the remainder is the <code>unresolved</code> block. A reader who has to guess
+            whether 33% already excludes the don&apos;t-knows will guess wrong, and in the
+            direction that flatters every channel.
           </p>
           <p>
-            <code>followup_unresolved</code> is the number to watch in the first week. It is the
-            share of Reddit picks that never resolved to a subreddit — coverage of your candidate
-            list, reported without your having to instrument anything. High and steady usually
-            means the list is missing the community people actually came from.
+            <code>followup_unresolved</code> is the number to watch in the first week: the share
+            of Reddit picks that never resolved to a subreddit. High and steady usually means
+            the list is missing the community people actually came from.
           </p>
         </Section>
 
@@ -393,38 +374,29 @@ export default function CommunityFeedbackPage() {
           <p>
             Run one form in the payment or upgrade flow and one in the signup flow. The payment
             one is where the money is: the respondent has just paid, so the answer joins to
-            revenue with no conversion tracking at all, and the confirmation page was dead space
-            anyway.
-          </p>
-          <p>
-            The signup one is the only way to see the people a community sends who never pay.
-            Ask only at payment and you can never learn that a subreddit delivers volume that
-            does not convert — which is exactly the judgment that ends a channel.
+            revenue with no conversion tracking at all. The signup one is the only way to see
+            the people a community sends who never pay.
           </p>
           <CodeBlock>{ratioSnippet}</CodeBlock>
           <p>
-            Ask early in each flow. Memory decays, but the worse problem is that asking late
-            means asking only the people who stayed, which systematically under-counts any
-            community whose users churn early. A small sample is visibly small; a biased one is
-            not.
+            Ask early in each flow. Memory decays, and asking late means asking only the people who
+            stayed, which systematically
+            under-counts any community whose users churn early. A small sample is visibly small;
+            a biased one is not.
           </p>
         </Section>
 
         <Section tag="Free text is where you find the community you never listed">
           <p>
-            There is no <em>Other</em> option — if it is not in the list, people type. That text
-            is stored verbatim and never normalized on the way in, and the most valuable thing
-            attribution ever produces shows up here first: a community you had not thought to
-            list.
+            There is no <em>Other</em> option — if it is not in the list, people type, and that
+            text is stored verbatim. The most valuable thing attribution ever produces shows up
+            here first: a community you had not thought to list.
           </p>
           <CodeBlock>{remapSnippet}</CodeBlock>
           <p>
-            A mapping is not an edit. Nothing about the stored responses changes — the rollup
-            resolves free text against the live mapping table on every read, so one row fixes
-            three months of history at once and revoking it moves them back.{' '}
-            <code>resolved_responses</code> tells you exactly how many responses just moved, so
-            &ldquo;I mapped it and nothing changed&rdquo; is visible immediately rather than next
-            quarter.
+            A mapping is not an edit. The rollup resolves free text against the live mapping
+            table on every read, so one row fixes three months of history at once and revoking
+            it moves them back.
           </p>
         </Section>
 
@@ -443,14 +415,13 @@ export default function CommunityFeedbackPage() {
             word of mouth.&rdquo;
           </Quote>
           <p>
-            Your agent reads the platform catalog, creates the form, writes the candidate lists
-            and hands back a URL to embed. A month later:{' '}
+            Your agent reads the catalog, creates the form and hands back a URL to embed. A
+            month later:{' '}
             <em>&ldquo;which communities produced revenue, and which only produced signups?&rdquo;</em>
           </p>
           <p>
             What this is not: a place to ask your members what they thought of the AMA. There is
-            one question here — where did you first hear about us — and no arbitrary
-            questionnaire behind it.
+            one question here — where did you first hear about us.
           </p>
         </Section>
 
