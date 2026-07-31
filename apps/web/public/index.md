@@ -46,7 +46,7 @@ Every share ships with the base it was computed over, and the people who skipped
 
 Sometimes you should. If a person is going to read the answers, and there are few enough answers for a person to read, this is overhead and a text field is the cheaper start.
 
-What a text field cannot do is come back. Answers arrive as "the office skits girl" and "that AI guy" and nothing groups them; here one mapping resolves a verbatim string onto a real creator and applies backwards across every past month, so something you work out in month three still reaches months one and two. A field also shows one fixed order to everybody, which makes its shares an artifact of the layout. And it drops its skips out of its own denominator, and it joins to nothing.
+What a text field cannot do is come back. Answers arrive as "the office skits girl" and "the accent guy" and nothing groups them; here one mapping resolves a verbatim string onto a real creator and applies backwards across every past month, so something you work out in month three still reaches months one and two. A field also shows one fixed order to everybody, which makes its shares an artifact of the layout. And it drops its skips out of its own denominator, and it joins to nothing.
 
 ## Reach for it when
 
@@ -89,7 +89,7 @@ On npm at `1.x`, ten tools, MIT. Anything below `1.0.0` is the pre-pivot build a
 
 **3. Say what you run and where it goes.**
 
-> "Set up attribution for my checkout page. My channels are Google, ChatGPT, LinkedIn, TikTok and word of mouth, and for TikTok ask which of these three accounts: @jade.work0, @transyncai_tom, @nico.translate."
+> "Set up attribution for my checkout page. My channels are Google, ChatGPT, LinkedIn, TikTok and word of mouth, and for TikTok ask which of these three accounts: @jade.work0, @diego.conversa, @nico.translate."
 
 Your agent reads the platform catalog, creates the form, writes the candidate lists and hands back a URL to embed. A month later: "how did last month look?" — and, in the same breath, the three ambassadors you just signed get their own rows, and the channels that stopped earning their follow-up lose it.
 

@@ -117,7 +117,7 @@ Where did you first hear about us?
   ┌─ expanded in place, no page transition ──┐
   │ [ search or type your own              ] │
   │ ○ (avatar) Jade   @jade.work0            │
-  │ ○ (avatar) Tom    @transyncai_tom        │
+  │ ○ (avatar) Diego  @diego.conversa        │
   │ ○ (avatar) Nico   @nico.translate        │
   │ ○ I don't remember who                   │
   └──────────────────────────────────────────┘

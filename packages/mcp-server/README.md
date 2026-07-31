@@ -44,7 +44,7 @@ transcript — and transcripts end.
 
 > "Set up attribution for my checkout page. My channels are Google, ChatGPT, LinkedIn,
 > TikTok and word of mouth, and for TikTok ask which of these three accounts:
-> @jade.work0, @transyncai_tom, @nico.translate."
+> @jade.work0, @diego.conversa, @nico.translate."
 
 Your agent reads the platform catalog, creates the form, writes the candidate lists, and
 hands back a URL to embed. A month later: *"how did last month look?"*

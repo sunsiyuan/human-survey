@@ -23,6 +23,12 @@ import { PickerDemo } from '@/components/home/PickerDemo'
  * So: this page demonstrates, /index.md explains, and nothing was deleted — the cut prose
  * is in the twin verbatim, and in /faq and /about where it already lived.
  *
+ * Cut again, deliberately, after the first revamp still read as an essay: the two-placement
+ * arithmetic, the no-dashboard section and the answer to "I'd just add a text field" all
+ * came off. Each is a good argument and none of them is a first-screen argument — a visitor
+ * who has not yet understood WHAT this asks cannot evaluate WHY it asks twice. They are one
+ * click away in the twin and on /faq.
+ *
  * The hero is one card with two labelled panes because the framing question — show the
  * buyer's act, like Resend, or show the respondent's screen — has a wrong answer either
  * way. Resend can show four lines of code alone because everyone knows what an email is.
@@ -111,11 +117,10 @@ export default function Home() {
               Find out where your signups actually come from.
             </h1>
             <p className="mt-6 text-base leading-[1.7] text-slate-800 sm:text-lg sm:leading-8">
-              TikTok in-app, Instagram, podcasts, Slack groups, word of mouth, ChatGPT: none
-              of them send a referrer, so your analytics files them all under Direct. Ask the
-              person instead, inside your own signup or payment flow — and ask a second
-              question in place, so the answer is <strong>Jade, @jade.work0</strong> and not{' '}
-              <strong>TikTok</strong>.
+              TikTok in-app, podcasts, Slack groups, word of mouth, ChatGPT — none of them
+              send a referrer, so your analytics files them all under Direct. Ask the person
+              instead, in your own signup or checkout. Then ask which account, so the answer
+              is <strong>Jade, @jade.work0</strong> and not <strong>TikTok</strong>.
             </p>
             {/* Two things a visitor can do, not three. The old third button was an anchor to
                 a section further down, and an anchor is not an act. */}
@@ -158,76 +163,10 @@ export default function Home() {
               {/* The old "You scanned that. You did not read it." section was 180 words
                   explaining a decision the picker performs. It is one caption now. */}
               <p className="mt-3 text-[13px] leading-6 text-slate-600">
-                You scanned that. You did not read it. Logos are recognised rather than read,
-                which is what makes twelve rows cheaper to answer than eight rows of
-                &ldquo;social media&rdquo;.
+                You scanned that. You did not read it.
               </p>
             </div>
           </div>
-        </section>
-
-        {/* The number that needs two placements */}
-        <section className="max-w-3xl">
-          <h2 className="font-display text-2xl tracking-[-0.015em] text-slate-950 sm:text-3xl">
-            Two placements, and a number neither gives alone.
-          </h2>
-          <p className="mt-4 text-[15px] leading-7 text-slate-700 sm:text-base sm:leading-8">
-            Ask in the payment flow and the answer arrives already joined to revenue, with no
-            conversion tracking to install. Ask at signup too and you see the people a channel
-            sends who never pay. Run both, and a channel that is 30% of your signups and 12%
-            of your payers is being flattered by the signup number. Divide its share of payers
-            by its share of signups and you have how that channel converts against your
-            average; multiply that by your overall signup-to-paid rate and you have{' '}
-            <em>the channel&apos;s own rate</em> — for a channel that appears nowhere in your
-            analytics. No incumbent produces this, because no incumbent asks twice.
-          </p>
-        </section>
-
-        {/* The read side */}
-        <section className="max-w-3xl">
-          <h2 className="font-display text-2xl tracking-[-0.015em] text-slate-950 sm:text-3xl">
-            There is no dashboard. Your agent is the reader.
-          </h2>
-          {/* The three deep links were a <dl> in the hero. The shape went, the links did not:
-              this is the anchor set the docs page is entered through. */}
-          <p className="mt-4 text-[15px] leading-7 text-slate-700 sm:text-base sm:leading-8">
-            <a href="/docs#rollup" className="font-mono text-[13px] text-[var(--accent-strong)] hover:underline">
-              /rollup
-            </a>{' '}
-            gives you every channel and every creator for any window, each share beside the
-            base it was computed over — with skips and &ldquo;I don&apos;t remember&rdquo;
-            still inside that base rather than quietly leaving it.{' '}
-            <a href="/docs#async-results" className="font-mono text-[13px] text-[var(--accent-strong)] hover:underline">
-              ?since_seq
-            </a>{' '}
-            gives you the answers themselves, one row per person, deltas only; the form never
-            closes, so there is no terminal state to poll for.{' '}
-            <a href="/docs#events" className="font-mono text-[13px] text-[var(--accent-strong)] hover:underline">
-              external_id
-            </a>{' '}
-            carries your own user id in with the answer, so pushing your payment events
-            against it turns channel × heads into channel × revenue. You sign in once, for a
-            key. There is no results screen, and there will not be one.
-          </p>
-        </section>
-
-        {/* The objection every judge on the panel said the page had to answer */}
-        <section className="max-w-3xl">
-          <h2 className="font-display text-2xl tracking-[-0.015em] text-slate-950 sm:text-3xl">
-            &ldquo;I&apos;d just add a text field.&rdquo;
-          </h2>
-          <p className="mt-4 text-[15px] leading-7 text-slate-700 sm:text-base sm:leading-8">
-            Sometimes you should. If a person is going to read the answers, and there are few
-            enough answers for a person to read, this is overhead and a text field is the
-            cheaper start. What a text field cannot do is come back. Answers arrive as
-            &ldquo;the office skits girl&rdquo; and &ldquo;that AI guy&rdquo; and nothing
-            groups them; here one mapping resolves a verbatim string onto a real creator and
-            applies backwards across every past month, so something you work out in month
-            three still reaches months one and two. A field also shows one fixed order to
-            everybody, which makes its shares an artifact of the layout — order is randomized
-            per respondent here, so the raw share is unbiased by construction. And it drops
-            its skips out of its own denominator, and it joins to nothing.
-          </p>
         </section>
 
         {/* The ceiling, in the product's own voice */}
@@ -240,14 +179,10 @@ export default function Home() {
               it resolves the contradiction a careful reader has already noticed: why Google
               is in a list of channels that supposedly report nothing. */}
           <p className="mt-4 text-[15px] leading-7 text-slate-700 sm:text-base sm:leading-8">
-            It records what a person says they remember, not what they did, and it is first
-            touch only. Channels with their own console — Google, LinkedIn — stay in the
-            default list deliberately: their reported conversions are the ground truth that
-            self-report can be measured against, and that ratio is what would make the
-            channels reporting nothing worth planning against. We have not measured it. It
-            ships as an explicit null rather than a smoothed guess. And it never contacts
-            anyone: it returns a URL and an iframe that renders wherever you put it, inside a
-            flow you already own.
+            It records what a person says they remember, not what they did. Google and
+            LinkedIn are in the list on purpose — they count their own conversions, and that
+            is the only way to find out how much self-report undercounts everything else. We
+            have not measured that yet, so it ships as an explicit null rather than a guess.
           </p>
         </section>
 

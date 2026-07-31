@@ -524,7 +524,7 @@ const openApiDocument = {
                     prompt: 'Which account was it?',
                     candidates: [
                       { id: 'oecuid_8812', label: 'Jade', handle: '@jade.work0', icon_url: 'https://cdn.example.com/jade.jpg', aliases: ['office skits'] },
-                      { id: 'oecuid_2277', label: 'Tom', handle: '@transyncai_tom' },
+                      { id: 'oecuid_2277', label: 'Diego', handle: '@diego.conversa' },
                       { id: 'creator_dunno', label: "I don't remember who", pinned: 'end', dont_remember: true },
                     ],
                   },

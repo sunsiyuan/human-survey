@@ -29,7 +29,7 @@ const twoNodes = {
       prompt: 'Which one?',
       candidates: [
         { id: 'jade', label: 'Jade', handle: '@jade.work0' },
-        { id: 'tom', label: 'Tom', handle: '@transyncai_tom' },
+        { id: 'tom', label: 'Diego', handle: '@diego.conversa' },
       ],
     },
   ],
@@ -252,7 +252,12 @@ describe('configHash', () => {
     // every configure call. Do not update it without a rehash migration.
     assert.equal(
       configHash(parseAttributionConfig(twoNodes)),
-      '9262642657520a1d9d3d6e601de53eb6911ab2b5eb66b1c0cfbf15fcfa091955',
+      // Moved on 2026-07-31 because the FIXTURE changed, not the canonicalization: a
+      // handle in twoNodes was replaced. Verified before updating by hashing the old
+      // fixture with the current code, which still produced 9262642657…091955. Never
+      // update this value without doing that — a pin you edit whenever it goes red is
+      // not detecting anything.
+      '98e395e56aade5b33eefdef940421550dea018c0f531cdaf2b0eb3d587ec131c',
     )
   })
 })

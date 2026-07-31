@@ -47,7 +47,7 @@ const CREATORS: Candidate[] = [
     // Aliases are matched and never displayed (§3.4). Try "office" in the box.
     aliases: ['the one who does the office skits', 'office girl'],
   },
-  { id: 'oecuid_1c07', label: 'Tom', handle: '@transyncai_tom', aliases: ['the ai guy'] },
+  { id: 'oecuid_1c07', label: 'Diego', handle: '@diego.conversa', aliases: ['the accent guy'] },
   { id: 'oecuid_4b93', label: 'Nico', handle: '@nico.translate', aliases: ['translation'] },
   { id: 'creator_dunno', label: "I don't remember who", pinned: 'end', dont_remember: true },
 ]

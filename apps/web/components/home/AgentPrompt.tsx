@@ -24,7 +24,7 @@ import { useState } from 'react'
 
 const SPOKEN =
   'Set up attribution for my checkout. Channels are Google, ChatGPT, LinkedIn, TikTok and ' +
-  'word of mouth — for TikTok, ask which of @jade.work0, @transyncai_tom, @nico.translate.'
+  'word of mouth — for TikTok, ask which of @jade.work0, @diego.conversa, @nico.translate.'
 
 const INSTALL =
   'claude mcp add humansurvey --env HUMANSURVEY_API_KEY=hs_sk_... -- npx -y humansurvey-mcp'

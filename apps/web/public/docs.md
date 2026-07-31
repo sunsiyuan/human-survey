@@ -111,7 +111,7 @@ The config is a graph of ask nodes. Both questions are the same component: the f
         { "id": "oecuid_8f21", "label": "Jade", "handle": "@jade.work0",
           "icon_url": "https://cdn.example.com/avatars/jade.jpg",
           "aliases": ["the one who does the office skits"] },
-        { "id": "oecuid_1c07", "label": "Tom", "handle": "@transyncai_tom" },
+        { "id": "oecuid_1c07", "label": "Diego", "handle": "@diego.conversa" },
         { "id": "creator_dunno", "label": "I don't remember who",
           "pinned": "end", "dont_remember": true }
       ]
