@@ -40,6 +40,7 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: '/',
+    types: { 'text/markdown': '/index.md' },
   },
   openGraph: {
     title: 'HumanSurvey — find out where your signups actually come from',

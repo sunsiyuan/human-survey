@@ -453,7 +453,7 @@ function CopyButton({ value, label }: { value: string; label: string }) {
 /**
  * The two install shapes, with the key already in them.
  *
- * Kept in step with components/home/InstallPanel.tsx and the /docs install section by
+ * Kept in step with components/home/AgentPrompt.tsx and the /docs install section by
  * hand — they are the same two lines with a placeholder where this one has the real
  * value. HUMANSURVEY_API_KEY is the name packages/mcp-server reads (src/credentials.ts);
  * renaming it here produces a config that looks right and finds no key.

@@ -360,6 +360,7 @@ export function CandidatePicker({
               handle={row.candidate.handle}
               iconUrl={row.candidate.icon_url}
               tileColor={row.candidate.tile_color}
+              dontRemember={row.candidate.dont_remember === true}
               active={index === active}
               selected={committed?.kind === 'candidate' && committed.id === row.candidate.id}
               onPick={() => pick(row)}

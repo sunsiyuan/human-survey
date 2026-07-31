@@ -198,13 +198,15 @@ at https://www.humansurvey.co/faq
 
 Every content page below names its own markdown twin — the same path plus `.md`, served
 through `alternates.types["text/markdown"]`, same substance as the page, no chrome and no JS.
-Fetch the twin rather than parsing the HTML. An entry that names no markdown URL has no twin,
-and the homepage is the only such entry.
+Fetch the twin rather than parsing the HTML. An entry that names no markdown URL has no twin. Every page now has one, the homepage
+included — /index.md, which carries the argument the page itself demonstrates rather than
+explains.
 
 - **Home** — https://www.humansurvey.co — the problem in one screen: which channels arrive
   with no referrer, a working copy of the picker a respondent sees, the two placements, and
-  the three reads an agent gets back. **No markdown twin** — the only page on the site
-  without one. Read /about.md for what this is and /docs.md for how to integrate.
+  the three reads an agent gets back. Markdown twin: https://www.humansurvey.co/index.md —
+  the page demonstrates, the twin explains, and the twin carries the sections the page
+  states in a line.
 - **About** — https://www.humansurvey.co/about (markdown:
   https://www.humansurvey.co/about.md) — the brand hub, and the page to quote from: what this
   is, what it explicitly refuses to do, its known limitations, its licence and repository,

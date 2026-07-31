@@ -40,6 +40,7 @@ const ROUTES: Entry[] = [
   { path: '/changelog', source: 'app/changelog/page.tsx', changeFrequency: 'weekly', priority: 0.7 },
   { path: '/llms.txt', source: 'public/llms.txt', changeFrequency: 'weekly', priority: 0.8 },
   { path: '/llms-full.txt', source: 'public/llms-full.txt', changeFrequency: 'weekly', priority: 0.8 },
+  { path: '/index.md', source: 'public/index.md', changeFrequency: 'weekly', priority: 0.7 },
   { path: '/docs.md', source: 'public/docs.md', changeFrequency: 'weekly', priority: 0.6 },
   { path: '/about.md', source: 'public/about.md', changeFrequency: 'monthly', priority: 0.6 },
   { path: '/faq.md', source: 'public/faq.md', changeFrequency: 'weekly', priority: 0.6 },

@@ -9,7 +9,29 @@ import { LOGO_METRICS } from '@/lib/catalog/logo-metrics'
  * rather than inferred, because the only signal that would distinguish them automatically —
  * "is it stroked" — is a property of how they happen to be drawn today.
  */
-const GENERIC_ICONS = new Set(['friend', 'coworker-internal', 'event', 'press', 'email', 'ad'])
+const GENERIC_ICONS = new Set([
+  'friend',
+  'coworker-internal',
+  'event',
+  'press',
+  'email',
+  'ad',
+  'dont-remember',
+])
+
+/**
+ * The escape hatch's mark, applied by flag rather than by configuration.
+ *
+ * The argument for giving a non-answer an icon at all is the inverse of the one for giving
+ * the real options theirs: in a list where every row carries a mark, the row that does not
+ * is the one the eye stops on. A blank slot is not neutral, it is emphasis — and emphasis is
+ * the last thing this row should have. A quiet stroke glyph at the same 70% as the other
+ * descriptions makes it recede into the column instead of interrupting it.
+ *
+ * Resolved here, from the `dont_remember` flag the schema already carries, so every caller's
+ * escape hatch gets it without anyone having to know the path.
+ */
+const DONT_REMEMBER_ICON = '/logos/dont-remember.svg'
 
 import { Monogram } from './Monogram'
 
@@ -42,6 +64,8 @@ type CandidateRowProps = {
   tileColor?: string
   /** Muted trailing text where a handle would go. Used by the free-text row. */
   hint?: string
+  /** The "I don't remember" escape hatch. Carries its own mark; never a tile. */
+  dontRemember?: boolean
   /** Keyboard/pointer highlight. At most one row at a time. */
   active: boolean
   /** The committed answer. Distinct from `active`; both can be true. */
@@ -57,6 +81,7 @@ export function CandidateRow({
   iconUrl,
   tileColor,
   hint,
+  dontRemember,
   active,
   selected,
   onPick,
@@ -81,7 +106,8 @@ export function CandidateRow({
   // regenerated with it, so a stored copy would be the thing that goes stale the day a brand
   // reissues its mark on a different canvas. A caller-supplied avatar URL matches nothing and
   // gets the defaults, which is the correct answer for a photograph.
-  const slug = iconUrl?.startsWith('/logos/') ? iconUrl.slice(7, -4) : undefined
+  const resolvedIcon = iconUrl ?? (dontRemember ? DONT_REMEMBER_ICON : undefined)
+  const slug = resolvedIcon?.startsWith('/logos/') ? resolvedIcon.slice(7, -4) : undefined
   const metric = (slug ? LOGO_METRICS[slug] : undefined) ?? { scale: 1, invert: false }
   const generic = slug !== undefined && GENERIC_ICONS.has(slug)
 
@@ -109,7 +135,7 @@ export function CandidateRow({
             : 'border-transparent'
       }`}
     >
-      {iconUrl && !iconFailed ? (
+      {resolvedIcon && !iconFailed ? (
         // NO TILE behind a platform mark.
         //
         // A tile was tried and it is wrong for most of these: roughly two thirds of the marks
@@ -131,7 +157,7 @@ export function CandidateRow({
         //
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={iconUrl}
+          src={resolvedIcon}
           alt=""
           width={32}
           height={32}

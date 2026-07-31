@@ -130,8 +130,26 @@ const ORDERED_CREATORS = orderCandidates(
   DEMO_RENDER_ID,
 )
 
-export function PickerDemo() {
-  const [channel, setChannel] = useState<PickAnswer | null>(null)
+type PickerDemoProps = {
+  /**
+   * Mount with TikTok already chosen, so the follow-up — the thing that makes the answer a
+   * creator instead of a platform — is on screen without a click. The homepage hero uses
+   * this; the trade is real and was decided deliberately. Starting collapsed lets a visitor
+   * feel the scan ("you did not read that list, you recognised it"), which is the argument
+   * for the long catalog. Starting expanded shows the wedge, which is the argument for the
+   * product. The hero has one screen and the wedge wins; the scan is still available to
+   * anyone who resets.
+   */
+  startExpanded?: boolean
+}
+
+export function PickerDemo({ startExpanded = false }: PickerDemoProps) {
+  // Deterministic, so the server and the client compute the same initial state. An earlier
+  // version of this file seeded a random value in a useState initializer, which runs on both
+  // and produced a hydration mismatch.
+  const [channel, setChannel] = useState<PickAnswer | null>(
+    startExpanded ? { candidate_id: 'tiktok' } : null,
+  )
   const [creator, setCreator] = useState<PickAnswer | null>(null)
   /**
    * Bumped by "Start over" only, and used as the channel picker's key.

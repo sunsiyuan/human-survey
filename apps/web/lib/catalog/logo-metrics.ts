@@ -149,6 +149,10 @@ export const LOGO_METRICS: Record<string, LogoMetric> = {
     "scale": 1,
     "invert": true
   },
+  "dont-remember": {
+    "scale": 1,
+    "invert": true
+  },
   "email": {
     "scale": 1,
     "invert": true
