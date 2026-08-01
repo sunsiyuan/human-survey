@@ -8,6 +8,7 @@ import { z } from 'zod'
 
 import { CREDENTIALS_PATH, resolveApiKey, storeApiKey } from './credentials.js'
 import {
+  embedSnippet,
   formatCatalog,
   formatRollup,
   formatUnresolved,
@@ -313,8 +314,9 @@ server.registerTool(
   {
     title: 'List forms',
     description:
-      'List the forms on this account: id, name, whether it is active or paused, whether it has ' +
-      'been configured with questions yet, and how many responses it has collected.',
+      'List the forms on this account: id, name, respondent URL, whether it is active or ' +
+      'paused, whether it has been configured with questions yet, and how many responses it ' +
+      'has collected.',
     inputSchema: {},
   },
   async (): Promise<ToolResult> => {
@@ -339,7 +341,12 @@ server.registerTool(
           ? 'NOT CONFIGURED — shows nothing to respondents'
           : `config v${String(form.current_version)}`
 
-      return `  ${String(form.id)}  ${String(form.name)}  [${String(form.status)} · ${configured} · ${String(form.response_count ?? 0)} responses]`
+      // form_url comes off the wire rather than being rebuilt from the id here: the API
+      // derives it from the origin the request actually reached, which is the one the
+      // respondent has to be sent to.
+      const url = typeof form.form_url === 'string' ? `\n      ${form.form_url}` : ''
+
+      return `  ${String(form.id)}  ${String(form.name)}  [${String(form.status)} · ${configured} · ${String(form.response_count ?? 0)} responses]${url}`
     })
 
     return text([`${forms.length} form(s):`, ...lines].join('\n'))
@@ -374,8 +381,9 @@ server.registerTool(
   {
     title: 'Create a form',
     description:
-      'Create a form and return its id and its respondent URL. The form has no questions yet ' +
-      'and shows nothing to respondents until it is configured. ' +
+      'Create a form and return its id, its respondent URL, and the iframe and postMessage ' +
+      'listener to embed that URL in a host page. The form has no questions yet and shows ' +
+      'nothing to respondents until it is configured. ' +
       'allowed_origins restricts which sites may embed it; leaving it empty allows any site, ' +
       'which means any site can spend this account’s response quota.',
     inputSchema: {
@@ -413,7 +421,21 @@ server.registerTool(
       ? `\n\n${data.warnings.map((warning) => `Note: ${warning}`).join('\n')}`
       : ''
 
-    return text(`Form ${data.id} created.\nRespondent URL: ${data.form_url}${warnings}`)
+    // An empty allowed_origins is the API's default and is not an error, so nothing
+    // upstream flags it. Worth one line here: the cost is not a leak — the form and its
+    // answers stay private either way — it is that any page on the internet can point an
+    // iframe at this URL and spend the account's response quota against it.
+    const originsNote =
+      allowed_origins?.length
+        ? ''
+        : '\n\nNote: allowed_origins is empty, so any site may embed this form and consume ' +
+          'this account’s response quota. Set it to the origins that should host it.'
+
+    const embed = data.form_url ? `\n\n${embedSnippet(data.form_url)}` : ''
+
+    return text(
+      `Form ${data.id} created.\nRespondent URL: ${data.form_url}${warnings}${originsNote}${embed}`,
+    )
   },
 )
 
@@ -509,10 +531,16 @@ server.registerTool(
       ? `\n\n${data.warnings.map((warning) => `Note: ${warning}`).join('\n')}`
       : ''
 
+    // The URL, again, here. This is the call after which the form actually shows something
+    // — before it, embedding the URL renders "not accepting responses" — so this is the
+    // moment the model reports success to a human, and it should have the thing to hand
+    // over in front of it rather than several turns back in the transcript.
+    const url = `${API_BASE_URL}/s/${encodeURIComponent(form_id)}`
+
     return text(
       data.created
-        ? `Configuration v${data.version} is now live on form ${form_id}.${warnings}`
-        : `Identical to the existing v${data.version}, which is live again on form ${form_id}. No new version was made.${warnings}`,
+        ? `Configuration v${data.version} is now live on form ${form_id}.\nRespondents see it at ${url} — embed with ${url}?embed=1${warnings}`
+        : `Identical to the existing v${data.version}, which is live again on form ${form_id}. No new version was made.\nRespondents see it at ${url} — embed with ${url}?embed=1${warnings}`,
     )
   },
 )

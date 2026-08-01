@@ -55,9 +55,9 @@ hands back a URL to embed. A month later: *"how did last month look?"*
 |---|---|
 | `login` | Signs in with an email and a six-digit code; stores a key on this machine |
 | `get_catalog` | The platforms HumanSurvey knows: slugs to use as catalog_slug, labels, and channel class |
-| `list_forms` | The account's forms: status, whether configured, response count |
+| `list_forms` | The account's forms: status, whether configured, response count, respondent URL |
 | `get_form` | One form's settings and the question configuration respondents are seeing |
-| `create_form` | Creates a form and returns its id and respondent URL |
+| `create_form` | Creates a form and returns its id, its respondent URL, and the iframe and listener to embed it |
 | `configure_form` | Sets the questions and candidates; stored as a new immutable version |
 | `get_attribution` | The rollup: counts, shares with their bases, unresolved answers, follow-up coverage, revenue |
 | `list_unresolved` | The answers people typed instead of picking, grouped and counted |

@@ -205,12 +205,18 @@ export function formatRollup(rollup: Rollup): string {
     out.push('')
     out.push('FOLLOW-UP COVERAGE — whether the second question found an answer')
 
+    // NUL as the separator because ids are caller-supplied and any printable character
+    // could appear inside one, which would collide two distinct triples onto one key.
+    // Written as an escape, not as the literal byte it was until 2026-08-01: one
+    // unprintable byte makes `file`, grep and everything else that sniffs for binary
+    // classify this source as data and skip it in silence — and a search that cannot see
+    // a file reports it as clean.
     const abandonedBy = new Map(
-      rollup.followup_abandoned.map((f) => [`${f.node_id} ${f.candidate_id} ${f.follow_node_id}`, f]),
+      rollup.followup_abandoned.map((f) => [`${f.node_id}\u0000${f.candidate_id}\u0000${f.follow_node_id}`, f]),
     )
 
     for (const f of rollup.followup_unresolved) {
-      const key = `${f.node_id} ${f.candidate_id} ${f.follow_node_id}`
+      const key = `${f.node_id}\u0000${f.candidate_id}\u0000${f.follow_node_id}`
       const abandoned = abandonedBy.get(key)
 
       out.push(
@@ -372,4 +378,68 @@ export function formatCatalog(
   )
 
   return out.join('\n')
+}
+
+/**
+ * The host-side embed, ready to paste.
+ *
+ * This exists because the product's whole claim is that the buyer says one sentence and
+ * their agent hands back something they can put in their checkout — and for three releases
+ * the agent got a bare URL. `?embed=1` appeared nowhere in this package: not in a tool
+ * description, not in an output. A model that has never been shown the embed contract
+ * hands over the standalone URL, and the buyer either links to a full-page form from their
+ * checkout or goes and reads /docs — which is the one thing this interface exists to spare
+ * them.
+ *
+ * Only three of the five message types are here. `mounting` and `loaded` buy a skeleton
+ * during the cold load, which is a refinement; `resize` and the submitted/completed split
+ * are the two that are broken without. A snippet long enough to skim past teaches nothing.
+ *
+ * The origin comes off `form_url` rather than being written in. A self-hosted or staging
+ * base URL would otherwise emit a listener that discards every message it receives, which
+ * fails as a form that never resizes — no error anywhere, and nothing to search for.
+ */
+export function embedSnippet(formUrl: string): string {
+  let origin: string
+
+  try {
+    origin = new URL(formUrl).origin
+  } catch {
+    // Not a URL we can parse, so any origin check written here would be a guess. A wrong
+    // check is worse than none: it silently drops every message.
+    return ''
+  }
+
+  return [
+    'TO EMBED IT — `?embed=1` renders the form with no header, no footer and a transparent',
+    "background, sized to the host page. Paste this into the signup or payment page, and put",
+    "the host's own id for that person in external_id — that is what lets their payment events",
+    'join to these answers later.',
+    '',
+    '  <iframe id="hs-form"',
+    `          src="${formUrl}?embed=1&external_id=YOUR_USER_ID"`,
+    '          style="width:100%;border:0"></iframe>',
+    '  <script>',
+    '    window.addEventListener("message", function (e) {',
+    `      if (e.origin !== "${origin}") return`,
+    '      if (!e.data || e.data.source !== "humansurvey") return',
+    '',
+    '      if (e.data.type === "resize") {',
+    '        document.getElementById("hs-form").style.height = e.data.height + "px"',
+    '      }',
+    '      if (e.data.type === "submitted") {',
+    '        // First answer is durable. NOT the end — the follow-up may still be on screen,',
+    '        // so hiding the frame here cuts the respondent off mid-question.',
+    '      }',
+    '      if (e.data.type === "completed") {',
+    '        // Now it is safe to collapse the frame or route the user on.',
+    '      }',
+    '    })',
+    '  </script>',
+    '',
+    'Without the resize listener the iframe keeps its initial height and the respondent gets',
+    'an inner scrollbar over the answer list. Any other query param on the URL is stored as a',
+    'tag on the response (?plan=pro), so it can be segmented on later; embed, external_id and',
+    `host_origin are reserved. The remaining two message types are at ${origin}/docs#embed.`,
+  ].join('\n')
 }

@@ -33,6 +33,20 @@ type Entry = {
  */
 const entries: Entry[] = [
   {
+    date: '2026-08-01',
+    version: 'mcp 1.2.0',
+    title: 'The agent can hand you the embed now, instead of a URL and a reading assignment',
+    items: [
+      'Added — create_form returns the iframe and the postMessage listener for the URL it just minted, ready to paste into a signup or payment page. Until now the string "?embed=1" appeared nowhere in this package: not in a tool description, not in any output. The claim this product makes is that you describe your channels in a sentence and your agent hands back something you can put in your checkout — and what the agent actually received was a bare URL, so it either handed over the standalone full-page form or went to read /docs, which is the one errand this interface exists to spare you.',
+      'The snippet carries three of the five message types, not all five. resize is the one whose absence leaves the respondent scrolling inside a frame that never grew, and the submitted / completed split is the one whose absence cuts them off mid-question. mounting and loaded buy a loading skeleton, which is a refinement, and a snippet long enough to skim past teaches nothing. /docs#embed still has the whole contract, and the snippet says so.',
+      'The origin in the listener is derived from the returned form URL rather than written in, so a self-hosted or staging base URL does not emit a listener that silently discards every message it receives — which would present as a form that simply never resizes, with no error anywhere to search for.',
+      'Added — configure_form prints the respondent URL. It is the call after which a form stops rendering "not accepting responses", so it is the moment the agent reports success to a human, and until now the URL was several turns back in the transcript by then.',
+      'Added — list_forms prints each form’s URL. The API has returned form_url on every row since the pivot and the formatter dropped it.',
+      'Added — create_form says so when allowed_origins was left empty. Nothing upstream flags it because it is the documented default. The cost is not a leak — the answers stay private either way — it is that any page on the internet can point an iframe at the URL and spend the account’s response quota against it.',
+      'Fixed — src/format.ts held four literal NUL bytes, used as a separator in a composite map key. The key worked; the file did not. One unprintable byte is enough for file(1), for grep, and for anything else that sniffs for binary to classify a TypeScript source as data and skip it without saying so, which is how a search of this package came back clean on a file it had never opened. Written as an escape now, same string at runtime.',
+    ],
+  },
+  {
     date: '2026-07-31',
     title: 'humansurvey-mcp 1.1.0, and a window bug that produced wrong numbers',
     items: [
